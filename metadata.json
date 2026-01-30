@@ -1,0 +1,7 @@
+{
+  "name": "DeskBoost",
+  "description": "An MVP for a smart plant care system and marketplace for busy workspaces.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
