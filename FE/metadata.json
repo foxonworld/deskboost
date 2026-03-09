@@ -1,5 +1,5 @@
 {
-  "name": "DeskBoost",
+  "name": "Remix: DeskBoost v2",
   "description": "An MVP for a smart plant care system and marketplace for busy workspaces.",
   "requestFramePermissions": [
     "camera"

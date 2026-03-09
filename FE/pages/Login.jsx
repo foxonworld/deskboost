@@ -52,27 +52,27 @@ const Login = () => {
           
           <button 
             onClick={() => handleLogin('user')}
-            className="w-full bg-primary hover:bg-primary-dark text-text-main font-bold h-12 rounded-lg transition-all"
+            className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20"
           >
             Log In
           </button>
 
           <div className="relative flex py-1 items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="mx-4 text-xs text-text-secondary uppercase font-medium">Or demo as</span>
-            <div className="flex-grow border-t border-gray-200"></div>
+            <div className="flex-grow border-t border-gray-100"></div>
+            <span className="mx-4 text-xs text-text-secondary uppercase font-bold tracking-wider">Or demo as</span>
+            <div className="flex-grow border-t border-gray-100"></div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <button 
               onClick={() => handleLogin('user')}
-              className="bg-gray-50 border border-gray-200 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2"
+              className="bg-gray-50 border border-gray-100 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
             >
               <span className="material-symbols-outlined text-lg">person</span> User
             </button>
             <button 
               onClick={() => handleLogin('admin')}
-              className="bg-gray-50 border border-gray-200 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2"
+              className="bg-gray-50 border border-gray-100 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors"
             >
               <span className="material-symbols-outlined text-lg">admin_panel_settings</span> Admin
             </button>
