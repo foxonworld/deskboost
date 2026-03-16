@@ -36,6 +36,12 @@ const Dashboard = () => {
           <Link to="/plants" className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary dark:text-slate-400 font-semibold hover:bg-primary/5 hover:text-primary transition-colors">
             <span className="material-symbols-outlined">storefront</span> Shop
           </Link>
+          <Link to="/orders" className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary dark:text-slate-400 font-semibold hover:bg-primary/5 hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">receipt_long</span> My Orders
+          </Link>
+          <Link to="/cart" className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary dark:text-slate-400 font-semibold hover:bg-primary/5 hover:text-primary transition-colors">
+            <span className="material-symbols-outlined">shopping_cart</span> Cart
+          </Link>
           <Link to="/" className="flex items-center gap-3 px-3 py-3 rounded-xl text-text-secondary dark:text-slate-400 font-semibold hover:bg-primary/5 hover:text-primary transition-colors">
             <span className="material-symbols-outlined">home</span> Home
           </Link>

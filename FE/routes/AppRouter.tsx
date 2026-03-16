@@ -24,6 +24,14 @@ import AdminManageUserPlants from '../pages/AdminManageUserPlants';
 import AdminDiagnosisLogs from '../pages/AdminDiagnosisLogs';
 import AdminContentManagement from '../pages/AdminContentManagement';
 import AdminSystemSettings from '../pages/AdminSystemSettings';
+// Commerce routes (imported from Stitch)
+import ShoppingCart from '../pages/ShoppingCart';
+import Checkout from '../pages/Checkout';
+import PaymentSuccess from '../pages/PaymentSuccess';
+import PaymentCancelled from '../pages/PaymentCancelled';
+import MyOrders from '../pages/MyOrders';
+import OrderDetail from '../pages/OrderDetail';
+import AdminOrderManagement from '../pages/AdminOrderManagement';
 
 const AppRouter: React.FC = () => {
   return (
@@ -35,6 +43,14 @@ const AppRouter: React.FC = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+
+      {/* ── Commerce Routes (Green Garden Marketplace) ── */}
+      <Route path="/cart" element={<ShoppingCart />} />
+      <Route path="/checkout" element={<Checkout />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-cancelled" element={<PaymentCancelled />} />
+      <Route path="/orders" element={<MyOrders />} />
+      <Route path="/orders/:orderId" element={<OrderDetail />} />
 
       {/* User Routes */}
       <Route path="/app/dashboard" element={<Dashboard />} />
@@ -56,6 +72,7 @@ const AppRouter: React.FC = () => {
       <Route path="/app/admin/diagnosis-logs" element={<AdminDiagnosisLogs />} />
       <Route path="/app/admin/content" element={<AdminContentManagement />} />
       <Route path="/app/admin/settings" element={<AdminSystemSettings />} />
+      <Route path="/app/admin/orders" element={<AdminOrderManagement />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

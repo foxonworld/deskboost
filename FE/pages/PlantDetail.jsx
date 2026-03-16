@@ -1,12 +1,27 @@
 
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PLANTS } from '../data/mockData';
+import { useCart } from '../context/CartContext';
 
 const PlantDetail = () => {
   const { plantId } = useParams();
   const plant = PLANTS.find(p => p.id === plantId) || PLANTS[0];
+  const { addItem } = useCart();
+  const navigate = useNavigate();
+  const [added, setAdded] = useState(false);
+
+  const handleAddToCart = () => {
+    addItem(plant);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
+    addItem(plant);
+    navigate('/cart');
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light">
@@ -84,9 +99,21 @@ const PlantDetail = () => {
               </button>
             </div>
 
-            <button className="w-full bg-primary hover:bg-primary-dark text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 active:translate-y-0">
-              Add to Cart
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleAddToCart}
+                className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 ${added ? 'bg-green-500 text-white shadow-green-200' : 'bg-primary text-white shadow-primary/20 hover:bg-primary-dark'}`}
+              >
+                <span className="material-symbols-outlined text-2xl">{added ? 'check_circle' : 'shopping_cart'}</span>
+                {added ? 'Added to Cart!' : 'Add to Cart'}
+              </button>
+              <button
+                onClick={handleBuyNow}
+                className="w-full py-4 rounded-2xl font-bold text-lg border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all"
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
 

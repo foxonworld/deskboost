@@ -1,10 +1,12 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
+  const { totalItems } = useCart();
 
   const handleLogout = () => {
     localStorage.removeItem('role');
@@ -19,7 +21,7 @@ const Navbar = () => {
           <div className="size-8 text-primary flex items-center justify-center">
             <span className="material-symbols-outlined text-3xl">potted_plant</span>
           </div>
-          <h2 className="text-lg font-bold tracking-tight">DeskBoost</h2>
+          <h2 className="text-lg font-bold tracking-tight">Green Garden</h2>
         </Link>
         
         <nav className="flex items-center gap-4 md:gap-8">
@@ -31,25 +33,37 @@ const Navbar = () => {
           ) : (
             <>
               {role === 'admin' ? (
-                <Link to="/app/admin" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Admin</Link>
+                <>
+                  <Link to="/app/admin" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Admin</Link>
+                  <Link to="/app/admin/orders" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Orders</Link>
+                </>
               ) : (
                 <>
                   <Link to="/app/dashboard" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Dashboard</Link>
                   <Link to="/app/my-plants" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">My Plants</Link>
+                  <Link to="/orders" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">My Orders</Link>
                   <Link to="/app/profile" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Profile</Link>
                 </>
               )}
               <button onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors">Logout</button>
             </>
           )}
-          <button className="flex items-center gap-2 bg-primary text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-primary-dark transition-all shadow-sm shadow-primary/20">
+          {/* Cart Button with live badge */}
+          <Link
+            to="/cart"
+            className="relative flex items-center gap-2 bg-primary text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-primary-dark transition-all shadow-sm shadow-primary/20"
+          >
             <span className="material-symbols-outlined text-lg">shopping_cart</span>
             <span className="hidden sm:inline">Cart</span>
-          </button>
+            {totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            )}
+          </Link>
         </nav>
       </div>
     </header>
-
   );
 };
 

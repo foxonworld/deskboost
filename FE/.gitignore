@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Thêm vào .gitignore để không bị push lên GitHub
+echo ".agent/mcp.json" >> d:\FPT\KY7\EXE101\deskboost\.gitignore
+
+    
