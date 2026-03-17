@@ -3,37 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { apiGetOrderById } from '../services/commerceApi';
+import { ORDER_STATUS_CONFIG, ORDER_STATUS_STEPS, MOCK_ORDERS, formatVND } from '../data/mockData';
 
-const STATUS_STEPS = ['pending', 'paid', 'processing', 'shipping', 'delivered'];
 
-const STATUS_CONFIG = {
-  pending:    { label: 'Pending',    icon: 'schedule', color: 'text-amber-600 bg-amber-50 dark:bg-amber-500/10 border-amber-200' },
-  paid:       { label: 'Paid',       icon: 'payments', color: 'text-blue-600 bg-blue-50 dark:bg-blue-500/10 border-blue-200' },
-  processing: { label: 'Processing', icon: 'autorenew', color: 'text-purple-600 bg-purple-50 dark:bg-purple-500/10 border-purple-200' },
-  shipping:   { label: 'On the Way', icon: 'local_shipping', color: 'text-sky-600 bg-sky-50 dark:bg-sky-500/10 border-sky-200' },
-  delivered:  { label: 'Delivered',  icon: 'check_circle', color: 'text-green-600 bg-green-50 dark:bg-green-500/10 border-green-200' },
-  cancelled:  { label: 'Cancelled',  icon: 'cancel', color: 'text-red-600 bg-red-50 dark:bg-red-500/10 border-red-200' },
-};
-
-const MOCK_ORDER = {
-  id: 'GG-849201',
-  date: '2023-10-24',
-  status: 'delivered',
-  total: 195.00,
-  paymentMethod: 'Visa ending in 4242',
-  shippingAddress: '123 Garden Blvd, Ho Chi Minh City',
-  items: [
-    { name: 'Fiddle Leaf Fig (Large)', quantity: 1, price: 85, note: 'Ceramic Pot Included' },
-    { name: 'Monstera Deliciosa', quantity: 2, price: 55, note: 'Large · Easy Care' },
-  ],
-  timeline: [
-    { status: 'pending', date: '2023-10-21 09:00', note: 'Order placed' },
-    { status: 'paid', date: '2023-10-21 09:05', note: 'Payment confirmed via Visa' },
-    { status: 'processing', date: '2023-10-22 11:00', note: 'Plants being prepared' },
-    { status: 'shipping', date: '2023-10-23 08:00', note: 'Out for delivery' },
-    { status: 'delivered', date: '2023-10-24 14:30', note: 'Delivered successfully' },
-  ],
-};
 
 const OrderDetail = () => {
   const { orderId } = useParams();
@@ -47,7 +19,9 @@ const OrderDetail = () => {
         const data = await apiGetOrderById(orderId);
         setOrder(data);
       } catch {
-        setOrder({ ...MOCK_ORDER, id: orderId });
+        // Fall back to central mock data
+        const found = MOCK_ORDERS.find(o => o.id === orderId);
+        setOrder(found || { ...MOCK_ORDERS[0], id: orderId });
       } finally {
         setLoading(false);
       }
@@ -66,10 +40,8 @@ const OrderDetail = () => {
     );
   }
 
-  const cfg = STATUS_CONFIG[order?.status] || STATUS_CONFIG['pending'];
-  const stepIndex = STATUS_STEPS.indexOf(order?.status);
-  const shipping = 15;
-  const subtotal = order?.total ? order.total - shipping : 0;
+  const cfg = ORDER_STATUS_CONFIG[order?.status] || ORDER_STATUS_CONFIG['pending'];
+  const stepIndex = ORDER_STATUS_STEPS.indexOf(order?.status);
 
   return (
     <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
@@ -98,14 +70,14 @@ const OrderDetail = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 p-6 shadow-sm mb-6">
             <h2 className="text-lg font-black text-text-main dark:text-white mb-5">Order Progress</h2>
             <div className="flex items-center">
-              {STATUS_STEPS.map((s, i) => (
+              {ORDER_STATUS_STEPS.map((s, i) => (
                 <React.Fragment key={s}>
                   <div className="flex flex-col items-center gap-1">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${i <= stepIndex ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-100 dark:bg-slate-800 text-text-secondary'}`}>
-                      <span className="material-symbols-outlined text-sm">{STATUS_CONFIG[s]?.icon}</span>
+                      <span className="material-symbols-outlined text-sm">{ORDER_STATUS_CONFIG[s]?.icon}</span>
                     </div>
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${i <= stepIndex ? 'text-primary' : 'text-text-secondary'}`}>
-                      {STATUS_CONFIG[s]?.label}
+                      {ORDER_STATUS_CONFIG[s]?.label}
                     </span>
                   </div>
                   {i < STATUS_STEPS.length - 1 && (
@@ -139,7 +111,7 @@ const OrderDetail = () => {
                       <p className="text-sm text-text-secondary font-medium">{item.note}</p>
                       <p className="text-xs text-text-secondary">Qty: {item.quantity}</p>
                     </div>
-                    <span className="font-black text-lg text-primary">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="font-black text-lg text-primary">{formatVND(item.unitPrice * item.quantity)}</span>
                   </div>
                 ))}
               </div>
@@ -177,15 +149,15 @@ const OrderDetail = () => {
           <div className="space-y-5">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
               <h2 className="text-lg font-black text-text-main dark:text-white">Payment Summary</h2>
-              <div className="space-y-2 text-sm font-semibold text-text-secondary">
-                <div className="flex justify-between"><span>Subtotal</span><span className="text-text-main dark:text-white">${subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span>Shipping</span><span className="text-text-main dark:text-white">${shipping.toFixed(2)}</span></div>
-                <div className="h-px bg-gray-100 dark:bg-slate-800 my-1" />
-                <div className="flex justify-between text-base">
-                  <span className="font-black text-text-main dark:text-white">Total Paid</span>
-                  <span className="font-black text-primary text-xl">${order?.total?.toFixed(2)}</span>
+                <div className="space-y-2 text-sm font-semibold text-text-secondary">
+                  <div className="flex justify-between"><span>Tạm tính</span><span className="text-text-main dark:text-white">{formatVND(order?.subtotal ?? 0)}</span></div>
+                  <div className="flex justify-between"><span>Vận chuyển</span><span className="text-text-main dark:text-white">{formatVND(order?.shippingFee ?? 0)}</span></div>
+                  <div className="h-px bg-gray-100 dark:bg-slate-800 my-1" />
+                  <div className="flex justify-between text-base">
+                    <span className="font-black text-text-main dark:text-white">Tổng cộng</span>
+                    <span className="font-black text-primary text-xl">{formatVND(order?.total ?? 0)}</span>
+                  </div>
                 </div>
-              </div>
               <div className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-slate-800 rounded-xl">
                 <span className="material-symbols-outlined text-text-secondary text-base">credit_card</span>
                 <span className="text-sm font-semibold text-text-secondary">{order?.paymentMethod}</span>

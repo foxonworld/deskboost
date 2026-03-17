@@ -2,24 +2,33 @@
 import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { PLANTS } from '../data/mockData';
+import { PRODUCTS, formatVND } from '../data/mockData';
 import { useCart } from '../context/CartContext';
 
 const PlantDetail = () => {
   const { plantId } = useParams();
-  const plant = PLANTS.find(p => p.id === plantId) || PLANTS[0];
+  const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
   const { addItem } = useCart();
   const navigate = useNavigate();
   const [added, setAdded] = useState(false);
 
+  // Build a CartItem from the Product
+  const toCartItem = (qty = 1) => ({
+    id: plant.id,
+    name: plant.name,
+    image: plant.image,
+    price: plant.price,
+    quantity: qty,
+  });
+
   const handleAddToCart = () => {
-    addItem(plant);
+    addItem(toCartItem());
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
-    addItem(plant);
+    addItem(toCartItem());
     navigate('/cart');
   };
 
@@ -57,7 +66,7 @@ const PlantDetail = () => {
               <h1 className="text-5xl font-black tracking-tight text-text-main leading-tight">{plant.name}</h1>
               <p className="text-xl text-text-secondary font-medium italic">{plant.species}</p>
               <div className="flex items-center gap-6">
-                <span className="text-4xl font-black text-primary">${plant.price}</span>
+              <span className="text-4xl font-black text-primary">{formatVND(plant.price)}</span>
                 <div className="flex items-center gap-1 font-bold text-text-main">
                   <span className="material-symbols-outlined text-yellow-500 text-xl fill-1">star</span>
                   <span className="text-lg">4.8</span>
@@ -65,38 +74,50 @@ const PlantDetail = () => {
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-gray-100 text-xs font-bold text-text-main shadow-sm">
-                <span className="material-symbols-outlined text-primary text-lg">air</span> Air Purifying
+            {/* Chips */}
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center px-3 py-1 rounded-lg bg-[#f0f4f2] dark:bg-white/10 text-xs font-bold text-[#111813] dark:text-white gap-1.5 border border-transparent dark:border-white/5">
+                <span className="material-symbols-outlined text-primary text-base">air</span> Air Purifying
               </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary border border-primary/20 rounded-xl text-xs font-bold shadow-sm">
-                <span className="material-symbols-outlined text-lg">verified</span> Healthy Guarantee
+              <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/10 text-xs font-bold text-primary gap-1.5 border border-primary/20">
+                <span className="material-symbols-outlined text-base">verified</span> Healthy Guarantee
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { label: 'Light', val: plant.light, icon: 'wb_sunny', color: 'text-amber-500' },
-                { label: 'Water', val: plant.water, icon: 'water_drop', color: 'text-sky-500' },
-                { label: 'Difficulty', val: plant.difficulty, icon: 'spa', color: 'text-emerald-500' }
-              ].map((m, i) => (
-                <div key={i} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm text-center space-y-1 hover:shadow-md transition-shadow">
-                  <span className={`material-symbols-outlined ${m.color} mb-1 text-2xl`}>{m.icon}</span>
-                  <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest">{m.label}</p>
-                  <p className="text-xs font-bold text-text-main">{m.val}</p>
+            {/* Care Metrics */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
+                <span className="material-symbols-outlined text-yellow-500">wb_sunny</span>
+                <p className="text-[10px] font-black uppercase text-gray-400">Light</p>
+                <p className="text-xs font-bold">Bright Indirect</p>
+              </div>
+              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
+                <span className="material-symbols-outlined text-blue-500">water_drop</span>
+                <p className="text-[10px] font-black uppercase text-gray-400">Water</p>
+                <p className="text-xs font-bold">Weekly</p>
+              </div>
+              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
+                <span className="material-symbols-outlined text-green-500">spa</span>
+                <p className="text-[10px] font-black uppercase text-gray-400">Care</p>
+                <p className="text-xs font-bold">Beginner</p>
+              </div>
+            </div>
+
+            {/* AI Chatbot Placeholder */}
+            <div className="relative group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-primary to-emerald-400 rounded-xl opacity-20 blur group-hover:opacity-40 transition duration-500"></div>
+              <div className="p-1 pr-2 bg-white dark:bg-surface-dark rounded-xl border border-gray-100 dark:border-white/10 flex items-center gap-3 relative">
+                <div className="p-3 bg-[#f0f4f2] dark:bg-black/20 rounded-lg text-primary">
+                  <span className="material-symbols-outlined">auto_awesome</span>
                 </div>
-              ))}
-            </div>
-
-            <div className="p-1.5 bg-white border border-gray-100 rounded-2xl flex items-center gap-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-              <div className="p-3 bg-background-light rounded-xl text-primary">
-                <span className="material-symbols-outlined">auto_awesome</span>
+                <div className="flex-1">
+                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-0.5">DeskBoost AI Helper</p>
+                  <input className="w-full text-sm bg-transparent border-none p-0 focus:ring-0 text-[#111813] dark:text-white placeholder:text-gray-400" placeholder="Ask about this plant..." type="text"/>
+                </div>
+                <button className="bg-primary/20 hover:bg-primary text-primary hover:text-white p-1.5 rounded-lg transition-all">
+                  <span className="material-symbols-outlined text-[18px]">send</span>
+                </button>
               </div>
-              <input type="text" placeholder="Will this fit on a small desk?" className="flex-1 border-none focus:ring-0 text-sm font-medium text-text-main placeholder:text-text-secondary/50" />
-              <button className="bg-primary/10 p-2.5 rounded-xl text-primary hover:bg-primary hover:text-white transition-all mr-1">
-                <span className="material-symbols-outlined">send</span>
-              </button>
             </div>
 
             <div className="flex flex-col gap-3">

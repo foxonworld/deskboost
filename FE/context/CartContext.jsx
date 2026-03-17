@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { formatVND, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD } from '../data/mockData';
 
-const CartContext = createContext(null);
+// Re-export helpers for convenience
+export { formatVND, SHIPPING_FEE, FREE_SHIPPING_THRESHOLD };
 
+// ── Reducer ───────────────────────────────────────────────────
 const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_ITEM': {
@@ -16,7 +19,10 @@ const cartReducer = (state, action) => {
           ),
         };
       }
-      return { ...state, items: [...state.items, { ...action.payload, quantity: action.payload.quantity || 1 }] };
+      return {
+        ...state,
+        items: [...state.items, { ...action.payload, quantity: action.payload.quantity || 1 }],
+      };
     }
     case 'REMOVE_ITEM':
       return { ...state, items: state.items.filter(i => i.id !== action.payload) };
@@ -38,31 +44,51 @@ const cartReducer = (state, action) => {
 
 const initialState = () => {
   try {
-    const saved = localStorage.getItem('gg_cart');
+    // v2 = new VNĐ schema; clear old USD cart automatically
+    const saved = localStorage.getItem('db_cart_v2');
     return saved ? JSON.parse(saved) : { items: [], lastOrder: null };
   } catch {
     return { items: [], lastOrder: null };
   }
 };
 
+// ── Context ───────────────────────────────────────────────────
+const CartContext = createContext(null);
+
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, undefined, initialState);
 
   useEffect(() => {
-    localStorage.setItem('gg_cart', JSON.stringify(state));
+    localStorage.setItem('db_cart_v2', JSON.stringify(state));
   }, [state]);
 
-  const addItem = (plant) => dispatch({ type: 'ADD_ITEM', payload: plant });
-  const removeItem = (id) => dispatch({ type: 'REMOVE_ITEM', payload: id });
-  const updateQuantity = (id, quantity) => dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity } });
-  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
-  const setLastOrder = (order) => dispatch({ type: 'SET_LAST_ORDER', payload: order });
+  const addItem    = (item)            => dispatch({ type: 'ADD_ITEM',        payload: item });
+  const removeItem = (id)              => dispatch({ type: 'REMOVE_ITEM',     payload: id });
+  const updateQuantity = (id, qty)     => dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity: qty } });
+  const clearCart  = ()                => dispatch({ type: 'CLEAR_CART' });
+  const setLastOrder = (order)         => dispatch({ type: 'SET_LAST_ORDER',  payload: order });
 
-  const subtotal = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
+  // ── Computed values (all in VNĐ) ──────────────────────────
+  const subtotal       = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const isFreeShipping = subtotal > 0 && subtotal >= FREE_SHIPPING_THRESHOLD;
+  const shippingFee    = subtotal > 0 ? (isFreeShipping ? 0 : SHIPPING_FEE) : 0;
+  const total          = subtotal + shippingFee;
+  const totalItems     = state.items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ ...state, subtotal, totalItems, addItem, removeItem, updateQuantity, clearCart, setLastOrder }}>
+    <CartContext.Provider value={{
+      ...state,
+      subtotal,
+      shippingFee,
+      total,
+      totalItems,
+      isFreeShipping,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      setLastOrder,
+    }}>
       {children}
     </CartContext.Provider>
   );

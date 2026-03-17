@@ -1,209 +1,284 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const AdminSystemSettings = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('AI Management');
 
-  return (
-    <div className="bg-[#f6f8f8] dark:bg-[#10221f] text-slate-900 dark:text-slate-100 antialiased font-['Manrope'] min-h-screen">
-      <div className="flex min-h-screen">
-        {/* Sidebar Navigation */}
-        <aside className="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
-          <div className="p-6 flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="size-10 rounded-lg bg-[#4CAF50] flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">potted_plant</span>
+  // Hardcoded AI Usage stats for demonstration
+  const aiStats = {
+    totalTokens: 1000000,
+    usedTokens: 642380,
+    model: 'Gemini 3.5 Pro Vision',
+    status: 'Operational',
+    lastReset: '2026-03-01',
+    topUsers: [
+      { id: 1, name: 'Alex Johnson', email: 'alex.j@example.com', tokens: 45200, uses: 124 },
+      { id: 2, name: 'Sarah Jenkins', email: 'sarah.j@example.com', tokens: 38100, uses: 98 },
+      { id: 3, name: 'Michael Chen', email: 'm.chen@example.com', tokens: 29500, uses: 82 },
+      { id: 4, name: 'Elena Rodriguez', email: 'elena.rod@example.com', tokens: 12400, uses: 45 },
+    ]
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('role');
+    localStorage.removeItem('isLoggedIn');
+    navigate('/');
+  };
+
+  const menuItems = [
+    { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin' },
+    { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants' },
+    { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+    { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants' },
+    { name: 'User List', icon: 'group', path: '/app/admin/users' },
+    { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
+    { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+  ];
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'AI Management':
+        return (
+          <div className="space-y-6">
+            {/* AI Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest text-[#4CAF50]">Mô hình hiện tại</p>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white mt-1">{aiStats.model}</h3>
+                <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-[#4CAF50] bg-[#4CAF50]/10 px-2 py-0.5 rounded-lg w-fit">
+                  <div className="size-1.5 rounded-full bg-[#4CAF50] animate-pulse"></div>
+                  {aiStats.status}
+                </div>
+                <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-7xl text-slate-100 dark:text-slate-800 opacity-50">smart_toy</span>
+              </div>
+
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm col-span-2">
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest text-[#4CAF50]">Hạn mức Token hàng tháng</p>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
+                      {aiStats.usedTokens.toLocaleString()} <span className="text-slate-400 font-bold text-sm">/ {aiStats.totalTokens.toLocaleString()}</span>
+                    </h3>
+                  </div>
+                  <p className="text-sm font-black text-[#4CAF50]">{Math.round((aiStats.usedTokens / aiStats.totalTokens) * 100)}% đã dùng</p>
+                </div>
+                <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-[#4CAF50] transition-all duration-1000" style={{ width: `${(aiStats.usedTokens / aiStats.totalTokens) * 100}%` }}></div>
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2 font-medium italic">Ngày làm mới tiếp theo: 2026-04-01</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg font-bold leading-none">DeskBoost</h1>
-              <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Admin Panel</p>
+
+            {/* Top Users Using AI */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden text-slate-900 dark:text-slate-100">
+               <div className="p-6 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                  <h3 className="text-lg font-black tracking-tight">Người dùng sử dụng AI nhiều nhất</h3>
+                  <button className="text-xs font-bold text-[#4CAF50] hover:underline transition-all">Chi tiết báo cáo</button>
+               </div>
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left">
+                   <thead>
+                     <tr className="bg-slate-50/50 dark:bg-slate-800/50 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                       <th className="px-6 py-4">Người dùng</th>
+                       <th className="px-6 py-4 text-center">Số lần Diagnosis</th>
+                       <th className="px-6 py-4 text-right">Tổng Token đã dùng</th>
+                     </tr>
+                   </thead>
+                   <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
+                     {aiStats.topUsers.map(user => (
+                       <tr key={user.id} className="hover:bg-slate-50/30 transition-colors">
+                         <td className="px-6 py-4">
+                           <div className="flex items-center gap-3">
+                             <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-500">
+                               {user.name.charAt(0)}
+                             </div>
+                             <div>
+                               <p className="text-sm font-bold leading-none">{user.name}</p>
+                               <p className="text-[10px] text-slate-500 mt-1">{user.email}</p>
+                             </div>
+                           </div>
+                         </td>
+                         <td className="px-6 py-4 text-center text-sm font-bold text-slate-600 dark:text-slate-300">
+                           {user.uses}
+                         </td>
+                         <td className="px-6 py-4 text-right">
+                           <span className="text-sm font-black text-slate-900 dark:text-white">{user.tokens.toLocaleString()}</span>
+                           <span className="text-[10px] text-slate-400 ml-1">tokens</span>
+                         </td>
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
             </div>
-          </div>
-          <nav className="flex-1 px-4 space-y-1 mt-4">
-            <button onClick={() => navigate('/app/admin')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">dashboard</span>
-              <span className="text-sm font-medium">Dashboard</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/users')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">group</span>
-              <span className="text-sm font-medium">Users</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/plants')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">eco</span>
-              <span className="text-sm font-medium">Plant Library</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/user-plants')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">yard</span>
-              <span className="text-sm font-medium">User Plants</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/diagnosis-logs')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">clinical_notes</span>
-              <span className="text-sm font-medium">Diagnosis Logs</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/content')} className="w-full flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">description</span>
-              <span className="text-sm font-medium">Content Management</span>
-            </button>
-            <button onClick={() => navigate('/app/admin/settings')} className="w-full flex items-center gap-3 px-3 py-2.5 bg-[#4CAF50]/10 text-[#4CAF50] rounded-lg transition-colors text-left">
-              <span className="material-symbols-outlined shrink-0">settings</span>
-              <span className="text-sm font-bold">System Settings</span>
-            </button>
-          </nav>
-          <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3 p-2">
-              <div className="size-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center" style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuBy0GzhWDJHZapmYkBvFSO2b4y_IDpfnWtR2dGuQU5cJ7Iso5_6l3CW6G0e2EVxPMYQ4hwk_QGGjrvCh9QDXDnk_yUJj1e139Rrw0_Jfs3iHR_IF0XDbyhcmmFFh7H6Meat9Remf6GnOkqyopNsNI4-Dstuo_SDjHZlvwMyjgRNbZ1f2ZA09PK8JxSlIX8uF833OqQ8b8MxZKekIXgtmS1IlsX8Z9v4PRNwlClnnEXqiFHfAYFo_99qvgSE5GsEryigsK18-VGN0tY')" }}></div>
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold truncate">Alex Rivard</p>
-                <p className="text-xs text-slate-500 truncate">Super Admin</p>
+
+            {/* AI Settings Section */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 space-y-6 text-slate-900 dark:text-slate-100">
+              <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                <div className="size-10 bg-[#4CAF50]/10 text-[#4CAF50] rounded-xl flex items-center justify-center">
+                  <span className="material-symbols-outlined">settings_suggest</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-black">Cấu hình mô hình AI</h3>
+                  <p className="text-xs text-slate-500">Tùy chỉnh các thông số hoạt động của Engine chẩn đoán.</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Model Selection</label>
+                  <select className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none font-bold text-sm">
+                    <option>Gemini 3.5 Pro Vision (Khuyên dùng)</option>
+                    <option>Gemini 3.5 Flash (Tốc độ cao)</option>
+                    <option>GPT-4o Vision API</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Độ chính xác (Threshold)</label>
+                  <div className="flex items-center gap-4">
+                    <input type="range" className="flex-1 accent-[#4CAF50]" min="0" max="100" defaultValue="85" />
+                    <span className="text-sm font-black text-[#4CAF50]">85%</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </aside>
+        );
+      case 'Security':
+        return (
+          <div className="space-y-6">
+            <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 space-y-6 text-slate-900 dark:text-slate-100">
+              <div className="flex items-center gap-3 border-b border-slate-50 dark:border-slate-800 pb-4">
+                <div className="size-10 bg-[#4CAF50]/10 text-[#4CAF50] rounded-lg flex items-center justify-center">
+                  <span className="material-symbols-outlined">shield</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">Security Preferences</h3>
+                  <p className="text-xs text-slate-500">Manage how administrators access the console.</p>
+                </div>
+              </div>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto p-8">
-            {/* Header */}
-            <header className="mb-10">
-              <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">System Settings</h2>
-              <p className="text-slate-500 dark:text-slate-400 mt-2">Manage your global application preferences, security integrations, and system-wide configurations.</p>
-            </header>
+              <div className="space-y-6 pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold">Two-Factor Authentication</p>
+                    <p className="text-xs text-slate-500">Require a security code to sign in to the admin panel.</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input className="sr-only peer" defaultChecked type="checkbox" />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
+                  </label>
+                </div>
 
-            <div className="space-y-8">
-              {/* Email Notification Settings */}
-              <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#4CAF50]">mail</span>
-                    Email Notification Settings
-                  </h3>
+                <div className="flex items-center justify-between pt-4 border-t border-slate-50 dark:border-slate-800">
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold">Session Timeout</p>
+                    <p className="text-xs text-slate-500">Automatically logout after a period of inactivity.</p>
+                  </div>
+                  <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-xs font-bold px-4 py-2 text-slate-600 dark:text-slate-300 outline-none focus:ring-1 focus:ring-[#4CAF50]">
+                    <option>30 Minutes</option>
+                    <option selected>1 Hour</option>
+                    <option>4 Hours</option>
+                  </select>
                 </div>
-                <div className="p-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">New User Registration</p>
-                      <p className="text-xs text-slate-500">Receive an alert every time a new account is created.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input defaultChecked className="sr-only peer" type="checkbox" />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Daily Care Reminders</p>
-                      <p className="text-xs text-slate-500">Automated morning emails for plant watering schedules.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input defaultChecked className="sr-only peer" type="checkbox" />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">System Alerts</p>
-                      <p className="text-xs text-slate-500">Critical server notifications and API downtime warnings.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input className="sr-only peer" type="checkbox" />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
-                    </label>
-                  </div>
-                </div>
-              </section>
+              </div>
+            </section>
+          </div>
+        );
+      default:
+        return (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-20 text-center text-slate-900 dark:text-slate-100">
+            <span className="material-symbols-outlined text-6xl text-slate-200">build</span>
+            <p className="text-slate-500 font-bold mt-4">Tính năng {activeTab} đang được phát triển</p>
+          </div>
+        );
+    }
+  };
 
-              {/* AI API Configuration */}
-              <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#4CAF50]">smart_toy</span>
-                    AI API Configuration
-                  </h3>
-                </div>
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">OpenAI API Key</label>
-                    <div className="relative">
-                      <input className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all" type="password" defaultValue="sk-proj-************************************" />
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                        <span className="material-symbols-outlined text-base">visibility</span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Model Selection</label>
-                    <select className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all">
-                      <option>GPT-4o (Recommended)</option>
-                      <option>GPT-4 Turbo</option>
-                      <option>Gemini Pro 1.5</option>
-                      <option>Claude 3.5 Sonnet</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Google AI Studio API Key</label>
-                    <div className="relative">
-                      <input className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all" placeholder="Enter Gemini API key" type="password" />
-                      <button className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
-                        <span className="material-symbols-outlined text-base">visibility</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </section>
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#F7F9F8] dark:bg-[#10221f] text-slate-900 dark:text-slate-100 font-display antialiased">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0">
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#4CAF50] flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}>
+            <span className="material-symbols-outlined">potted_plant</span>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-slate-900 dark:text-slate-50 font-bold text-lg leading-none">DeskBoost</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Admin Console</p>
+          </div>
+        </div>
+        <nav className="flex-1 px-4 space-y-1">
+          {menuItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-semibold ${
+                item.active 
+                  ? 'bg-[#4CAF50]/10 text-[#4CAF50]' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span className={`material-symbols-outlined ${item.active ? 'fill-1' : ''}`}>{item.icon}</span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <Link to="/app/admin/settings" className="flex items-center gap-3 px-3 py-2.5 bg-[#4CAF50]/10 text-[#4CAF50] rounded-lg transition-colors">
+            <span className="material-symbols-outlined fill-1">settings</span>
+            <span className="text-sm font-bold">Settings</span>
+          </Link>
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors text-left">
+            <span className="material-symbols-outlined font-normal">logout</span>
+            <span className="text-sm font-semibold">Logout</span>
+          </button>
+        </div>
+      </aside>
 
-              {/* System Parameters */}
-              <section className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-                <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#4CAF50]">tune</span>
-                    System Parameters
-                  </h3>
-                </div>
-                <div className="p-6 space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Maintenance Mode</p>
-                      <p className="text-xs text-slate-500">Redirect all users to a technical maintenance page.</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input className="sr-only peer" type="checkbox" />
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
-                    </label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Global Care Reminder Frequency</label>
-                      <div className="flex items-center gap-2">
-                        <input className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all" type="number" defaultValue="24" />
-                        <span className="text-sm text-slate-500 font-medium">Hours</span>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Default Currency</label>
-                      <select className="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 focus:ring-[#4CAF50] focus:border-[#4CAF50] transition-all">
-                        <option value="USD">USD - US Dollar</option>
-                        <option value="EUR">EUR - Euro</option>
-                        <option value="GBP">GBP - British Pound</option>
-                        <option value="CAD">CAD - Canadian Dollar</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              </section>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden text-slate-900 dark:text-slate-100">
+        {/* Header / Navbar */}
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-8">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">System Settings</h2>
+            <nav className="hidden md:flex items-center gap-6">
+              <Link to="/plants" className="text-sm font-bold text-slate-500 hover:text-[#4CAF50] transition-colors">Shop</Link>
+              <Link to="/cart" className="text-sm font-bold text-slate-500 hover:text-[#4CAF50] transition-colors">Cart</Link>
+              <Link to="/app/admin" className="text-sm font-bold text-[#4CAF50] border-b-2 border-[#4CAF50] py-5">Dashboard</Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 transition-colors">Reset</button>
+            <button className="px-5 py-2.5 rounded-xl bg-[#4CAF50] text-white font-bold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+              <span className="material-symbols-outlined text-lg">save</span>
+              Save Changes
+            </button>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-8 bg-[#f6f8f8] dark:bg-[#10221f]">
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 gap-8">
+              {['Profile', 'AI Management', 'Security', 'Notifications'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-4 text-sm font-bold transition-all whitespace-nowrap ${activeTab === tab ? 'text-[#4CAF50] border-b-2 border-[#4CAF50]' : 'text-slate-400 hover:text-slate-600'}`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            {/* Footer Action */}
-            <footer className="mt-12 flex items-center justify-end border-t border-slate-200 dark:border-slate-800 pt-8 gap-4 mb-20">
-              <button className="px-6 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                Reset to Defaults
-              </button>
-              <button className="bg-[#4CAF50] hover:bg-[#4CAF50]/90 text-white px-8 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-[#4CAF50]/20 transition-all flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">save</span>
-                Save Settings
-              </button>
-            </footer>
+            {/* Render Active Tab Content */}
+            {renderTabContent()}
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

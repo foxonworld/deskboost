@@ -14,6 +14,8 @@ import PlantAnalyze from '../pages/PlantAnalyze';
 import AddPlantUser from '../pages/AddPlantUser';
 import DiagnosisResult from '../pages/DiagnosisResult';
 import UserProfile from '../pages/UserProfile';
+import AIPlantAnalysis from '../pages/AIPlantAnalysis';
+import RemindersSettings from '../pages/RemindersSettings';
 import AdminDashboard from '../pages/AdminDashboard';
 import AdminUserList from '../pages/AdminUserList';
 import AdminUserDetail from '../pages/AdminUserDetail';
@@ -21,8 +23,9 @@ import AdminPlantList from '../pages/AdminPlantList';
 import AdminAddPlant from '../pages/AdminAddPlant';
 import AdminEditPlant from '../pages/AdminEditPlant';
 import AdminManageUserPlants from '../pages/AdminManageUserPlants';
-import AdminDiagnosisLogs from '../pages/AdminDiagnosisLogs';
-import AdminContentManagement from '../pages/AdminContentManagement';
+import AdminMailManagement from '../pages/AdminMailManagement';
+import AdminFinancials from '../pages/AdminFinancials';
+
 import AdminSystemSettings from '../pages/AdminSystemSettings';
 // Commerce routes (imported from Stitch)
 import ShoppingCart from '../pages/ShoppingCart';
@@ -60,17 +63,20 @@ const AppRouter: React.FC = () => {
       <Route path="/app/add-plant" element={<AddPlantUser />} />
       <Route path="/app/diagnosis-result" element={<DiagnosisResult />} />
       <Route path="/app/profile" element={<UserProfile />} />
+      <Route path="/app/ai-analysis" element={<AIPlantAnalysis />} />
+      <Route path="/app/settings" element={<RemindersSettings />} />
 
       {/* Admin Routes */}
       <Route path="/app/admin" element={<AdminDashboard />} />
+      <Route path="/app/admin/financials" element={<AdminFinancials />} />
       <Route path="/app/admin/users" element={<AdminUserList />} />
       <Route path="/app/admin/users/:id" element={<AdminUserDetail />} />
       <Route path="/app/admin/plants" element={<AdminPlantList />} />
       <Route path="/app/admin/plants/add" element={<AdminAddPlant />} />
       <Route path="/app/admin/plants/:id/edit" element={<AdminEditPlant />} />
       <Route path="/app/admin/user-plants" element={<AdminManageUserPlants />} />
-      <Route path="/app/admin/diagnosis-logs" element={<AdminDiagnosisLogs />} />
-      <Route path="/app/admin/content" element={<AdminContentManagement />} />
+      <Route path="/app/admin/messages" element={<AdminMailManagement />} />
+
       <Route path="/app/admin/settings" element={<AdminSystemSettings />} />
       <Route path="/app/admin/orders" element={<AdminOrderManagement />} />
 

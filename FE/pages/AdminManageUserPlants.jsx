@@ -1,153 +1,258 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { MOCK_ALL_USER_PLANTS } from '../data/mockData';
 
 const AdminManageUserPlants = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('all'); // all, critical, sick, healthy
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleLogout = () => {
+    localStorage.removeItem('role');
+    localStorage.removeItem('isLoggedIn');
+    navigate('/');
+  };
+
+  const menuItems = [
+    { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin' },
+    { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants' },
+    { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+    { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants', active: true },
+    { name: 'User List', icon: 'group', path: '/app/admin/users' },
+    { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
+    { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+  ];
+
+  const filteredPlants = useMemo(() => {
+    return MOCK_ALL_USER_PLANTS.filter(plant => {
+      // Search logic
+      const matchesSearch = 
+        plant.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plant.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        plant.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      // Tab logic
+      if (activeTab === 'all') return true;
+      if (activeTab === 'critical') return plant.status === 'critical';
+      if (activeTab === 'sick') return plant.status === 'recovering' || plant.status === 'needs-water';
+      if (activeTab === 'healthy') return plant.status === 'thriving';
+      
+      return true;
+    });
+  }, [activeTab, searchTerm]);
+
+  const stats = {
+    total: MOCK_ALL_USER_PLANTS.length,
+    critical: MOCK_ALL_USER_PLANTS.filter(p => p.status === 'critical').length,
+    unhealthy: MOCK_ALL_USER_PLANTS.filter(p => p.status !== 'thriving').length,
+  };
+
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'thriving':
+        return { label: 'Khỏe mạnh', color: 'text-green-600 bg-green-50 dark:bg-green-500/10', icon: 'check_circle' };
+      case 'needs-water':
+        return { label: 'Cần tưới nước', color: 'text-blue-600 bg-blue-50 dark:bg-blue-500/10', icon: 'water_drop' };
+      case 'recovering':
+        return { label: 'Đang hồi phục', color: 'text-amber-600 bg-amber-50 dark:bg-amber-500/10', icon: 'history' };
+      case 'critical':
+        return { label: 'Cần hỗ trợ gấp', color: 'text-red-600 bg-red-50 dark:bg-red-500/10', icon: 'warning' };
+      default:
+        return { label: status, color: 'text-slate-600 bg-slate-50', icon: 'help' };
+    }
+  };
 
   return (
-    <div className="bg-[#F7F9F8] dark:bg-[#10221f] font-['Manrope'] text-slate-900 dark:text-slate-100 min-h-screen">
-      <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
-        <div className="layout-container flex h-full grow flex-col">
-          <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-10 py-3">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-4 text-[#4CAF50] cursor-pointer" onClick={() => navigate('/')}>
-                <div className="size-8 flex items-center justify-center bg-[#4CAF50]/10 rounded-lg">
-                  <span className="material-symbols-outlined text-[#4CAF50]">potted_plant</span>
-                </div>
-                <h2 className="text-slate-900 dark:text-slate-100 text-lg font-bold leading-tight tracking-tight">DeskBoost Admin</h2>
-              </div>
-              <nav className="hidden md:flex items-center gap-9">
-                <button onClick={() => navigate('/app/admin')} className="text-slate-600 dark:text-slate-400 hover:text-[#4CAF50] dark:hover:text-[#4CAF50] text-sm font-medium leading-normal">Dashboard</button>
-                <button onClick={() => navigate('/app/admin/users')} className="text-slate-600 dark:text-slate-400 hover:text-[#4CAF50] dark:hover:text-[#4CAF50] text-sm font-medium leading-normal">Users</button>
-                <button onClick={() => navigate('/app/admin/plants')} className="text-[#4CAF50] text-sm font-bold leading-normal border-b-2 border-[#4CAF50] pb-1">Plants</button>
-                <button onClick={() => navigate('/app/admin/settings')} className="text-slate-600 dark:text-slate-400 hover:text-[#4CAF50] dark:hover:text-[#4CAF50] text-sm font-medium leading-normal">Settings</button>
-              </nav>
-            </div>
-            <div className="flex flex-1 justify-end gap-6 items-center">
-              <label className="flex flex-col min-w-40 h-10 max-w-64">
-                <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
-                  <div className="text-slate-400 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-xl">
-                    <span className="material-symbols-outlined text-xl">search</span>
-                  </div>
-                  <input className="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-0 h-full placeholder:text-slate-400 px-4 rounded-r-xl text-sm font-normal" placeholder="Search plants or users..." />
-                </div>
-              </label>
-              <div className="flex items-center gap-2">
-                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-[#4CAF50]/20" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsIrN8fp6EED-fIdy1M-zSsG81_IZdtrTRlwr8gAEtIF8nAKRwYVCpa2RlxUkrNB3Mcg3hIeUqG7m3x1_veOPhY3wm6ng3oMqvqdWddxMnL-vkz-2KAw8Kp0K_hWiPCB0KLXUSBdsAX7Pip2W8PXiIpqqvPQteZZ4t0iG9OcAhTUpe34tFs_V5_R8WM98duyOh4_hZ9V5AfDO_6HQkmNdeXVWd9HWUbMTJKOUNw2JUXblICXTcCzwGuV5SF2VbpMkK9OYU8VpdDTY")' }}></div>
-              </div>
-            </div>
-          </header>
-
-          <main className="px-4 md:px-10 lg:px-40 flex flex-1 justify-center py-10">
-            <div className="layout-content-container flex flex-col max-w-[1200px] flex-1 gap-6">
-              <div className="flex flex-wrap justify-between items-end gap-4">
-                <div className="flex flex-col gap-2">
-                  <h1 className="text-slate-900 dark:text-white text-3xl font-black leading-tight tracking-tight">Manage User Plants</h1>
-                  <p className="text-slate-500 dark:text-slate-400 text-base font-normal">Track, monitor, and manage all plant assets across the DeskBoost community.</p>
-                </div>
-                <div className="flex gap-3">
-                  <button className="flex items-center justify-center gap-2 rounded-xl h-10 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                    <span className="material-symbols-outlined text-lg">filter_list</span>
-                    <span>Filter</span>
-                  </button>
-                  <button onClick={() => navigate('/app/admin/plants/add')} className="flex items-center justify-center gap-2 rounded-xl h-10 px-4 bg-[#4CAF50] text-white text-sm font-bold hover:opacity-90 transition-opacity">
-                    <span className="material-symbols-outlined text-lg">add</span>
-                    <span>Add New Plant</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-b border-slate-200 dark:border-slate-800">
-                <div className="flex gap-8 overflow-x-auto">
-                  <button className="flex flex-col items-center justify-center border-b-2 border-[#4CAF50] text-[#4CAF50] pb-3 pt-4 whitespace-nowrap">
-                    <p className="text-sm font-bold leading-normal">All Plants (248)</p>
-                  </button>
-                  <button className="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 pb-3 pt-4 whitespace-nowrap">
-                    <p className="text-sm font-bold leading-normal">Requires Attention (12)</p>
-                  </button>
-                  <button className="flex flex-col items-center justify-center border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 pb-3 pt-4 whitespace-nowrap">
-                    <p className="text-sm font-bold leading-normal">Recently Added</p>
-                  </button>
-                </div>
-              </div>
-
-              <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 dark:bg-slate-800/50">
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">User Name</th>
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Plant Name</th>
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Location</th>
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Health Status</th>
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">Last Watered</th>
-                        <th className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                      {[
-                        { user: 'Alice Johnson', initials: 'AJ', plant: 'Fiddle Leaf Fig', loc: 'Office A-12', status: 'Healthy', statusColor: 'emerald', date: '2023-10-24' },
-                        { user: 'Bob Smith', initials: 'BS', plant: 'Snake Plant', loc: 'Main Lobby', status: 'Thirsty', statusColor: 'amber', date: '2023-10-20' },
-                        { user: 'Charlie Davis', initials: 'CD', plant: 'Monstera', loc: 'Breakroom', status: 'Checkup', statusColor: 'blue', date: '2023-10-25' },
-                        { user: 'Diana Prince', initials: 'DP', plant: 'Golden Pothos', loc: 'Office B-04', status: 'Healthy', statusColor: 'emerald', date: '2023-10-26' },
-                        { user: 'Ethan Miller', initials: 'EM', plant: 'Spider Plant', loc: 'Desk 42', status: 'Healthy', statusColor: 'emerald', date: '2023-10-27' },
-                      ].map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-xs font-bold">{item.initials}</div>
-                              <span className="text-slate-900 dark:text-slate-100 font-medium">{item.user}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-5 text-slate-600 dark:text-slate-400">{item.plant}</td>
-                          <td className="px-6 py-5 text-slate-600 dark:text-slate-400">{item.loc}</td>
-                          <td className="px-6 py-5">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-${item.statusColor}-100 text-${item.statusColor}-800 dark:bg-${item.statusColor}-900/30 dark:text-${item.statusColor}-400`}>
-                              <span className={`w-1.5 h-1.5 rounded-full bg-${item.statusColor}-500 mr-1.5`}></span>
-                              {item.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-5 text-slate-600 dark:text-slate-400">{item.date}</td>
-                          <td className="px-6 py-5 text-right">
-                            <div className="flex justify-end gap-2">
-                              <button className="p-2 text-slate-400 hover:text-[#4CAF50] transition-colors" title="View plant profile">
-                                <span className="material-symbols-outlined">visibility</span>
-                              </button>
-                              <button className="p-2 text-slate-400 hover:text-red-500 transition-colors" title="Remove plant">
-                                <span className="material-symbols-outlined">delete</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
-                <p className="text-sm text-slate-500 dark:text-slate-400">Showing 1-5 of 248 plants</p>
-                <div className="flex items-center gap-1">
-                  <button className="flex size-9 items-center justify-center text-slate-400 hover:text-[#4CAF50] transition-colors">
-                    <span className="material-symbols-outlined">chevron_left</span>
-                  </button>
-                  <button className="text-sm font-bold flex size-9 items-center justify-center text-white rounded-lg bg-[#4CAF50]">1</button>
-                  <button className="text-sm font-medium flex size-9 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">2</button>
-                  <button className="text-sm font-medium flex size-9 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">3</button>
-                  <span className="text-slate-400 px-2">...</span>
-                  <button className="text-sm font-medium flex size-9 items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">50</button>
-                  <button className="flex size-9 items-center justify-center text-slate-400 hover:text-[#4CAF50] transition-colors">
-                    <span className="material-symbols-outlined">chevron_right</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </main>
-          <footer className="mt-auto py-8 px-10 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 dark:text-slate-600 text-xs">
-            © 2023 DeskBoost System Admin. All plants are happy.
-          </footer>
+    <div className="flex h-screen overflow-hidden bg-[#F7F9F8] dark:bg-[#10221f] text-slate-900 dark:text-slate-100 font-display antialiased">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0">
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#4CAF50] flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}>
+            <span className="material-symbols-outlined">potted_plant</span>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-slate-900 dark:text-slate-50 font-bold text-lg leading-none">DeskBoost</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Admin Console</p>
+          </div>
         </div>
-      </div>
+        <nav className="flex-1 px-4 space-y-1">
+          {menuItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-semibold ${
+                item.active 
+                  ? 'bg-[#4CAF50]/10 text-[#4CAF50]' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span className={`material-symbols-outlined ${item.active ? 'fill-1' : ''}`}>{item.icon}</span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <Link to="/app/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+            <span className="material-symbols-outlined">settings</span>
+            <span className="text-sm font-semibold">Settings</span>
+          </Link>
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors text-left">
+            <span className="material-symbols-outlined font-normal">logout</span>
+            <span className="text-sm font-semibold">Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden text-slate-900 dark:text-slate-100">
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-black">Health Monitor</h2>
+            <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+            <div className="flex items-center gap-3">
+               <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                 <span className="size-2 rounded-full bg-red-500 animate-pulse"></span>
+                 {stats.critical} Critical
+               </span>
+               <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                 <span className="size-2 rounded-full bg-amber-500"></span>
+                 {stats.unhealthy} Issues
+               </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Tìm cây hoặc chủ sở hữu..." 
+                  className="pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold w-64 focus:ring-2 focus:ring-[#4CAF50]/50 outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+             </div>
+          </div>
+        </header>
+
+        <div className="flex-1 overflow-y-auto bg-[#f8faf9] dark:bg-[#0c1614] p-8">
+          <div className="max-w-7xl mx-auto space-y-8">
+            
+            {/* Action Tabs */}
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-1">
+              <div className="flex gap-8">
+                {[
+                  { id: 'all', label: 'Tất cả cây', count: stats.total },
+                  { id: 'critical', label: 'Cần hỗ trợ gấp', count: stats.critical, color: 'text-red-500' },
+                  { id: 'sick', label: 'Cần theo dõi', count: stats.unhealthy - stats.critical, color: 'text-amber-500' },
+                  { id: 'healthy', label: 'Khỏe mạnh', count: stats.total - stats.unhealthy },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`pb-4 text-sm font-black transition-all relative ${
+                      activeTab === tab.id 
+                        ? 'text-[#4CAF50]' 
+                        : 'text-slate-400 hover:text-slate-600'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {tab.label}
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 ${activeTab === tab.id ? 'text-[#4CAF50]' : 'text-slate-500'}`}>
+                        {tab.count}
+                      </span>
+                    </span>
+                    {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#4CAF50] rounded-full"></div>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid of Plants */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredPlants.map(plant => {
+                const config = getStatusConfig(plant.status);
+                const isUrgent = plant.status === 'critical';
+
+                return (
+                  <div key={plant.id} className={`bg-white dark:bg-slate-900 rounded-3xl border-2 transition-all p-6 space-y-6 ${
+                    isUrgent ? 'border-red-500/20 shadow-lg shadow-red-500/5' : 'border-slate-100 dark:border-slate-800'
+                  }`}>
+                    {/* Header: Plant Info */}
+                    <div className="flex items-start gap-4">
+                      <div className="size-20 rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 flex-shrink-0">
+                        <img src={plant.image} alt={plant.nickname} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                           <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1 ${config.color}`}>
+                             <span className="material-symbols-outlined text-xs">{config.icon}</span>
+                             {config.label}
+                           </span>
+                           {isUrgent && (
+                             <span className="animate-ping size-2 rounded-full bg-red-500"></span>
+                           )}
+                        </div>
+                        <h4 className="text-lg font-black mt-2 truncate">{plant.nickname}</h4>
+                        <p className="text-xs text-slate-500 font-bold italic truncate">{plant.species}</p>
+                      </div>
+                    </div>
+
+                    {/* Care Stats */}
+                    <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl">
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Lần cuối tưới</p>
+                        <p className={`text-sm font-black mt-0.5 ${isUrgent ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
+                          {plant.lastWatered}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Kế hoạch</p>
+                        <p className="text-sm font-black text-slate-700 dark:text-slate-200 mt-0.5">{plant.nextWatering}</p>
+                      </div>
+                    </div>
+
+                    {/* Owner Info & Actions */}
+                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                           <div className="size-8 rounded-full bg-[#4CAF50]/10 text-[#4CAF50] flex items-center justify-center font-black text-xs">
+                             {plant.ownerName.charAt(0)}
+                           </div>
+                           <div className="min-w-0">
+                             <p className="text-xs font-black truncate">{plant.ownerName}</p>
+                             <p className="text-[10px] text-slate-500 truncate">{plant.ownerEmail}</p>
+                           </div>
+                        </div>
+                        <a href={`tel:${plant.ownerPhone}`} className="p-2 bg-[#4CAF50]/10 text-[#4CAF50] rounded-xl hover:bg-[#4CAF50] hover:text-white transition-all">
+                          <span className="material-symbols-outlined text-lg">phone</span>
+                        </a>
+                      </div>
+
+                      <div className="flex gap-2">
+                         <button className="flex-1 py-2.5 bg-[#4CAF50] text-white font-black text-xs rounded-xl hover:opacity-90 transition-opacity">
+                           Xem hồ sơ cây
+                         </button>
+                         <button className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-black text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                           Gửi nhắc nhở
+                         </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {filteredPlants.length === 0 && (
+              <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                <span className="material-symbols-outlined text-6xl text-slate-200">filter_list_off</span>
+                <p className="text-slate-500 font-bold mt-4">Không tìm thấy cây nào phù hợp với bộ lọc này.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

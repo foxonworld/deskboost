@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Navbar from '../components/Navbar';
+import UserLayout from '../components/UserLayout';
 import { MY_PLANTS } from '../data/mockData';
 
 const PlantProfile = () => {
@@ -9,108 +8,105 @@ const PlantProfile = () => {
   const plant = MY_PLANTS.find(p => p.id === id) || MY_PLANTS[0];
 
   return (
-    <div className="min-h-screen bg-background-light flex flex-col">
-      <Navbar />
-      <main className="flex-grow max-w-7xl mx-auto px-4 md:px-10 py-10 w-full space-y-8">
-        <nav className="flex gap-2 text-sm font-bold text-text-secondary">
-          <Link to="/app/dashboard" className="hover:text-primary transition-colors">Dashboard</Link> <span>/</span> <Link to="/app/my-plants" className="hover:text-primary transition-colors">My Jungle</Link> <span>/</span> <span className="text-text-main font-black">{plant.nickname}</span>
+    <UserLayout>
+      <div className="p-8 max-w-7xl mx-auto w-full space-y-8 pb-20">
+        <nav className="flex gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <Link to="/app/dashboard" className="hover:text-[#4CAF50] transition-colors">Base</Link> 
+          <span className="opacity-30">/</span> 
+          <Link to="/app/my-plants" className="hover:text-[#4CAF50] transition-colors">Jungle</Link> 
+          <span className="opacity-30">/</span> 
+          <span className="dark:text-white text-slate-900">{plant.nickname}</span>
         </nav>
 
         <div className="flex flex-wrap justify-between items-end gap-6">
           <div className="space-y-1">
-            <h1 className="text-4xl font-black text-text-main tracking-tight">{plant.nickname}</h1>
-            <p className="text-lg text-text-secondary font-medium italic">{plant.species} • Healthy</p>
+            <h1 className="text-4xl font-black dark:text-white text-slate-900 tracking-tight uppercase">{plant.nickname}</h1>
+            <p className="text-lg text-slate-500 font-medium italic">{plant.species} • Operational</p>
           </div>
-          <button className="flex items-center gap-2 px-6 h-12 rounded-xl bg-white border border-gray-200 font-bold text-text-main hover:border-primary hover:text-primary transition-all shadow-sm">
-            <span className="material-symbols-outlined">edit</span> Edit Profile
+          <button className="flex items-center gap-3 px-8 h-14 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 font-black text-xs uppercase tracking-widest text-slate-900 dark:text-white hover:border-[#4CAF50] hover:text-[#4CAF50] transition-all shadow-sm">
+            <span className="material-symbols-outlined text-sm">edit</span> Mod Profile
           </button>
         </div>
 
-        <div className="bg-primary/5 border border-primary/10 rounded-2xl p-6 flex gap-4 items-start shadow-sm shadow-primary/5">
-          <div className="bg-primary/10 p-2.5 rounded-xl text-primary shrink-0">
-            <span className="material-symbols-outlined">auto_awesome</span>
+        <div className="bg-[#4CAF50]/5 border border-[#4CAF50]/10 rounded-3xl p-8 flex gap-6 items-start shadow-sm hover:shadow-lg transition-all">
+          <div className="bg-[#4CAF50]/10 p-4 rounded-2xl text-[#4CAF50] shrink-0 transform rotate-12">
+            <span className="material-symbols-outlined text-3xl">auto_awesome</span>
           </div>
-          <div className="space-y-1">
-            <p className="font-bold text-text-main">DeskBoost Insight</p>
-            <p className="text-sm text-text-secondary leading-relaxed font-medium">Your Aloe is looking great! Based on your office temperature (22°C), we recommend moving it closer to the window for better indirect light exposure.</p>
+          <div className="space-y-2">
+            <p className="font-black text-slate-900 dark:text-white uppercase tracking-widest text-xs">AI Behavioral Insight</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              Your {plant.nickname} is showing optimal chlorophyll production. Ambient sensors detect lower humidity (35%). 
+              Consider a misting protocol in the next 12 hours to maintain leaf elasticity.
+            </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-              <img src={plant.image} className="w-full aspect-[3/4] object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 shadow-sm" alt={plant.name} />
-              <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full flex items-center gap-2 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-black/5">
-                <span className="size-2 bg-primary rounded-full animate-pulse"></span> HEALTHY
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <div className="lg:col-span-1 space-y-8">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-[32px] border border-slate-50 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+              <div className="aspect-[3/4] rounded-2xl overflow-hidden mb-6">
+                 <img src={plant.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms]" alt={plant.name} />
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-4">
-                <Link to={`/app/my-plants/${plant.id}/analyze`} className="flex flex-col items-center justify-center gap-1 h-20 rounded-xl bg-primary hover:bg-primary-dark text-white transition-all shadow-md shadow-primary/20">
-                  <span className="material-symbols-outlined">photo_camera</span>
-                  <span className="text-xs font-bold">Analyze</span>
+              <div className="absolute top-10 left-10 bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-2xl flex items-center gap-3 font-black text-[10px] uppercase tracking-[0.2em] shadow-2xl">
+                <span className="size-2 bg-[#4CAF50] rounded-full animate-ping"></span> 
+                Status: Prime
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Link to={`/app/my-plants/${plant.id}/analyze`} className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl bg-[#4CAF50] text-white transition-all shadow-xl shadow-[#4CAF50]/20 hover:opacity-90 active:scale-95 group/btn">
+                  <span className="material-symbols-outlined text-3xl group-hover/btn:scale-110 transition-transform">biotech</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Bio Scan</span>
                 </Link>
-                <button className="flex flex-col items-center justify-center gap-1 h-20 rounded-xl bg-background-light hover:bg-gray-100 text-text-main transition-all border border-gray-100">
-                  <span className="material-symbols-outlined">notifications_active</span>
-                  <span className="text-xs font-bold">Reminders</span>
+                <button className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-900 dark:text-white transition-all hover:bg-slate-50 active:scale-95">
+                  <span className="material-symbols-outlined text-3xl text-blue-500">notification_important</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">Protocol</span>
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center text-amber-500">
-                  <p className="text-xs font-black uppercase tracking-widest text-text-secondary">Light Exposure</p>
-                  <span className="material-symbols-outlined">wb_sunny</span>
+          <div className="lg:col-span-2 space-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {[
+                { label: 'Photons', val: 'Low Indirect', icon: 'wb_sunny', color: 'amber', p: 35 },
+                { label: 'Hydration', val: '85%', icon: 'water_drop', color: 'blue', p: 85 },
+                { label: 'Schedule', val: 'T-Minus 2D', icon: 'schedule', color: 'emerald', p: 100 }
+              ].map(stat => (
+                <div key={stat.label} className="bg-white dark:bg-slate-900 p-8 rounded-[32px] border border-slate-50 dark:border-slate-800 shadow-sm space-y-6 hover:shadow-xl transition-all">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
+                    <span className={`material-symbols-outlined text-${stat.color}-500 bg-${stat.color}-50 dark:bg-${stat.color}-500/10 p-2 rounded-xl`}>{stat.icon}</span>
+                  </div>
+                  <p className="text-2xl font-black dark:text-white text-slate-900 uppercase tracking-tight">{stat.val}</p>
+                  <div className="h-1.5 w-full bg-slate-50 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div className={`h-full bg-${stat.color === 'emerald' ? '[#4CAF50]' : stat.color + '-500'} rounded-full`} style={{ width: `${stat.p}%` }}></div>
+                  </div>
                 </div>
-                <p className="text-2xl font-black text-text-main">Low Indirect</p>
-                <div className="h-2 w-full bg-background-light rounded-full overflow-hidden">
-                  <div className="h-full bg-amber-400 w-1/3 rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center text-sky-500">
-                  <p className="text-xs font-black uppercase tracking-widest text-text-secondary">Soil Moisture</p>
-                  <span className="material-symbols-outlined">water_drop</span>
-                </div>
-                <p className="text-2xl font-black text-text-main">85%</p>
-                <div className="h-2 w-full bg-background-light rounded-full overflow-hidden">
-                  <div className="h-full bg-sky-500 w-[85%] rounded-full"></div>
-                </div>
-              </div>
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4 col-span-2 md:col-span-1 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-center text-primary">
-                  <p className="text-xs font-black uppercase tracking-widest text-text-secondary">Next Water</p>
-                  <span className="material-symbols-outlined">calendar_month</span>
-                </div>
-                <p className="text-2xl font-black text-text-main">In 2 Days</p>
-                <p className="text-xs text-text-secondary font-medium italic">Last watered: Oct 24</p>
-              </div>
+              ))}
             </div>
 
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-              <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-background-light/30">
-                <h3 className="text-xl font-bold text-text-main">Care Schedule</h3>
-                <button className="text-primary font-black text-sm uppercase tracking-widest hover:text-primary-dark transition-colors">View Calendar</button>
+            <div className="bg-white dark:bg-slate-900 rounded-[40px] border border-slate-50 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center bg-slate-50/20 dark:bg-slate-800/20">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">System Logs • Care</h3>
+                <button className="text-[#4CAF50] font-black text-[10px] uppercase tracking-widest hover:underline">Full Archive</button>
               </div>
-              <div className="p-8 space-y-8 relative">
-                <div className="absolute left-10 top-10 bottom-10 w-0.5 bg-background-light"></div>
+              <div className="p-10 space-y-10 relative">
+                <div className="absolute left-12 top-10 bottom-10 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
                 {[
-                  { date: 'Upcoming • Oct 28', title: 'Watering Day', active: true },
-                  { date: 'Nov 15', title: 'Fertilizer Boost', future: true },
-                  { date: 'Completed • Oct 24', title: 'Watering Day', done: true }
+                  { date: 'Operational • Oct 28', title: 'Hydration Protocol', active: true, icon: 'water_drop' },
+                  { date: 'Nov 15', title: 'Macro-Nutrition Feed', future: true, icon: 'eco' },
+                  { date: 'Archive • Oct 24', title: 'Hydration Protocol', done: true, icon: 'check_circle' }
                 ].map((item, i) => (
-                  <div key={i} className={`flex items-start gap-6 relative z-10 ${item.done ? 'opacity-50' : ''}`}>
-                    <div className={`size-4 rounded-full border-4 border-white mt-1.5 shadow-sm ${item.active ? 'bg-primary' : item.future ? 'bg-gray-300' : 'bg-text-secondary'}`}></div>
-                    <div className="flex-1 flex justify-between items-center">
+                  <div key={i} className={`flex items-start gap-10 relative z-10 ${item.done ? 'opacity-40' : ''}`}>
+                    <div className={`size-6 rounded-full border-4 border-white dark:border-slate-900 mt-2 shadow-sm ${item.active ? 'bg-[#4CAF50]' : item.future ? 'bg-slate-300' : 'bg-slate-900'}`}></div>
+                    <div className="flex-1 flex justify-between items-center bg-white dark:bg-slate-800/30 p-6 rounded-3xl border border-slate-50 dark:border-slate-800 hover:border-[#4CAF50]/30 transition-all">
                       <div>
-                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${item.active ? 'text-primary' : 'text-text-secondary'}`}>{item.date}</p>
-                        <p className={`font-bold text-text-main ${item.done ? 'line-through' : ''}`}>{item.title}</p>
+                        <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${item.active ? 'text-[#4CAF50]' : 'text-slate-400'}`}>{item.date}</p>
+                        <p className={`text-lg font-black text-slate-900 dark:text-white ${item.done ? 'line-through' : ''}`}>{item.title}</p>
                       </div>
                       {item.active && (
-                        <button className="px-5 py-2 bg-primary/10 text-primary rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm shadow-primary/5">Mark Done</button>
+                        <button className="px-6 py-3 bg-[#4CAF50] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-[#4CAF50]/10">Execute</button>
                       )}
-                      {item.done && <span className="material-symbols-outlined text-emerald-500">check_circle</span>}
+                      {item.done && <span className="material-symbols-outlined text-[#4CAF50] text-3xl">task_alt</span>}
                     </div>
                   </div>
                 ))}
@@ -118,9 +114,8 @@ const PlantProfile = () => {
             </div>
           </div>
         </div>
-
-      </main>
-    </div>
+      </div>
+    </UserLayout>
   );
 };
 

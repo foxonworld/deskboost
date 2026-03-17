@@ -1,180 +1,182 @@
 import React from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 
 const AdminEditPlant = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const handleLogout = () => {
+    localStorage.removeItem('role');
+    localStorage.removeItem('isLoggedIn');
+    navigate('/');
+  };
+
+  const menuItems = [
+    { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin' },
+    { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants', active: true },
+    { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+    { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants' },
+    { name: 'User List', icon: 'group', path: '/app/admin/users' },
+    { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
+    { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+  ];
+
   return (
-    <div className="bg-[#f6f8f8] dark:bg-[#10221f] font-['Manrope'] text-slate-900 dark:text-slate-100 min-h-screen">
-      <div className="relative flex h-auto min-screen w-full flex-col group/design-root overflow-x-hidden">
-        <div className="layout-container flex h-full grow flex-col">
-          <header className="flex items-center justify-between whitespace-nowrap border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 lg:px-40 py-3 sticky top-0 z-50">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-3 text-slate-900 dark:text-slate-100 cursor-pointer" onClick={() => navigate('/')}>
-                <div className="size-8 flex items-center justify-center bg-[#2beecd] rounded-lg">
-                  <span className="material-symbols-outlined text-[#10221f] text-xl">potted_plant</span>
-                </div>
-                <h2 className="text-lg font-bold leading-tight tracking-tight">DeskBoost Admin</h2>
-              </div>
-              <label className="hidden md:flex flex-col min-w-40 h-10 max-w-64">
-                <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
-                  <div className="text-slate-500 flex border-none bg-slate-100 dark:bg-slate-800 items-center justify-center pl-4 rounded-l-xl">
-                    <span className="material-symbols-outlined text-[20px]">search</span>
+    <div className="flex h-screen overflow-hidden bg-[#F7F9F8] dark:bg-[#10221f] text-slate-900 dark:text-slate-100 font-display antialiased">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0">
+        <div className="p-6 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-[#4CAF50] flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}>
+            <span className="material-symbols-outlined">potted_plant</span>
+          </div>
+          <div className="flex flex-col">
+            <h1 className="text-slate-900 dark:text-slate-50 font-bold text-lg leading-none">DeskBoost</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Admin Console</p>
+          </div>
+        </div>
+        <nav className="flex-1 px-4 space-y-1">
+          {menuItems.map((item) => (
+            <Link
+              key={item.name}
+              to={item.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors font-semibold ${
+                item.active 
+                  ? 'bg-[#4CAF50]/10 text-[#4CAF50]' 
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span className={`material-symbols-outlined ${item.active ? 'fill-1' : ''}`}>{item.icon}</span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+        <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
+          <Link to="/app/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+            <span className="material-symbols-outlined">settings</span>
+            <span className="text-sm font-semibold">Settings</span>
+          </Link>
+          <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors text-left">
+            <span className="material-symbols-outlined font-normal">logout</span>
+            <span className="text-sm font-semibold">Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden text-slate-900 dark:text-slate-100">
+        {/* Header / Navbar */}
+        <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-4">
+              <button onClick={() => navigate('/app/admin/plants')} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-500 transition-colors">
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+              <h2 className="text-lg font-bold">Edit Plant Species</h2>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate('/app/admin/plants')} className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Discard</button>
+            <button onClick={() => navigate('/app/admin/plants')} className="px-5 py-2.5 rounded-xl bg-[#4CAF50] text-white font-bold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-[#4CAF50]/20">Update Species</button>
+          </div>
+        </header>
+
+        {/* Form Area */}
+        <div className="flex-1 overflow-y-auto p-8 bg-[#f6f8f8] dark:bg-[#10221f]">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Left Side: Basic Info */}
+              <div className="md:col-span-2 space-y-6">
+                <section className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">General Information</h3>
+                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md font-bold text-slate-500 uppercase">ID: {id || 'SP502'}</span>
                   </div>
-                  <input className="form-input flex w-full min-w-0 flex-1 border-none bg-slate-100 dark:bg-slate-800 focus:ring-0 h-full placeholder:text-slate-500 px-4 rounded-r-xl text-sm font-normal" placeholder="Search plants..." />
-                </div>
-              </label>
-            </div>
-            <div className="flex flex-1 justify-end gap-4 md:gap-8">
-              <nav className="hidden lg:flex items-center gap-8">
-                <button onClick={() => navigate('/app/admin')} className="text-slate-600 dark:text-slate-400 hover:text-[#2beecd] transition-colors text-sm font-medium">Dashboard</button>
-                <button onClick={() => navigate('/app/admin/plants')} className="text-[#2beecd] text-sm font-semibold">Plants</button>
-                <button onClick={() => navigate('/app/admin/users')} className="text-slate-600 dark:text-slate-400 hover:text-[#2beecd] transition-colors text-sm font-medium">Users</button>
-                <button onClick={() => navigate('/app/admin/settings')} className="text-slate-600 dark:text-slate-400 hover:text-[#2beecd] transition-colors text-sm font-medium">Settings</button>
-              </nav>
-              <div className="flex gap-2">
-                <button className="flex items-center justify-center rounded-xl h-10 w-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
-                  <span className="material-symbols-outlined text-[20px]">notifications</span>
-                </button>
-                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-[#2beecd]" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuD7JtxsPGerkVJEWFIcYbaDOOPRqrvX8hsgBFt_Xjz3tskekbohH7SE00ayJpaTVWFC4Oyau30yYoKRcQ9LmY4b6a0gTMhn2C5futAiWhgSEhnwyJlYCP9VG8dndrV1iHLWx43rMU3fZ-CK_6p18yUWgQcPQbM_8HVhFWLSN2qpH8VnsQaUWcmCyiGEF3jrqBbMZ00-jyLjI9nPn0pRCbdFttZm8osxL7Zo4zNtPO72BGCIxoMF-I9ufMtdFzenySUDALrqdoBZbPg")' }}></div>
-              </div>
-            </div>
-          </header>
-
-          <main className="flex flex-1 justify-center py-8">
-            <div className="layout-content-container flex flex-col w-full max-w-[960px] px-6">
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <button onClick={() => navigate('/app/admin')} className="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-[#2beecd]">Dashboard</button>
-                <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
-                <button onClick={() => navigate('/app/admin/plants')} className="text-slate-500 dark:text-slate-400 text-sm font-medium hover:text-[#2beecd]">Plants</button>
-                <span className="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
-                <span className="text-slate-900 dark:text-slate-100 text-sm font-semibold">Edit Plant</span>
-              </div>
-
-              <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
-                <div className="flex flex-col gap-2">
-                  <h1 className="text-slate-900 dark:text-slate-100 text-4xl font-extrabold tracking-tight">Edit Monstera Deliciosa</h1>
-                  <p className="text-slate-500 dark:text-slate-400 text-base">Modify species properties and maintenance guidelines for the office directory.</p>
-                </div>
-                <div className="flex gap-3">
-                  <button className="flex items-center justify-center rounded-xl h-11 px-6 border-2 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-sm font-bold hover:bg-slate-50 transition-colors">
-                    <span className="material-symbols-outlined mr-2 text-lg">visibility</span>
-                    Preview
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                  <section className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-slate-900 dark:text-slate-100 text-xl font-bold mb-6 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#2beecd]">info</span>
-                      General Information
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Common Name</label>
-                        <input className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full h-12 text-sm" type="text" defaultValue="Monstera Deliciosa" />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Scientific Name</label>
-                        <input className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full h-12 text-sm italic" type="text" defaultValue="Monstera deliciosa Liebm." />
-                      </div>
-                      <div className="flex flex-col gap-2 md:col-span-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Short Description</label>
-                        <textarea className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full text-sm" rows={3} defaultValue="The Swiss cheese plant is a species of flowering plant native to tropical forests of southern Mexico, south to Panama." />
-                      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Common Name</label>
+                      <input className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#4CAF50]/20 outline-none transition-all placeholder:text-slate-400 font-display" defaultValue="Monstera Deliciosa" type="text" />
                     </div>
-                  </section>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Scientific Name</label>
+                      <input className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#4CAF50]/20 outline-none transition-all placeholder:text-slate-400 italic font-display" defaultValue="Monstera deliciosa Liebm." type="text" />
+                    </div>
+                    <div className="sm:col-span-2 space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Short Summary</label>
+                      <textarea className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#4CAF50]/20 outline-none transition-all placeholder:text-slate-400 font-display min-h-[100px]" defaultValue="The Swiss cheese plant is a species of flowering plant native to tropical forests of southern Mexico, south to Panama."></textarea>
+                    </div>
+                  </div>
+                </section>
 
-                  <section className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-slate-900 dark:text-slate-100 text-xl font-bold mb-6 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#2beecd]">eco</span>
-                      Care Requirements
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold flex items-center gap-2">
-                          <span className="material-symbols-outlined text-sm">wb_sunny</span> Light Requirement
-                        </label>
-                        <select className="form-select rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full h-12 text-sm">
-                          <option>Bright Indirect Light</option>
-                          <option>Direct Sunlight</option>
-                          <option>Medium Light</option>
+                <section className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Detailed Care Guidelines</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Light Level</label>
+                        <select className="w-full bg-transparent font-bold mt-1 outline-none text-slate-700 dark:text-slate-200">
+                          <option selected>Bright Indirect</option>
+                          <option>Direct Sun</option>
                           <option>Low Light</option>
                         </select>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold flex items-center gap-2">
-                          <span className="material-symbols-outlined text-sm">water_drop</span> Water Frequency
-                        </label>
-                        <input className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full h-12 text-sm" type="text" defaultValue="Every 1-2 weeks" />
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold flex items-center gap-2">
-                          <span className="material-symbols-outlined text-sm">humidity_mid</span> Humidity Level
-                        </label>
-                        <input className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full h-12 text-sm" type="text" defaultValue="High (above 60%)" />
-                      </div>
-                      <div className="flex flex-col gap-2 md:col-span-2">
-                        <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Detailed Care Instructions</label>
-                        <textarea className="form-input rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 focus:border-[#2beecd] focus:ring-[#2beecd] w-full text-sm" rows={5} defaultValue="Water your Monstera when the top 2-3 inches of soil feel dry. They love to climb, so providing a moss pole will help them grow larger leaves with more fenestrations. Avoid direct hot afternoon sun which can scorch the leaves." />
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Watering</label>
+                        <select className="w-full bg-transparent font-bold mt-1 outline-none text-slate-700 dark:text-slate-200">
+                          <option selected>Every 2-3 Days</option>
+                          <option>Once a Week</option>
+                          <option>Twice a Month</option>
+                        </select>
                       </div>
                     </div>
-                  </section>
-                </div>
-
-                <div className="space-y-8">
-                  <section className="bg-white dark:bg-slate-900 p-8 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                    <h3 className="text-slate-900 dark:text-slate-100 text-xl font-bold mb-6 flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[#2beecd]">image</span>
-                      Plant Image
-                    </h3>
-                    <div className="flex flex-col gap-4">
-                      <div className="relative group rounded-xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-700">
-                        <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkDYf3lIh84YXVCL1drnlCtbUhF_ktjIskZi48uiRlwv-Sk5bLbwqwcM4YtTt6TSv8yPQIvmFDyqj6FusYlnLmbANPAEozrHpRTqsf3P7OpElxUbUJFm75CCrU6PPvFovCzUPZx6Pm4oKCE8EAsrcwsyfVEBNqgwk-uDDOkBXeycRgHUNa7Fw9ckK8Fiz_oc26RhVagxIiK4H4OgivoP9f_vtmfCHmQET2CVAoJz_3zEwJuqIRJW1t20LADY8T9Nfp-7pVLGXkstE" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <button className="bg-white text-slate-900 rounded-lg p-2 hover:bg-[#2beecd] hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">edit</span>
-                          </button>
-                          <button className="bg-white text-red-500 rounded-lg p-2 hover:bg-red-500 hover:text-white transition-colors">
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </div>
-                      </div>
-                      <button className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-800 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                        <span className="material-symbols-outlined">cloud_upload</span>
-                        Change Image
-                      </button>
+                    <div className="space-y-2">
+                      <textarea className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-[#4CAF50]/20 outline-none transition-all placeholder:text-slate-400 font-display min-h-[150px]" defaultValue="Water your Monstera when the top 2-3 inches of soil feel dry. They love to climb, so providing a moss pole will help them grow larger leaves with more fenestrations. Avoid direct hot afternoon sun which can scorch the leaves."></textarea>
                     </div>
-                  </section>
-
-                  <div className="space-y-3">
-                    <button onClick={() => navigate('/app/admin/plants')} className="w-full bg-[#2beecd] hover:bg-[#2beecd]/90 text-[#10221f] py-4 rounded-xl font-bold shadow-lg shadow-[#2beecd]/20 transition-all flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined">save</span>
-                      Save Changes
-                    </button>
-                    <button onClick={() => navigate('/app/admin/plants')} className="w-full bg-white dark:bg-slate-900 border-2 border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2">
-                      <span className="material-symbols-outlined">delete_forever</span>
-                      Delete Plant
-                    </button>
                   </div>
-                </div>
+                </section>
               </div>
 
-              <footer className="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 dark:text-slate-400 text-sm">
-                <p>© 2024 DeskBoost System. All rights reserved.</p>
-                <div className="flex gap-6">
-                  <a className="hover:text-[#2beecd] transition-colors" href="#">Documentation</a>
-                  <a className="hover:text-[#2beecd] transition-colors" href="#">API Reference</a>
-                  <a className="hover:text-[#2beecd] transition-colors" href="#">Support</a>
-                </div>
-              </footer>
+              {/* Right Side: Media and Controls */}
+              <div className="space-y-6 text-slate-900 dark:text-slate-100">
+                <section className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">Featured Image</h3>
+                  <div className="aspect-square relative rounded-2xl overflow-hidden group">
+                    <img alt="Monstera" className="w-full h-full object-cover transition-transform group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkDYf3lIh84YXVCL1drnlCtbUhF_ktjIskZi48uiRlwv-Sk5bLbwqwcM4YtTt6TSv8yPQIvmFDyqj6FusYlnLmbANPAEozrHpRTqsf3P7OpElxUbUJFm75CCrU6PPvFovCzUPZx6Pm4oKCE8EAsrcwsyfVEBNqgwk-uDDOkBXeycRgHUNa7Fw9ckK8Fiz_oc26RhVagxIiK4H4OgivoP9f_vtmfCHmQET2CVAoJz_3zEwJuqIRJW1t20LADY8T9Nfp-7pVLGXkstE" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button className="p-2 bg-white text-slate-900 rounded-lg"><span className="material-symbols-outlined">edit</span></button>
+                      <button className="p-2 bg-white text-red-500 rounded-lg"><span className="material-symbols-outlined">delete</span></button>
+                    </div>
+                  </div>
+                  <button className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 dark:bg-slate-800 text-xs font-bold rounded-xl border border-slate-100 dark:border-slate-700 hover:bg-slate-100 transition-colors">
+                    <span className="material-symbols-outlined text-base">cloud_upload</span>
+                    Change Image
+                  </button>
+                </section>
+
+                <section className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold">Show in Library</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input className="sr-only peer" defaultChecked type="checkbox" />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
+                    </label>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold">Featured Species</span>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input className="sr-only peer" type="checkbox" />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-[#4CAF50]"></div>
+                    </label>
+                  </div>
+                </section>
+
+                <button className="w-full py-4 border-2 border-red-500/20 text-red-500 font-bold text-xs rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors uppercase tracking-widest">
+                  Archive Species
+                </button>
+              </div>
             </div>
-          </main>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
