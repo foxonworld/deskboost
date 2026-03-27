@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { PRODUCTS, formatVND } from '../data/mockData';
 
 // ── Sidebar menu (shared across admin pages) ──────────────────────────────────
 const MENU_ITEMS = [
@@ -12,20 +13,11 @@ const MENU_ITEMS = [
   { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
 ];
 
-const CATEGORIES = ['All', 'Indoor', 'Outdoor', 'Succulent', 'Tropical', 'Flowering', 'Tree'];
+const CATEGORIES = ['All', 'Indoor', 'Outdoor', 'Succulent', 'Tropical', 'Flowering', 'Tree', 'Pot', 'Soil', 'Fertilizer', 'Accessory'];
 
-const INITIAL_PRODUCTS = [
-  { id: 1, name: 'Monstera Deliciosa', category: 'Indoor', price: 450000, stock: 24, status: 'Active', popularity: 'High', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAe3puU4MPDeDd_pLCJkb6TdKVBwJPvyC6Vy_Y3Ch4JoJzn0zWLC2H0nsATMFJT9LmxGa3_yAqLUvv-ZSh8-0mDrVr8KgwAO2h3xMclG5qQ0mHxIG63b-RxLeTx6Fq8xVnSn6_WNVPlh2CpWpPG7BifY2RZM0zk24wmfNRjnpqdmQ1n88kq0nMsG722n8yRN9MNwQ5DGWoJBP0UYoUyFI3hYBspOviEEScb0meTgO1GaID6WA2We4eQcGLuYY2BZzA1xlfvTg6Su34', description: 'Cây nhà phổ biến với lá xẻ ấn tượng, dễ chăm sóc.' },
-  { id: 2, name: 'Snake Plant', category: 'Indoor', price: 280000, stock: 42, status: 'Active', popularity: 'High', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHo0YQcyEjNkPzeOKtnfcNY959KpQI-kyVXF4wGKXrX90FMcLz_tQ3kQUWi0LOcNLCgNI8pTbiPxiLxPGyIMEYtmhelC9z_6neeJQeAg5LYFWChmYRboeiIY837JqA0dTnrNLHcAjuGiJw3IcxwEWoG0HXnbtvdZ9l0M-Gqx2x1eUAxRzCsDm8UOfbgG6SUTZ2cJFiPFqvMqyWEBHWz-fVkymV4eo-teqMyb7l80j5hE1LzStLXDP2r7QeZcu971s8YfFgymcwXe0', description: 'Cây lưỡi hổ lọc không khí xuất sắc, sinh trưởng trong bóng tối.' },
-  { id: 3, name: 'Fiddle Leaf Fig', category: 'Tree', price: 720000, stock: 8, status: 'Active', popularity: 'High', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA5UtIT4zAbJXsJSg4fCceVRDiOzTB1Upekt9ZNC4QsKHJRmRSAtsKi1C6WYZgj3_8BwgbdazgDGygYIILcVU2wVLBwncGx63Ecc72ci7ny6HMAMMV1a-1WY-iJUiWH4LOPU7EwIoZoWTIIJnxtWvQMdKx2FK52PHPn_OrI8Vm6DoJeiM_9DbiKyTkXkPX5lZHnp9oYSDh-k7odTspkCkE2V1JiZuUKNrmf6AlBBjk4_7_WpQoVQXAWHXnaU52lYFFgB5562zEko_I', description: 'Cây đàn cầm - biểu tượng nội thất cao cấp.' },
-  { id: 4, name: 'Pothos Golden', category: 'Indoor', price: 150000, stock: 68, status: 'Active', popularity: 'Medium', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAe3puU4MPDeDd_pLCJkb6TdKVBwJPvyC6Vy_Y3Ch4JoJzn0zWLC2H0nsATMFJT9LmxGa3_yAqLUvv-ZSh8-0mDrVr8KgwAO2h3xMclG5qQ0mHxIG63b-RxLeTx6Fq8xVnSn6_WNVPlh2CpWpPG7BifY2RZM0zk24wmfNRjnpqdmQ1n88kq0nMsG722n8yRN9MNwQ5DGWoJBP0UYoUyFI3hYBspOviEEScb0meTgO1GaID6WA2We4eQcGLuYY2BZzA1xlfvTg6Su34', description: 'Cây trầu bà dễ trồng, leo rủ đẹp mắt.' },
-  { id: 5, name: 'ZZ Plant', category: 'Indoor', price: 320000, stock: 15, status: 'Hidden', popularity: 'Medium', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHo0YQcyEjNkPzeOKtnfcNY959KpQI-kyVXF4wGKXrX90FMcLz_tQ3kQUWi0LOcNLCgNI8pTbiPxiLxPGyIMEYtmhelC9z_6neeJQeAg5LYFWChmYRboeiIY837JqA0dTnrNLHcAjuGiJw3IcxwEWoG0HXnbtvdZ9l0M-Gqx2x1eUAxRzCsDm8UOfbgG6SUTZ2cJFiPFqvMqyWEBHWz-fVkymV4eo-teqMyb7l80j5hE1LzStLXDP2r7QeZcu971s8YfFgymcwXe0', description: 'Zamioculcas - siêu bền, không cần nhiều nước.' },
-  { id: 6, name: 'Bird of Paradise', category: 'Tropical', price: 890000, stock: 5, status: 'Active', popularity: 'High', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA5UtIT4zAbJXsJSg4fCceVRDiOzTB1Upekt9ZNC4QsKHJRmRSAtsKi1C6WYZgj3_8BwgbdazgDGygYIILcVU2wVLBwncGx63Ecc72ci7ny6HMAMMV1a-1WY-iJUiWH4LOPU7EwIoZoWTIIJnxtWvQMdKx2FK52PHPn_OrI8Vm6DoJeiM_9DbiKyTkXkPX5lZHnp9oYSDh-k7odTspkCkE2V1JiZuUKNrmf6AlBBjk4_7_WpQoVQXAWHXnaU52lYFFgB5562zEko_I', description: 'Phượng vĩ thiên đường - cây trang trí ấn tượng nhất.' },
-  { id: 7, name: 'Cactus Mix', category: 'Succulent', price: 95000, stock: 120, status: 'Active', popularity: 'Low', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAe3puU4MPDeDd_pLCJkb6TdKVBwJPvyC6Vy_Y3Ch4JoJzn0zWLC2H0nsATMFJT9LmxGa3_yAqLUvv-ZSh8-0mDrVr8KgwAO2h3xMclG5qQ0mHxIG63b-RxLeTx6Fq8xVnSn6_WNVPlh2CpWpPG7BifY2RZM0zk24wmfNRjnpqdmQ1n88kq0nMsG722n8yRN9MNwQ5DGWoJBP0UYoUyFI3hYBspOviEEScb0meTgO1GaID6WA2We4eQcGLuYY2BZzA1xlfvTg6Su34', description: 'Bộ xương rồng mix đa dạng, không tưới quá nhiều.' },
-  { id: 8, name: 'Peace Lily', category: 'Flowering', price: 210000, stock: 0, status: 'Out of Stock', popularity: 'Medium', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBHo0YQcyEjNkPzeOKtnfcNY959KpQI-kyVXF4wGKXrX90FMcLz_tQ3kQUWi0LOcNLCgNI8pTbiPxiLxPGyIMEYtmhelC9z_6neeJQeAg5LYFWChmYRboeiIY837JqA0dTnrNLHcAjuGiJw3IcxwEWoG0HXnbtvdZ9l0M-Gqx2x1eUAxRzCsDm8UOfbgG6SUTZ2cJFiPFqvMqyWEBHWz-fVkymV4eo-teqMyb7l80j5hE1LzStLXDP2r7QeZcu971s8YfFgymcwXe0', description: 'Huệ bình yên - hoa trắng tinh khôi, lọc không khí.' },
-];
+const INITIAL_PRODUCTS = PRODUCTS;
 
-const formatPrice = (p) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p);
+const formatPrice = formatVND;
 
 const statusConfig = {
   Active: { label: 'Đang bán', cls: 'bg-[#4CAF50]/10 text-[#4CAF50] border-[#4CAF50]/20' },
@@ -33,7 +25,18 @@ const statusConfig = {
   'Out of Stock': { label: 'Hết hàng', cls: 'bg-red-50 text-red-500 border-red-100 dark:bg-red-900/20 dark:border-red-800' },
 };
 
-const EMPTY_FORM = { name: '', category: 'Indoor', price: '', stock: '', status: 'Active', description: '', img: '' };
+const EMPTY_FORM = { 
+  name: '', 
+  category: 'Indoor', 
+  price: '', 
+  originalPrice: '',
+  stock: '', 
+  status: 'Active', 
+  description: '', 
+  image: '', 
+  relatedProductIds: [], 
+  comboDiscount: 0 
+};
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 const Modal = ({ title, onClose, children }) => (
@@ -115,16 +118,72 @@ const ProductForm = ({ form, onChange, onSubmit, onClose, isEdit }) => {
           </div>
         </div>
         <div>
+          <label className={labelCls}>Giá gốc (không bắt buộc)</label>
+          <div className="relative">
+            <input type="number" min="0" className={inputCls + ' pr-12'} placeholder="0" value={form.originalPrice} onChange={e => onChange('originalPrice', e.target.value)} />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">₫</span>
+          </div>
+        </div>
+        <div>
           <label className={labelCls}>Tồn kho *</label>
           <input required type="number" min="0" className={inputCls} placeholder="0" value={form.stock} onChange={e => onChange('stock', e.target.value)} />
         </div>
         <div className="col-span-2">
           <label className={labelCls}>URL hình ảnh</label>
-          <input className={inputCls} placeholder="https://..." value={form.img} onChange={e => onChange('img', e.target.value)} />
+          <input className={inputCls} placeholder="https://..." value={form.image} onChange={e => onChange('image', e.target.value)} />
         </div>
         <div className="col-span-2">
           <label className={labelCls}>Mô tả</label>
           <textarea rows={3} className={inputCls + ' resize-none'} placeholder="Mô tả ngắn về sản phẩm..." value={form.description} onChange={e => onChange('description', e.target.value)} />
+        </div>
+
+        {/* RELATED PRODUCTS / COMBO SETTINGS */}
+        <div className="col-span-2 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+          <p className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
+            <span className="material-symbols-outlined text-sm">auto_awesome</span> Cài đặt Combo gợi ý
+          </p>
+          <div>
+            <label className={labelCls}>Sản phẩm gợi ý mua cùng</label>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {PRODUCTS.filter(p => !['Indoor', 'Outdoor', 'Succulent', 'Tropical', 'Flowering', 'Tree'].includes(p.category)).map(p => {
+                const isSelected = form.relatedProductIds?.includes(p.id);
+                return (
+                  <button 
+                    key={p.id} 
+                    type="button"
+                    onClick={() => {
+                      const current = form.relatedProductIds || [];
+                      const next = isSelected 
+                        ? current.filter(id => id !== p.id) 
+                        : [...current, p.id];
+                      onChange('relatedProductIds', next);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                      isSelected 
+                        ? 'bg-primary text-white border-primary shadow-sm' 
+                        : 'bg-white dark:bg-slate-800 text-slate-500 border-slate-100 dark:border-slate-700 hover:border-primary/50'
+                    }`}
+                  >
+                    {p.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <label className={labelCls}>Giảm giá Combo (%)</label>
+            <div className="relative w-32">
+              <input 
+                type="number" 
+                min="0" 
+                max="100" 
+                className={inputCls + ' pr-8'} 
+                value={form.comboDiscount} 
+                onChange={e => onChange('comboDiscount', Number(e.target.value))} 
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-bold">%</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -187,7 +246,13 @@ const AdminPlantList = () => {
   // ── CRUD ──
   const handleAdd = (e) => {
     e.preventDefault();
-    const newProd = { ...form, id: Date.now(), price: Number(form.price), stock: Number(form.stock) };
+    const newProd = { 
+      ...form, 
+      id: Date.now(), 
+      price: Number(form.price), 
+      stock: Number(form.stock),
+      originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined
+    };
     setProducts(p => [newProd, ...p]);
     setAddModal(false);
     setForm(EMPTY_FORM);
@@ -195,14 +260,19 @@ const AdminPlantList = () => {
   };
 
   const handleEditOpen = (product) => {
-    setForm({ ...product, price: String(product.price), stock: String(product.stock) });
+    setForm({ 
+      ...product, 
+      price: String(product.price), 
+      stock: String(product.stock),
+      originalPrice: product.originalPrice ? String(product.originalPrice) : ''
+    });
     setEditModal(product);
   };
 
   const handleEditSave = (e) => {
     e.preventDefault();
     setProducts(p => p.map(prod => prod.id === editModal.id
-      ? { ...form, id: editModal.id, price: Number(form.price), stock: Number(form.stock) }
+      ? { ...form, id: editModal.id, price: Number(form.price), stock: Number(form.stock), originalPrice: form.originalPrice ? Number(form.originalPrice) : undefined }
       : prod
     ));
     setEditModal(null);
@@ -399,8 +469,8 @@ const AdminPlantList = () => {
                 <div key={product.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-lg hover:border-[#4CAF50]/20 transition-all group flex flex-col">
                   {/* Image */}
                   <div className="aspect-[4/3] relative overflow-hidden bg-slate-50 dark:bg-slate-800">
-                    {product.img ? (
-                      <img src={product.img} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {product.image ? (
+                      <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-4xl">🌿</div>
                     )}
@@ -415,6 +485,11 @@ const AdminPlantList = () => {
                         <span className="text-white font-black text-xs px-2 py-1 bg-red-500 rounded-lg">Hết hàng</span>
                       </div>
                     )}
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-[10px] font-black rounded-lg shadow-lg">
+                        SALE {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
+                      </div>
+                    )}
                   </div>
                   {/* Info */}
                   <div className="p-4 flex flex-col gap-2 flex-1">
@@ -423,7 +498,12 @@ const AdminPlantList = () => {
                       <h4 className="font-bold text-slate-900 dark:text-slate-50 text-sm leading-tight mt-0.5 line-clamp-1">{product.name}</h4>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-base font-black text-[#4CAF50]">{formatPrice(product.price)}</span>
+                      <div className="flex flex-col">
+                        <span className="text-base font-black text-[#4CAF50]">{formatPrice(product.price)}</span>
+                        {product.originalPrice && product.originalPrice > product.price && (
+                          <span className="text-[10px] text-slate-400 line-through font-bold">{formatPrice(product.originalPrice)}</span>
+                        )}
+                      </div>
                       <span className="text-xs text-slate-500 font-medium">Kho: {product.stock}</span>
                     </div>
                     {/* Actions */}
@@ -472,11 +552,11 @@ const AdminPlantList = () => {
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
                             <div className="size-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-                              {product.img
-                                ? <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
-                                : <div className="w-full h-full flex items-center justify-center text-xl">🌿</div>
-                              }
-                            </div>
+                            {product.image
+                              ? <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center text-xl">🌿</div>
+                            }
+                          </div>
                             <div>
                               <p className="font-bold text-slate-900 dark:text-white text-sm">{product.name}</p>
                               <p className="text-xs text-slate-500 line-clamp-1 max-w-[180px]">{product.description}</p>
@@ -581,9 +661,9 @@ const AdminPlantList = () => {
       {detailModal && (
         <Modal title="🌿 Chi tiết sản phẩm" onClose={() => setDetailModal(null)}>
           <div className="space-y-4">
-            {detailModal.img && (
+            {detailModal.image && (
               <div className="aspect-video rounded-2xl overflow-hidden bg-slate-50 dark:bg-slate-800">
-                <img src={detailModal.img} alt={detailModal.name} className="w-full h-full object-cover" />
+                <img src={detailModal.image} alt={detailModal.name} className="w-full h-full object-cover" />
               </div>
             )}
             <div className="space-y-3">

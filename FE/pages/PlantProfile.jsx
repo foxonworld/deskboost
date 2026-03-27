@@ -1,11 +1,11 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { MY_PLANTS } from '../data/mockData';
+import { MY_PLANTS, MOCK_ALL_USER_PLANTS } from '../data/mockData';
 
 const PlantProfile = () => {
   const { id } = useParams();
-  const plant = MY_PLANTS.find(p => p.id === id) || MY_PLANTS[0];
+  const plant = [...MY_PLANTS, ...MOCK_ALL_USER_PLANTS].find(p => p.id === id) || MY_PLANTS[0];
 
   return (
     <UserLayout>

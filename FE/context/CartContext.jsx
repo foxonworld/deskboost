@@ -33,6 +33,20 @@ const cartReducer = (state, action) => {
           i.id === action.payload.id ? { ...i, quantity: Math.max(1, action.payload.quantity) } : i
         ),
       };
+    case 'ADD_ITEMS': {
+      let newState = { ...state };
+      action.payload.forEach(item => {
+        const existing = newState.items.find(i => i.id === item.id);
+        if (existing) {
+          newState.items = newState.items.map(i =>
+            i.id === item.id ? { ...i, quantity: i.quantity + (item.quantity || 1) } : i
+          );
+        } else {
+          newState.items = [...newState.items, { ...item, quantity: item.quantity || 1 }];
+        }
+      });
+      return newState;
+    }
     case 'CLEAR_CART':
       return { ...state, items: [] };
     case 'SET_LAST_ORDER':
@@ -63,6 +77,7 @@ export const CartProvider = ({ children }) => {
   }, [state]);
 
   const addItem    = (item)            => dispatch({ type: 'ADD_ITEM',        payload: item });
+  const addItems   = (items)           => dispatch({ type: 'ADD_ITEMS',       payload: items });
   const removeItem = (id)              => dispatch({ type: 'REMOVE_ITEM',     payload: id });
   const updateQuantity = (id, qty)     => dispatch({ type: 'UPDATE_QUANTITY', payload: { id, quantity: qty } });
   const clearCart  = ()                => dispatch({ type: 'CLEAR_CART' });
@@ -84,6 +99,7 @@ export const CartProvider = ({ children }) => {
       totalItems,
       isFreeShipping,
       addItem,
+      addItems,
       removeItem,
       updateQuantity,
       clearCart,

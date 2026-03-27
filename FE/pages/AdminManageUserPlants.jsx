@@ -6,6 +6,14 @@ const AdminManageUserPlants = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all'); // all, critical, sick, healthy
   const [searchTerm, setSearchTerm] = useState('');
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState(false);
+  const [selectedPlant, setSelectedPlant] = useState(null);
+  const [reminderForm, setReminderForm] = useState({
+    message: '',
+    channel: 'notification', // notification, email, both
+  });
+  const [isSending, setIsSending] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('role');
@@ -62,6 +70,40 @@ const AdminManageUserPlants = () => {
       default:
         return { label: status, color: 'text-slate-600 bg-slate-50', icon: 'help' };
     }
+  };
+
+  const handleViewProfile = (plantId) => {
+    // Navigate to the plant profile page
+    // Note: In a real app, this would be an admin view or the user-facing profile
+    navigate(`/app/my-plants/${plantId}/profile`);
+  };
+
+  const openReminderModal = (plant) => {
+    setSelectedPlant(plant);
+    setReminderForm({
+      message: `Chào ${plant.ownerName}, cây ${plant.nickname} của bạn đang ở trạng thái ${getStatusConfig(plant.status).label}. Bạn hãy kiểm tra lại chế độ chăm sóc nhé!`,
+      channel: 'notification'
+    });
+    setIsReminderModalOpen(true);
+  };
+
+  const handleSendReminder = async (e) => {
+    e.preventDefault();
+    setIsSending(true);
+    
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    console.log('Sending reminder:', {
+      plantId: selectedPlant.id,
+      ownerEmail: selectedPlant.ownerEmail,
+      ...reminderForm
+    });
+    
+    setIsSending(false);
+    setIsReminderModalOpen(false);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
   return (
@@ -231,10 +273,16 @@ const AdminManageUserPlants = () => {
                       </div>
 
                       <div className="flex gap-2">
-                         <button className="flex-1 py-2.5 bg-[#4CAF50] text-white font-black text-xs rounded-xl hover:opacity-90 transition-opacity">
+                         <button 
+                           onClick={() => handleViewProfile(plant.id)}
+                           className="flex-1 py-2.5 bg-[#4CAF50] text-white font-black text-xs rounded-xl hover:opacity-90 transition-opacity"
+                         >
                            Xem hồ sơ cây
                          </button>
-                         <button className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-black text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                         <button 
+                           onClick={() => openReminderModal(plant)}
+                           className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-black text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-center"
+                         >
                            Gửi nhắc nhở
                          </button>
                       </div>
@@ -252,6 +300,109 @@ const AdminManageUserPlants = () => {
             )}
           </div>
         </div>
+
+        {/* Reminder Modal */}
+        {isReminderModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white dark:bg-slate-900 rounded-[32px] w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl animate-in zoom-in-95 duration-300">
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-2xl bg-[#4CAF50]/10 text-[#4CAF50] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-2xl">campaign</span>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">Gửi nhắc nhở</h3>
+                    <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{selectedPlant?.nickname} • {selectedPlant?.ownerName}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsReminderModalOpen(false)}
+                  className="size-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <form onSubmit={handleSendReminder} className="p-8 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phương thức gửi</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'notification', label: 'Thông báo', icon: 'notifications' },
+                      { id: 'email', label: 'Email', icon: 'mail' },
+                      { id: 'both', label: 'Cả hai', icon: 'all_inclusive' },
+                    ].map(method => (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setReminderForm({ ...reminderForm, channel: method.id })}
+                        className={`py-3 px-2 rounded-2xl border-2 flex flex-col items-center gap-1 transition-all ${
+                          reminderForm.channel === method.id 
+                            ? 'border-[#4CAF50] bg-[#4CAF50]/5 text-[#4CAF50]' 
+                            : 'border-slate-100 dark:border-slate-800 text-slate-500 hover:border-slate-200'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-lg">{method.icon}</span>
+                        <span className="text-[10px] font-black uppercase tracking-tight">{method.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nội dung nhắc nhở</label>
+                  <textarea 
+                    rows="4"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl p-4 text-sm font-medium focus:ring-2 focus:ring-[#4CAF50]/50 outline-none resize-none"
+                    placeholder="Nhập nội dung nhắc nhở..."
+                    value={reminderForm.message}
+                    onChange={(e) => setReminderForm({ ...reminderForm, message: e.target.value })}
+                    required
+                  ></textarea>
+                </div>
+
+                <div className="flex gap-4 pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => setIsReminderModalOpen(false)}
+                    className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-black text-xs rounded-2xl hover:bg-slate-200 transition-all uppercase tracking-widest"
+                  >
+                    Hủy bỏ
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isSending}
+                    className="flex-1 py-4 bg-[#4CAF50] text-white font-black text-xs rounded-2xl hover:opacity-90 transition-all shadow-lg shadow-[#4CAF50]/20 uppercase tracking-widest flex items-center justify-center gap-2"
+                  >
+                    {isSending ? (
+                      <>
+                        <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                        Đang gửi...
+                      </>
+                    ) : (
+                      'Gửi ngay'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Success Toast */}
+        {showSuccessToast && (
+          <div className="fixed bottom-8 right-8 z-[110] animate-in slide-in-from-right-full duration-500">
+            <div className="bg-slate-900 border border-slate-800 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+              <div className="size-8 rounded-full bg-[#4CAF50] flex items-center justify-center">
+                <span className="material-symbols-outlined text-lg">check</span>
+              </div>
+              <div>
+                <p className="font-black text-sm uppercase tracking-tight">Đã gửi nhắc nhở</p>
+                <p className="text-xs text-slate-400 font-bold">Yêu cầu của bạn đang được xử lý.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

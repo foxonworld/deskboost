@@ -15,16 +15,16 @@ const PlantList = () => {
 
   const filters = [
     { name: 'All', icon: 'filter_list' },
-    { name: 'Dễ chăm', icon: 'water_drop' },
-    { name: 'Ánh sáng thấp', icon: 'wb_twilight' },
-    { name: 'Mọng nước', icon: 'crop_square' },
-    { name: 'Ra hoa', icon: 'local_florist' },
+    { name: 'Pot', icon: 'nest_eco_leaf' },
+    { name: 'Soil', icon: 'grass' },
+    { name: 'Fertilizer', icon: 'temp_potted_plant' },
+    { name: 'Accessory', icon: 'handyman' },
   ];
 
   const sortedAndFilteredPlants = plants
     .filter(plant => {
       const matchesSearch = plant.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = activeFilter === 'All' || plant.tags?.includes(activeFilter);
+      const matchesFilter = activeFilter === 'All' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
@@ -102,6 +102,11 @@ const PlantList = () => {
                     {plant.isNew && (
                       <span className="px-2 py-1 rounded-md bg-primary/90 text-[10px] font-bold text-[#111813] shadow-sm uppercase">New</span>
                     )}
+                    {plant.originalPrice && plant.originalPrice > plant.price && (
+                      <span className="px-2 py-1 rounded-md bg-red-500 text-[10px] font-black text-white shadow-sm uppercase tracking-tighter">
+                        SALE {Math.round(((plant.originalPrice - plant.price) / plant.originalPrice) * 100)}%
+                      </span>
+                    )}
                   </div>
                   <button className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="material-symbols-outlined text-[20px]">favorite</span>
@@ -112,7 +117,12 @@ const PlantList = () => {
                 <div className="p-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-lg font-bold text-[#111813] dark:text-white line-clamp-1">{plant.name}</h3>
-                  <span className="text-lg font-black text-primary">{formatVND(plant.price)}</span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-lg font-black text-primary">{formatVND(plant.price)}</span>
+                      {plant.originalPrice && plant.originalPrice > plant.price && (
+                        <span className="text-xs text-slate-400 line-through font-bold">{formatVND(plant.originalPrice)}</span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 font-medium">{plant.description}</p>
                   
