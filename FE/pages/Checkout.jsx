@@ -24,11 +24,11 @@ const Checkout = () => {
 
   const handlePayNow = async () => {
     if (!form.fullName || !form.email || !form.phone || !form.address || !form.city) {
-      setError('Please fill in all required shipping fields.');
+      setError('Vui lòng điền đầy đủ thông tin vận chuyển.');
       return;
     }
     if (items.length === 0) {
-      setError('Your cart is empty.');
+      setError('Giỏ hàng của bạn đang trống.');
       return;
     }
     setError('');
@@ -45,10 +45,10 @@ const Checkout = () => {
         clearCart();
         window.location.href = data.checkoutUrl;
       } else {
-        setError('Could not create payment session. Please try again.');
+        setError('Không thể tạo phiên thanh toán. Vui lòng thử lại.');
       }
     } catch (err) {
-      setError(err.message || 'Payment creation failed. Please try again.');
+      setError(err.message || 'Thanh toán thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -60,9 +60,9 @@ const Checkout = () => {
         <Navbar />
         <main className="flex-grow flex flex-col items-center justify-center gap-6 p-10">
           <span className="material-symbols-outlined text-6xl text-primary">shopping_cart</span>
-          <h2 className="text-2xl font-black text-text-main dark:text-white">Your cart is empty</h2>
+          <h2 className="text-2xl font-black text-text-main dark:text-white">Giỏ hàng của bạn đang trống</h2>
           <Link to="/cart" className="bg-primary text-white px-8 py-4 rounded-2xl font-bold shadow-lg hover:bg-primary-dark transition-all">
-            Back to Cart
+            Quay lại giỏ hàng
           </Link>
         </main>
       </div>
@@ -76,15 +76,15 @@ const Checkout = () => {
         {/* Breadcrumbs / Steps */}
         <div className="flex items-center gap-2 mb-8 overflow-x-auto no-scrollbar whitespace-nowrap">
           <Link to="/cart" className="text-primary text-sm font-semibold flex items-center gap-1">
-            <span className="material-symbols-outlined text-sm">shopping_cart</span> Cart
+            <span className="material-symbols-outlined text-sm">shopping_cart</span> Giỏ hàng
           </Link>
           <span className="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
-          <span className="text-slate-900 dark:text-slate-100 text-sm font-bold">Checkout</span>
+          <span className="text-slate-900 dark:text-slate-100 text-sm font-bold">Thanh toán</span>
           <span className="text-slate-400 material-symbols-outlined text-xs">chevron_right</span>
-          <span className="text-slate-400 text-sm font-medium">Confirmation</span>
+          <span className="text-slate-400 text-sm font-medium">Xác nhận</span>
         </div>
 
-        <h1 className="text-3xl font-extrabold mb-8 font-display">Checkout</h1>
+        <h1 className="text-3xl font-extrabold mb-8 font-display">Thanh toán</h1>
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Left Column: Shipping & Payment */}
@@ -93,12 +93,12 @@ const Checkout = () => {
             <section className="bg-white dark:bg-slate-900/40 p-6 md:p-8 rounded-xl border border-primary/5 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
                 <span className="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">1</span>
-                <h2 className="text-xl font-bold font-display">Shipping Information</h2>
+                <h2 className="text-xl font-bold font-display">Thông tin vận chuyển</h2>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Full Name</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Họ và tên</label>
                   <input
                     name="fullName"
                     value={form.fullName}
@@ -109,7 +109,7 @@ const Checkout = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Phone Number</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Số điện thoại</label>
                   <input
                     name="phone"
                     value={form.phone}
@@ -120,7 +120,7 @@ const Checkout = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Email Address</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Địa chỉ Email</label>
                   <input
                     name="email"
                     value={form.email}
@@ -131,18 +131,18 @@ const Checkout = () => {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Delivery Address</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Địa chỉ giao hàng</label>
                   <input
                     name="address"
                     value={form.address}
                     onChange={handleChange}
                     className="w-full h-12 px-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                    placeholder="Street name and house number"
+                    placeholder="Tên đường, số nhà..."
                     type="text"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">City / Province</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Tỉnh / Thành phố</label>
                   <select
                     name="city"
                     value={form.city}
@@ -161,13 +161,13 @@ const Checkout = () => {
                   </select>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Order Notes (Optional)</label>
+                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Ghi chú đơn hàng (Tùy chọn)</label>
                   <textarea
                     name="note"
                     value={form.note}
                     onChange={handleChange}
                     className="w-full p-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-background-light dark:bg-background-dark focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all"
-                    placeholder="Notes about your order, e.g. special notes for delivery."
+                    placeholder="Ghi chú về đơn hàng, ví dụ: lưu ý khi giao hàng."
                     rows="3"
                   />
                 </div>
@@ -178,7 +178,7 @@ const Checkout = () => {
             <section className="bg-white dark:bg-slate-900/40 p-6 md:p-8 rounded-xl border border-primary/5 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
                 <span className="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">2</span>
-                <h2 className="text-xl font-bold font-display">Payment Method</h2>
+                <h2 className="text-xl font-bold font-display">Phương thức thanh toán</h2>
               </div>
               <div className="space-y-4">
                 {/* PayOS Option */}
@@ -193,7 +193,7 @@ const Checkout = () => {
                     </div>
                   </div>
                   <div className="ml-8">
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Scan QR to pay using banking app. Secure redirect to PayOS.</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400">Quét mã QR để thanh toán qua ứng dụng ngân hàng. Chuyển hướng an toàn tới PayOS.</p>
                   </div>
                 </label>
               </div>
@@ -211,7 +211,7 @@ const Checkout = () => {
           <div className="lg:col-span-5">
             <div className="sticky top-24 space-y-6">
               <section className="bg-white dark:bg-slate-900/40 p-6 md:p-8 rounded-xl border border-primary/5 shadow-sm">
-                <h2 className="text-xl font-bold font-display mb-6">Order Summary</h2>
+                <h2 className="text-xl font-bold font-display mb-6">Tóm tắt đơn hàng</h2>
                 {/* Item List */}
                 <div className="space-y-4 mb-6">
                   {items.map((item) => (
@@ -221,7 +221,7 @@ const Checkout = () => {
                       </div>
                       <div className="flex-1">
                         <h3 className="text-sm font-bold">{item.name}</h3>
-                        <p className="text-xs text-slate-500">Qty: {item.quantity}</p>
+                        <p className="text-xs text-slate-500">SL: {item.quantity}</p>
                       </div>
                       <p className="text-sm font-bold">${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
@@ -251,12 +251,12 @@ const Checkout = () => {
                   disabled={loading}
                   className="w-full mt-8 bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
                 >
-                  {loading ? 'Processing...' : 'Pay Now'}
+                  {loading ? 'Đang xử lý...' : 'Thanh toán ngay'}
                   <span className="material-symbols-outlined text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </button>
                 
                 <p className="text-[10px] text-center text-slate-400 mt-4 px-4 uppercase tracking-widest font-bold">
-                  Secure Encrypted Checkout
+                  Thanh toán an toàn mã hóa
                 </p>
               </section>
 
@@ -265,8 +265,8 @@ const Checkout = () => {
                 <div className="flex gap-4">
                   <span className="material-symbols-outlined text-primary">eco</span>
                   <div>
-                    <h4 className="font-bold text-sm mb-1 text-slate-900 dark:text-slate-100">Plant Care Guide Included</h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Every order comes with a digital care guide to help your new friends thrive.</p>
+                    <h4 className="font-bold text-sm mb-1 text-slate-900 dark:text-slate-100">Bao gồm hướng dẫn chăm sóc</h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Mỗi đơn hàng đều đi kèm hướng dẫn kỹ thuật số giúp cây của bạn phát triển tốt nhất.</p>
                   </div>
                 </div>
               </div>

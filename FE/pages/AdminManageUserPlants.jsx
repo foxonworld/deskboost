@@ -22,13 +22,13 @@ const AdminManageUserPlants = () => {
   };
 
   const menuItems = [
-    { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin' },
-    { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants' },
-    { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
-    { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants', active: true },
-    { name: 'User List', icon: 'group', path: '/app/admin/users' },
-    { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
-    { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+    { name: 'Tổng quan Dashboard', icon: 'dashboard', path: '/app/admin' },
+    { name: 'Quản lý cửa hàng', icon: 'storefront', path: '/app/admin/plants' },
+    { name: 'Quản lý tài chính', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+    { name: 'Bản đồ cây người dùng', icon: 'potted_plant', path: '/app/admin/user-plants', active: true },
+    { name: 'Danh sách người dùng', icon: 'group', path: '/app/admin/users' },
+    { name: 'Quản lý tin nhắn', icon: 'mail', path: '/app/admin/messages' },
+    { name: 'Quản lý đơn hàng', icon: 'shopping_bag', path: '/app/admin/orders' },
   ];
 
   const filteredPlants = useMemo(() => {
@@ -116,7 +116,7 @@ const AdminManageUserPlants = () => {
           </div>
           <div className="flex flex-col">
             <h1 className="text-slate-900 dark:text-slate-50 font-bold text-lg leading-none">DeskBoost</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Admin Console</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">Bảng điều khiển Admin</p>
           </div>
         </div>
         <nav className="flex-1 px-4 space-y-1">
@@ -138,11 +138,11 @@ const AdminManageUserPlants = () => {
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 space-y-1">
           <Link to="/app/admin/settings" className="flex items-center gap-3 px-3 py-2.5 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
             <span className="material-symbols-outlined">settings</span>
-            <span className="text-sm font-semibold">Settings</span>
+            <span className="text-sm font-semibold">Cài đặt</span>
           </Link>
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-colors text-left">
             <span className="material-symbols-outlined font-normal">logout</span>
-            <span className="text-sm font-semibold">Logout</span>
+            <span className="text-sm font-semibold">Đăng xuất</span>
           </button>
         </div>
       </aside>
@@ -151,16 +151,16 @@ const AdminManageUserPlants = () => {
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden text-slate-900 dark:text-slate-100">
         <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-black">Health Monitor</h2>
+            <h2 className="text-xl font-black">Theo dõi sức khỏe</h2>
             <div className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
             <div className="flex items-center gap-3">
                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                  <span className="size-2 rounded-full bg-red-500 animate-pulse"></span>
-                 {stats.critical} Critical
+                 {stats.critical} Nguy kịch
                </span>
                <span className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                  <span className="size-2 rounded-full bg-amber-500"></span>
-                 {stats.unhealthy} Issues
+                 {stats.unhealthy} Vấn đề
                </span>
             </div>
           </div>

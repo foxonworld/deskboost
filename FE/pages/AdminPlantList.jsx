@@ -4,16 +4,16 @@ import { PRODUCTS, formatVND } from '../data/mockData';
 
 // ── Sidebar menu (shared across admin pages) ──────────────────────────────────
 const MENU_ITEMS = [
-  { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin' },
-  { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants', active: true },
-  { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
-  { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants' },
-  { name: 'User List', icon: 'group', path: '/app/admin/users' },
-  { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
-  { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+  { name: 'Tổng quan Dashboard', icon: 'dashboard', path: '/app/admin' },
+  { name: 'Quản lý cửa hàng', icon: 'storefront', path: '/app/admin/plants', active: true },
+  { name: 'Quản lý tài chính', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+  { name: 'Bản đồ cây người dùng', icon: 'potted_plant', path: '/app/admin/user-plants' },
+  { name: 'Danh sách người dùng', icon: 'group', path: '/app/admin/users' },
+  { name: 'Quản lý tin nhắn', icon: 'mail', path: '/app/admin/messages' },
+  { name: 'Quản lý đơn hàng', icon: 'shopping_bag', path: '/app/admin/orders' },
 ];
 
-const CATEGORIES = ['All', 'Indoor', 'Outdoor', 'Succulent', 'Tropical', 'Flowering', 'Tree', 'Pot', 'Soil', 'Fertilizer', 'Accessory'];
+const CATEGORIES = ['Tất cả', 'Trong nhà', 'Ngoài trời', 'Sen đá', 'Nhiệt đới', 'Cây có hoa', 'Thân gỗ', 'Chậu cây', 'Đất trồng', 'Phân bón', 'Phụ kiện'];
 
 const INITIAL_PRODUCTS = PRODUCTS;
 
@@ -343,7 +343,7 @@ const AdminPlantList = () => {
           </div>
           <div>
             <h1 className="text-slate-900 dark:text-slate-50 font-bold text-base leading-none">DeskBoost</h1>
-            <p className="text-slate-500 text-xs font-medium mt-0.5">Admin Console</p>
+            <p className="text-slate-500 text-xs font-medium mt-0.5">Trình quản trị</p>
           </div>
         </div>
         <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
@@ -363,12 +363,12 @@ const AdminPlantList = () => {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System</p>
           </div>
           <Link to="/app/admin/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-semibold transition-all">
-            <span className="material-symbols-outlined">settings</span>Settings
+            <span className="material-symbols-outlined">settings</span>Cài đặt
           </Link>
         </nav>
         <div className="p-4 border-t border-slate-100 dark:border-slate-800">
           <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2.5 w-full text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl text-sm font-semibold transition-all text-left">
-            <span className="material-symbols-outlined">logout</span>Logout
+            <span className="material-symbols-outlined">logout</span>Đăng xuất
           </button>
         </div>
       </aside>
@@ -379,7 +379,7 @@ const AdminPlantList = () => {
         {/* Header */}
         <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white">Shop Management</h2>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white">Quản lý cửa hàng</h2>
             <p className="text-xs text-slate-500">{products.length} sản phẩm · {totalActive} đang bán</p>
           </div>
           <div className="flex items-center gap-3">

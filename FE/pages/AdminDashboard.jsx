@@ -12,13 +12,13 @@ const AdminDashboard = () => {
   };
 
   const menuItems = [
-    { name: 'Dashboard Overview', icon: 'dashboard', path: '/app/admin', active: true },
-    { name: 'Shop Management', icon: 'storefront', path: '/app/admin/plants' },
-    { name: 'Financial Management', icon: 'account_balance_wallet', path: '/app/admin/financials' },
-    { name: 'Manage User Plants', icon: 'potted_plant', path: '/app/admin/user-plants' },
-    { name: 'User List', icon: 'group', path: '/app/admin/users' },
-    { name: 'Manage Mail Messages', icon: 'mail', path: '/app/admin/messages' },
-    { name: 'Order Management', icon: 'shopping_bag', path: '/app/admin/orders' },
+    { name: 'Tổng quan Dashboard', icon: 'dashboard', path: '/app/admin', active: true },
+    { name: 'Quản lý cửa hàng', icon: 'storefront', path: '/app/admin/plants' },
+    { name: 'Quản lý tài chính', icon: 'account_balance_wallet', path: '/app/admin/financials' },
+    { name: 'Bản đồ cây người dùng', icon: 'potted_plant', path: '/app/admin/user-plants' },
+    { name: 'Danh sách người dùng', icon: 'group', path: '/app/admin/users' },
+    { name: 'Quản lý tin nhắn', icon: 'mail', path: '/app/admin/messages' },
+    { name: 'Quản lý đơn hàng', icon: 'shopping_bag', path: '/app/admin/orders' },
   ];
 
   return (
@@ -59,7 +59,7 @@ const AdminDashboard = () => {
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
           >
             <span className="material-symbols-outlined text-xl">settings</span>
-            <span className="text-sm">Settings</span>
+            <span className="text-sm">Cài đặt hệ thống</span>
           </Link>
         </nav>
         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
@@ -68,7 +68,7 @@ const AdminDashboard = () => {
             className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-medium"
           >
             <span className="material-symbols-outlined">logout</span>
-            <span className="text-sm">Logout</span>
+            <span className="text-sm">Đăng xuất</span>
           </button>
         </div>
       </aside>
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
         {/* Top Bar */}
         <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
           <div className="flex items-center gap-8">
-            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Admin Dashboard</h2>
+            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-white">Bảng điều khiển Admin</h2>
             <nav className="hidden lg:flex items-center gap-6">
               <Link to="/app/admin" className="text-sm font-bold text-slate-900 dark:text-white border-b-2 border-[#4CAF50] pb-5 mt-5">Dashboard</Link>
               <Link to="/plants" className="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-[#4CAF50] transition-colors">Shop</Link>
@@ -121,10 +121,10 @@ const AdminDashboard = () => {
           {/* Stats Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { label: 'Total Users', val: '1,240', trend: '+12%', icon: 'group' },
-              { label: 'Shop Management', val: '48 Products', trend: 'Stable', icon: 'storefront' },
-              { label: 'User Plants', val: '3,405', trend: '+5%', icon: 'potted_plant' },
-              { label: 'Monthly Profit', val: '5,420,000₫', trend: '+8%', icon: 'payments' },
+              { label: 'Tổng người dùng', val: '1,240', trend: '+12%', icon: 'group' },
+              { label: 'Sản phẩm cửa hàng', val: '48 Sản phẩm', trend: 'Ổn định', icon: 'storefront' },
+              { label: 'Cây của người dùng', val: '3,405', trend: '+5%', icon: 'potted_plant' },
+              { label: 'Lợi nhuận tháng', val: '5,420,000₫', trend: '+8%', icon: 'payments' },
             ].map((stat, i) => (
               <div key={i} className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex justify-between items-start mb-4">
@@ -146,17 +146,17 @@ const AdminDashboard = () => {
             {/* Recent Activity Section */}
             <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
               <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <h3 className="font-bold text-slate-900 dark:text-white">Recent Activity</h3>
-                <button className="text-[#4CAF50] text-sm font-bold hover:underline">View All</button>
+                <h3 className="font-bold text-slate-900 dark:text-white">Hoạt động gần đây</h3>
+                <button className="text-[#4CAF50] text-sm font-bold hover:underline">Xem tất cả</button>
               </div>
               <div className="p-0 overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 dark:bg-slate-800/50">
                     <tr>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Action</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Hành động</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Người dùng</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Thời gian</th>
+                      <th className="px-6 py-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -200,13 +200,13 @@ const AdminDashboard = () => {
 
             {/* Quick Navigation */}
             <div className="space-y-6">
-              <h3 className="font-bold text-slate-900 dark:text-white px-2">Quick Navigation</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white px-2">Điều hướng nhanh</h3>
               <div className="grid grid-cols-1 gap-4">
                 {[
-                  { title: 'Manage Users', icon: 'manage_accounts', bg: 'bg-slate-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBA6YuR6nctYovHHVQjGhfodqDruisveACQiw3vaLugtrYrK7qd1vTzmGpi6a_5Tjq8Y0KJgcNO7-KRvNBiVK8WyAejRukE4BrEGb_6_ETZxUPU7peSHSbv4jdTBUKM5dKgQq2zUhoWxM2M89zWwB4FHCrM0fyPDki93ZNFRn4fdgGTe8K94Q9AIAK3LkXbDoM2_hXls8-OldsAXCdQKD0mRFulJkSiPNk4hR0Ksk0vAWRaPmd_zC0je-nZqU7GU3zJVYI--SQRGJo', path: '/app/admin/users' },
-                  { title: 'Shop Management', icon: 'storefront', bg: 'bg-green-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDx4Sa9UooGjM2cFrTdhJK34sNM3UFqSp4qBFMRMzkU5CNo0kx5xwFUR5uL56YUK8WFMUBzG4D8TssO5qdNJz3YZK4wiLz9YqVpcZDbYRktN8Ys8GTxnXlALMJm8ghmbBcA-1ww0fgJ47ILKLLIOqKo2gIqf6e_iLw1lD-E47u6dXEUw_lstklXYhvD4xXHjheGVYD6cfxQ_zGE3Mki410moPZlKMlNwu5mPIh6YJdtJaPYeTnGkWnbJHkn8oWh8-1l1VRBg0ghrsY', path: '/app/admin/plants' },
-                  { title: 'Financial Management', icon: 'account_balance_wallet', bg: 'bg-blue-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOwQ5i79-5RfIvSH5LZAU_Topia6U5Vjy3tIhan4PsGUGy6PwOa94hpt_zOTkN01_NqHrL9QOFYAhhayjjRaXwcGQ5kKIMyF5vvqSyqAKD4vZA6k_Exs4p_dR2X-gzLaVchiyzjpZF96cTIoS7diE4orNLVxgQ5E4cqiJzAAL-K7YqmaoRwZVjz4ZiqT3Yke0bJIL21cjx5Peb0enh2g_82gcCZUKcZWfn2JAcTIVf6cRLbri7OhCW3GJ5Ht-Ghblsxhp_pJQqoe8', path: '/app/admin/financials' },
-                  { title: 'User Plants', icon: 'potted_plant', bg: 'bg-green-800', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVEvQkjeoJ3zxfAJaKEciR761BKpNBRiVkbTgY0AW55PKypn7HtnN1oKBDC5RvNkIl3pusUM_X_HXtvl-q-1lC-uOKhIL3aBJI6AB03H8O2g9dBsqe_EWdl4Js33OxZpLVBDIntnDltPQ_tC3iXSnMC_su9LgXBWPTe1NZN_aNH-RURuNnfuggfjHeW2U3tYeVCIs6mzYGPep6tXveD_ZpkYDLvJPErFkXlJ479Mnm8kCZpRvf9RpRAupir2SnMjeKv8H8Jpv6iGY', path: '/app/admin/user-plants' },
+                  { title: 'Quản lý người dùng', icon: 'manage_accounts', bg: 'bg-slate-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBA6YuR6nctYovHHVQjGhfodqDruisveACQiw3vaLugtrYrK7qd1vTzmGpi6a_5Tjq8Y0KJgcNO7-KRvNBiVK8WyAejRukE4BrEGb_6_ETZxUPU7peSHSbv4jdTBUKM5dKgQq2zUhoWxM2M89zWwB4FHCrM0fyPDki93ZNFRn4fdgGTe8K94Q9AIAK3LkXbDoM2_hXls8-OldsAXCdQKD0mRFulJkSiPNk4hR0Ksk0vAWRaPmd_zC0je-nZqU7GU3zJVYI--SQRGJo', path: '/app/admin/users' },
+                  { title: 'Quản lý cửa hàng', icon: 'storefront', bg: 'bg-green-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDx4Sa9UooGjM2cFrTdhJK34sNM3UFqSp4qBFMRMzkU5CNo0kx5xwFUR5uL56YUK8WFMUBzG4D8TssO5qdNJz3YZK4wiLz9YqVpcZDbYRktN8Ys8GTxnXlALMJm8ghmbBcA-1ww0fgJ47ILKLLIOqKo2gIqf6e_iLw1lD-E47u6dXEUw_lstklXYhvD4xXHjheGVYD6cfxQ_zGE3Mki410moPZlKMlNwu5mPIh6YJdtJaPYeTnGkWnbJHkn8oWh8-1l1VRBg0ghrsY', path: '/app/admin/plants' },
+                  { title: 'Quản lý tài chính', icon: 'account_balance_wallet', bg: 'bg-blue-900', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAOwQ5i79-5RfIvSH5LZAU_Topia6U5Vjy3tIhan4PsGUGy6PwOa94hpt_zOTkN01_NqHrL9QOFYAhhayjjRaXwcGQ5kKIMyF5vvqSyqAKD4vZA6k_Exs4p_dR2X-gzLaVchiyzjpZF96cTIoS7diE4orNLVxgQ5E4cqiJzAAL-K7YqmaoRwZVjz4ZiqT3Yke0bJIL21cjx5Peb0enh2g_82gcCZUKcZWfn2JAcTIVf6cRLbri7OhCW3GJ5Ht-Ghblsxhp_pJQqoe8', path: '/app/admin/financials' },
+                  { title: 'Cây của người dùng', icon: 'potted_plant', bg: 'bg-green-800', img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAVEvQkjeoJ3zxfAJaKEciR761BKpNBRiVkbTgY0AW55PKypn7HtnN1oKBDC5RvNkIl3pusUM_X_HXtvl-q-1lC-uOKhIL3aBJI6AB03H8O2g9dBsqe_EWdl4Js33OxZpLVBDIntnDltPQ_tC3iXSnMC_su9LgXBWPTe1NZN_aNH-RURuNnfuggfjHeW2U3tYeVCIs6mzYGPep6tXveD_ZpkYDLvJPErFkXlJ479Mnm8kCZpRvf9RpRAupir2SnMjeKv8H8Jpv6iGY', path: '/app/admin/user-plants' },
                 ].map((nav, i) => (
                   <button key={i} onClick={() => navigate(nav.path)} className={`group relative overflow-hidden rounded-xl h-24 flex items-center p-6 ${nav.bg}`}>
                     <img

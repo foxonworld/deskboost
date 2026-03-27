@@ -14,17 +14,17 @@ const ShoppingCart = () => {
       <main className="flex-grow max-w-7xl mx-auto px-4 md:px-10 py-10 w-full">
         {/* Breadcrumb */}
         <nav className="flex mb-8 gap-2 text-sm font-bold text-text-secondary">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+          <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
           <span className="material-symbols-outlined text-xs">chevron_right</span>
-          <span className="text-slate-900 dark:text-slate-100 font-medium font-bold">Shopping Cart</span>
+          <span className="text-slate-900 dark:text-slate-100 font-medium font-bold">Giỏ hàng</span>
         </nav>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Left Column: Cart Items (70%) */}
           <div className="lg:w-[70%] space-y-6">
             <div className="flex items-baseline justify-between">
-              <h1 className="text-3xl font-extrabold tracking-tight">Your Cart</h1>
-              <span className="text-slate-500 font-bold">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
+              <h1 className="text-3xl font-extrabold tracking-tight">Giỏ hàng</h1>
+              <span className="text-slate-500 font-bold">{items.length} sản phẩm</span>
             </div>
 
             {/* Cart List */}
@@ -38,7 +38,7 @@ const ShoppingCart = () => {
                     
                     <div className="flex-1 text-center sm:text-left">
                       <h3 className="text-lg font-bold group-hover:text-primary transition-colors">{item.name}</h3>
-                      <p className="text-xs text-slate-500 font-medium">In Stock</p>
+                      <p className="text-xs text-slate-500 font-medium">Còn hàng</p>
                       
                       <div className="flex items-center justify-center sm:justify-start gap-4 mt-3">
                         <div className="flex items-center bg-primary/5 rounded-lg border border-primary/10">
@@ -61,7 +61,7 @@ const ShoppingCart = () => {
                           className="text-xs font-bold text-red-500 hover:text-red-600 flex items-center gap-1 transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">delete</span>
-                          Remove
+                          Xóa
                         </button>
                       </div>
                     </div>
@@ -77,10 +77,10 @@ const ShoppingCart = () => {
                   <div className="size-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
                     <span className="material-symbols-outlined text-4xl">shopping_cart_off</span>
                   </div>
-                  <h3 className="text-xl font-bold">Your cart is empty</h3>
-                  <p className="text-slate-500 max-w-xs mx-auto">Looks like you haven't added any green friends to your workspace yet.</p>
+                  <h3 className="text-xl font-bold">Giỏ hàng trống</h3>
+                  <p className="text-slate-500 max-w-xs mx-auto">Có vẻ như bạn chưa chọn được người bạn xanh nào cho không gian của mình.</p>
                   <Link to="/plants" className="inline-flex items-center gap-2 bg-primary text-text-main font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all">
-                    Start Shopping
+                    Bắt đầu mua sắm
                     <span className="material-symbols-outlined text-sm">arrow_forward</span>
                   </Link>
                 </div>
@@ -90,7 +90,7 @@ const ShoppingCart = () => {
             <div className="pt-4">
               <Link to="/plants" className="inline-flex items-center gap-2 text-primary font-bold hover:gap-3 transition-all">
                 <span className="material-symbols-outlined">keyboard_backspace</span>
-                Continue Shopping
+                Tiếp tục mua sắm
               </Link>
             </div>
           </div>
@@ -98,7 +98,7 @@ const ShoppingCart = () => {
           {/* Right Column: Summary (30%) */}
           <div className="lg:w-[30%]">
             <div className="sticky top-24 bg-white dark:bg-slate-800/50 p-6 rounded-xl shadow-lg border border-primary/10 space-y-6">
-              <h2 className="text-xl font-bold border-b border-primary/10 pb-4">Order Summary</h2>
+              <h2 className="text-xl font-bold border-b border-primary/10 pb-4">Tóm tắt đơn hàng</h2>
               <div className="space-y-3">
                 <div className="flex justify-between text-slate-600 dark:text-slate-400 text-sm font-medium">
                   <span>Tạm tính</span>
@@ -118,7 +118,7 @@ const ShoppingCart = () => {
               
               <div className="border-t border-primary/10 pt-4">
                 <div className="flex justify-between items-end mb-6">
-                  <span className="font-bold text-lg">Total</span>
+                  <span className="font-bold text-lg">Tổng cộng</span>
                   <div className="text-right">
                   <p className="text-2xl font-black text-slate-900 dark:text-slate-100">{formatVND(total)}</p>
                   <p className="text-[10px] text-slate-500 font-bold uppercase">Đã bao gồm VAT</p>
@@ -128,17 +128,17 @@ const ShoppingCart = () => {
                   to="/checkout"
                   className={`w-full bg-primary hover:bg-primary/90 text-text-main font-bold py-4 rounded-xl shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 mb-4 group ${items.length === 0 ? 'pointer-events-none opacity-50' : ''}`}
                 >
-                  Proceed to Checkout
+                  Tiến hành thanh toán
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </Link>
                 <div className="space-y-4 pt-4 text-xs text-slate-500 font-medium">
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-primary text-lg">verified_user</span>
-                    <p>Secure SSL Encrypted Checkout</p>
+                    <p>Thanh toán bảo mật mã hóa SSL</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="material-symbols-outlined text-primary text-lg">local_shipping</span>
-                    <p>Free shipping on orders over $100</p>
+                    <p>Miễn phí vận chuyển cho đơn hàng trên 500.000đ</p>
                   </div>
                 </div>
               </div>

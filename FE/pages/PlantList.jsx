@@ -8,29 +8,29 @@ import { useCart } from '../context/CartContext';
 const PlantList = () => {
   const { addItem } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [sortBy, setSortBy] = useState('Popularity');
+  const [activeFilter, setActiveFilter] = useState('Tất cả');
+  const [sortBy, setSortBy] = useState('Phổ biến');
 
   const plants = PRODUCTS.filter(p => p.status === 'Active' || p.status === 'Out of Stock');
 
   const filters = [
-    { name: 'All', icon: 'filter_list' },
-    { name: 'Pot', icon: 'nest_eco_leaf' },
-    { name: 'Soil', icon: 'grass' },
-    { name: 'Fertilizer', icon: 'temp_potted_plant' },
-    { name: 'Accessory', icon: 'handyman' },
+    { name: 'Tất cả', icon: 'filter_list' },
+    { name: 'Pot', icon: 'nest_eco_leaf', label: 'Chậu cây' },
+    { name: 'Soil', icon: 'grass', label: 'Đất trồng' },
+    { name: 'Fertilizer', icon: 'temp_potted_plant', label: 'Phân bón' },
+    { name: 'Accessory', icon: 'handyman', label: 'Phụ kiện' },
   ];
 
   const sortedAndFilteredPlants = plants
     .filter(plant => {
       const matchesSearch = plant.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = activeFilter === 'All' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
+      const matchesFilter = activeFilter === 'Tất cả' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
-      if (sortBy === 'Price: Low to High') return a.price - b.price;
-      if (sortBy === 'Price: High to Low') return b.price - a.price;
-      return 0; // Popularity (default)
+      if (sortBy === 'Giá: Thấp đến Cao') return a.price - b.price;
+      if (sortBy === 'Giá: Cao đến Thấp') return b.price - a.price;
+      return 0; // Phổ biến (default)
     });
 
   return (
@@ -39,8 +39,8 @@ const PlantList = () => {
       <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-10">
         {/* Header Section */}
         <div className="mb-8 md:mb-12">
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">Find your perfect desk companion</h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl font-medium">Bring life to your workspace with our curated selection of low-maintenance, high-impact desk plants.</p>
+          <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">Tìm người bạn đồng hành hoàn hảo</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl font-medium">Mang sức sống đến không gian làm việc của bạn với bộ sưu tập cây cảnh dễ chăm sóc và tinh tế.</p>
         </div>
 
         {/* Filters & Sort */}
@@ -57,7 +57,7 @@ const PlantList = () => {
                 }`}
               >
                 <span className="material-symbols-outlined text-[18px]">{filter.icon}</span>
-                {filter.name}
+                {filter.label || filter.name}
               </button>
             ))}
           </div>
@@ -69,21 +69,21 @@ const PlantList = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 rounded-full text-sm outline-none focus:ring-2 focus:ring-primary/30 transition-all font-medium"
-                placeholder="Search..."
+                placeholder="Tìm kiếm..."
               />
             </div>
             
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-              <span className="hidden sm:inline">Sort by:</span>
+              <span className="hidden sm:inline">Sắp xếp:</span>
               <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="bg-transparent border-none focus:ring-0 text-[#111813] dark:text-white font-bold cursor-pointer outline-none"
               >
-                <option>Popularity</option>
-                <option>Price: Low to High</option>
-                <option>Price: High to Low</option>
+                <option>Phổ biến</option>
+                <option>Giá: Thấp đến Cao</option>
+                <option>Giá: Cao đến Thấp</option>
               </select>
             </div>
           </div>
@@ -97,10 +97,10 @@ const PlantList = () => {
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <div className="absolute top-3 left-3 z-10 flex gap-2">
                     {plant.isBestseller && (
-                      <span className="px-2 py-1 rounded-md bg-white/90 dark:bg-black/60 backdrop-blur-sm text-[10px] font-bold text-[#111813] dark:text-white shadow-sm uppercase">Bestseller</span>
+                      <span className="px-2 py-1 rounded-md bg-white/90 dark:bg-black/60 backdrop-blur-sm text-[10px] font-bold text-[#111813] dark:text-white shadow-sm uppercase">BÁN CHẠY</span>
                     )}
                     {plant.isNew && (
-                      <span className="px-2 py-1 rounded-md bg-primary/90 text-[10px] font-bold text-[#111813] shadow-sm uppercase">New</span>
+                      <span className="px-2 py-1 rounded-md bg-primary/90 text-[10px] font-bold text-[#111813] shadow-sm uppercase">MỚI</span>
                     )}
                     {plant.originalPrice && plant.originalPrice > plant.price && (
                       <span className="px-2 py-1 rounded-md bg-red-500 text-[10px] font-black text-white shadow-sm uppercase tracking-tighter">
@@ -138,7 +138,7 @@ const PlantList = () => {
                     to={`/plants/${plant.id}`} 
                     className="w-full py-2.5 rounded-lg bg-primary hover:bg-[#25d360] active:scale-95 text-[#111813] text-sm font-bold transition-all flex items-center justify-center gap-2"
                   >
-                    View Details
+                    Xem Chi Tiết
                   </Link>
                 </div>
               </div>
@@ -147,8 +147,8 @@ const PlantList = () => {
         ) : (
           <div className="py-20 text-center flex flex-col items-center gap-4">
             <span className="material-symbols-outlined text-6xl text-gray-300">potted_plant</span>
-            <p className="text-xl font-bold text-gray-500">No plants found matching your search.</p>
-            <button onClick={() => {setSearchTerm(''); setActiveFilter('All');}} className="text-primary font-bold hover:underline">Clear all filters</button>
+            <p className="text-xl font-bold text-gray-500">Không tìm thấy sản phẩm phù hợp.</p>
+            <button onClick={() => {setSearchTerm(''); setActiveFilter('Tất cả');}} className="text-primary font-bold hover:underline">Xóa tất cả bộ lọc</button>
           </div>
         )}
 

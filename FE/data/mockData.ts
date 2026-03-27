@@ -121,7 +121,13 @@ export interface AppUser {
   status: 'Active' | 'Suspended';
   plantCount?: number;
   orderCount?: number;
+  planLabel?: string; // Add helper label
 }
+
+export const USER_PLAN_CONFIG = {
+  Free: { label: 'Miễn phí', color: 'bg-slate-100 text-slate-600' },
+  Pro: { label: 'Gói Pro', color: 'bg-primary/10 text-primary font-bold' }
+};
 
 // ── ORDER STATUS CONFIG (shared UI config) ────────────────────
 export const ORDER_STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: string }> = {
@@ -142,9 +148,9 @@ export const ORDER_STATUS_STEPS: OrderStatus[] = ['pending', 'paid', 'processing
 export const PRODUCTS: Product[] = [
   {
     id: '1',
-    name: 'Swiss Cheese Plant',
+    name: 'Cây Trầu Bà Lá Xẻ',
     species: 'Monstera Deliciosa',
-    category: 'Indoor',
+    category: 'Trong nhà',
     price: 450000,
     originalPrice: 600000,
     stock: 24,
@@ -153,7 +159,7 @@ export const PRODUCTS: Product[] = [
     tags: ['Dễ chăm', 'Ánh sáng vừa'],
     light: 'Ánh sáng gián tiếp',
     water: 'Mỗi 1–2 tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Active',
     isBestseller: true,
     rating: 4.8,
@@ -161,9 +167,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '2',
-    name: 'Snake Plant',
+    name: 'Cây Lưỡi Hổ',
     species: 'Sansevieria Trifasciata',
-    category: 'Indoor',
+    category: 'Trong nhà',
     price: 280000,
     originalPrice: 400000,
     stock: 42,
@@ -172,7 +178,7 @@ export const PRODUCTS: Product[] = [
     tags: ['Ánh sáng thấp', 'Lọc không khí'],
     light: 'Ánh sáng thấp',
     water: 'Mỗi 3–4 tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Active',
     isBestseller: false,
     rating: 4.6,
@@ -180,9 +186,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '3',
-    name: 'Golden Pothos',
+    name: 'Cây Trầu Bà Vàng',
     species: 'Epipremnum Aureum',
-    category: 'Indoor',
+    category: 'Trong nhà',
     price: 150000,
     originalPrice: 200000,
     stock: 68,
@@ -191,7 +197,7 @@ export const PRODUCTS: Product[] = [
     tags: ['Dễ chăm', 'Mọc nhanh'],
     light: 'Bóng mát một phần',
     water: 'Hàng tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Active',
     isNew: true,
     rating: 4.5,
@@ -199,9 +205,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '4',
-    name: 'ZZ Plant',
+    name: 'Cây Kim Tiền',
     species: 'Zamioculcas Zamiifolia',
-    category: 'Indoor',
+    category: 'Trong nhà',
     price: 320000,
     originalPrice: 380000,
     stock: 15,
@@ -210,16 +216,16 @@ export const PRODUCTS: Product[] = [
     tags: ['Cứng cỏi', 'Ánh sáng thấp'],
     light: 'Ánh sáng thấp',
     water: 'Hàng tháng',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Active',
     rating: 4.7,
     reviewCount: 102,
   },
   {
     id: '5',
-    name: 'Bird of Paradise',
+    name: 'Cây Thiên Điểu',
     species: 'Strelitzia Reginae',
-    category: 'Tropical',
+    category: 'Nhiệt đới',
     price: 890000,
     originalPrice: 1100000,
     stock: 5,
@@ -228,7 +234,7 @@ export const PRODUCTS: Product[] = [
     tags: ['Nhiệt đới', 'Trang trí'],
     light: 'Ánh sáng trực tiếp',
     water: 'Mỗi 1–2 tuần',
-    difficulty: 'Intermediate',
+    difficulty: 'Trung cấp',
     status: 'Active',
     isBestseller: true,
     rating: 4.9,
@@ -236,9 +242,9 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '6',
-    name: 'Fiddle Leaf Fig',
+    name: 'Cây Bàng Singapore',
     species: 'Ficus Lyrata',
-    category: 'Tree',
+    category: 'Thân gỗ',
     price: 720000,
     originalPrice: 850000,
     stock: 8,
@@ -247,16 +253,16 @@ export const PRODUCTS: Product[] = [
     tags: ['Cây cao', 'Trang trí'],
     light: 'Ánh sáng gián tiếp sáng',
     water: 'Mỗi 1–2 tuần',
-    difficulty: 'Intermediate',
+    difficulty: 'Trung cấp',
     status: 'Active',
     rating: 4.3,
     reviewCount: 56,
   },
   {
     id: '7',
-    name: 'Peace Lily',
+    name: 'Cây Lan Ý',
     species: 'Spathiphyllum Wallisii',
-    category: 'Flowering',
+    category: 'Có hoa',
     price: 210000,
     originalPrice: 280000,
     stock: 0,
@@ -265,16 +271,16 @@ export const PRODUCTS: Product[] = [
     tags: ['Ra hoa', 'Lọc không khí'],
     light: 'Ánh sáng thấp đến vừa',
     water: 'Hàng tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Out of Stock',
     rating: 4.4,
     reviewCount: 78,
   },
   {
     id: '8',
-    name: 'Cactus Mix',
+    name: 'Xương Rồng Mix',
     species: 'Cactaceae Spp.',
-    category: 'Succulent',
+    category: 'Mọng mước',
     price: 95000,
     originalPrice: 130000,
     stock: 120,
@@ -283,7 +289,7 @@ export const PRODUCTS: Product[] = [
     tags: ['Mọng nước', 'Ít tưới'],
     light: 'Ánh sáng trực tiếp',
     water: 'Mỗi 2–4 tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     status: 'Active',
     isNew: true,
     rating: 4.2,
@@ -404,13 +410,13 @@ export const MY_PLANTS: UserPlant[] = [
     name: 'Snake Plant',
     species: 'Sansevieria Trifasciata',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC_44EFDoTEDx8JOEwSXsIyQQlfrftIg-J-Z58gxB2cQbrAFO5tD0MJrHpKNiwfdWnhHArqYGgeGdPgSkmUPLx-Xv9651cbfNudCovVOX1fh_G0gUuPI5eCzzeA_pJbcyDkr93wa-awONab2w5DAlD_INO-CNfc4BKCz8A1-llxKcr9rVFwBK4mFxE_3SAD51tY1vLKEhPOIe0Hx5Xp1Vx5wbiIBPatLfZKUZ-m4jC3E0_qXB6-hzO2hYDMpPlJTxLmg5jbz89CuCQ',
-    status: 'thriving',
+    status: 'thriving', // UI should map this, but labels are better
     acquiredDate: '2024-01-15',
     lastWatered: '2026-03-15',
     nextWatering: '2026-04-05',
     light: 'Ánh sáng thấp',
     water: 'Mỗi 3–4 tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     notes: 'Cây rất khỏe mạnh, không cần chăm nhiều.',
   },
   {
@@ -426,7 +432,7 @@ export const MY_PLANTS: UserPlant[] = [
     nextWatering: '2026-03-18',
     light: 'Ánh sáng gián tiếp',
     water: 'Mỗi 1–2 tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     notes: 'Cần tưới sớm, đất đang khô.',
   },
   {
@@ -442,7 +448,7 @@ export const MY_PLANTS: UserPlant[] = [
     nextWatering: '2026-03-19',
     light: 'Bóng mát một phần',
     water: 'Hàng tuần',
-    difficulty: 'Beginner',
+    difficulty: 'Sơ cấp',
     notes: 'Đang phục hồi sau khi bị ngập nước.',
   },
 ];
@@ -456,8 +462,8 @@ export const MOCK_ORDERS: Order[] = [
     date: '2026-03-10',
     status: 'delivered',
     items: [
-      { productId: '6', name: 'Fiddle Leaf Fig', quantity: 1, unitPrice: 720000, note: 'Chậu gốm đi kèm' },
-      { productId: '1', name: 'Swiss Cheese Plant', quantity: 2, unitPrice: 450000, note: 'Size lớn' },
+      { productId: '6', name: 'Cây Bàng Singapore', quantity: 1, unitPrice: 720000, note: 'Chậu gốm đi kèm' },
+      { productId: '1', name: 'Cây Trầu Bà Lá Xẻ', quantity: 2, unitPrice: 450000, note: 'Size lớn' },
     ],
     shippingInfo: {
       fullName: 'Nguyễn Văn A',
@@ -483,7 +489,7 @@ export const MOCK_ORDERS: Order[] = [
     date: '2026-02-20',
     status: 'delivered',
     items: [
-      { productId: '2', name: 'Snake Plant', quantity: 1, unitPrice: 280000, note: 'Chậu nhựa tiêu chuẩn' },
+      { productId: '2', name: 'Cây Lưỡi Hổ', quantity: 1, unitPrice: 280000, note: 'Chậu nhựa tiêu chuẩn' },
     ],
     shippingInfo: {
       fullName: 'Nguyễn Văn A',
@@ -507,7 +513,7 @@ export const MOCK_ORDERS: Order[] = [
     date: '2026-01-15',
     status: 'cancelled',
     items: [
-      { productId: '5', name: 'Bird of Paradise', quantity: 1, unitPrice: 890000 },
+      { productId: '5', name: 'Cây Thiên Điểu', quantity: 1, unitPrice: 890000 },
     ],
     shippingInfo: {
       fullName: 'Nguyễn Văn A',

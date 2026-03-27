@@ -28,7 +28,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-6">
             <Link to="/" className="flex items-center gap-1.5 text-text-main dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">
               <span className="material-symbols-outlined text-lg">home</span>
-              <span>Home</span>
+              <span>Trang chủ</span>
             </Link>
             <Link to="/plants" className="flex items-center gap-1.5 text-text-main dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors">
               <span className="material-symbols-outlined text-lg">local_florist</span>
@@ -45,16 +45,16 @@ const Navbar = () => {
             {!role ? (
               <Link to="/login" className="flex items-center gap-2 rounded-lg h-10 px-4 bg-primary text-text-main text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
                 <span className="material-symbols-outlined text-lg">account_circle</span>
-                <span>Login</span>
+                <span>Đăng nhập</span>
               </Link>
             ) : (
               <div className="flex items-center gap-3">
                 {role === 'admin' ? (
-                  <Link to="/app/admin" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Admin Panel</Link>
+                  <Link to="/app/admin" className="text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Quản trị viên</Link>
                 ) : (
-                  <Link to="/app/profile" className="hidden sm:block text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Profile</Link>
+                  <Link to="/app/profile" className="hidden sm:block text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Hồ sơ</Link>
                 )}
-                <button onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors hidden sm:block">Logout</button>
+                <button onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors hidden sm:block">Đăng xuất</button>
                 <Link to="/app/profile" className="bg-primary/10 rounded-full w-10 h-10 flex items-center justify-center border border-primary/20 hover:border-primary/40 transition-colors">
                   <span className="material-symbols-outlined text-primary">person</span>
                 </Link>
@@ -66,7 +66,7 @@ const Navbar = () => {
               className="relative flex items-center gap-2 bg-primary/10 text-primary rounded-lg h-10 px-4 text-sm font-bold hover:bg-primary/20 transition-all border border-primary/10"
             >
               <span className="material-symbols-outlined text-lg">shopping_cart</span>
-              <span className="hidden sm:inline">Cart</span>
+              <span className="hidden sm:inline">Giỏ hàng</span>
               {totalItems > 0 && (
                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
                   {totalItems > 99 ? '99+' : totalItems}
