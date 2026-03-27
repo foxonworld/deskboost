@@ -17,7 +17,7 @@ const PlantList = () => {
     { name: 'Tất cả', icon: 'filter_list' },
     { name: 'Pot', icon: 'nest_eco_leaf', label: 'Chậu cây' },
     { name: 'Soil', icon: 'grass', label: 'Đất trồng' },
-    { name: 'Fertilizer', icon: 'temp_potted_plant', label: 'Phân bón' },
+    { name: 'Fertilizer', icon: 'spa', label: 'Phân bón' },
     { name: 'Accessory', icon: 'handyman', label: 'Phụ kiện' },
   ];
 
@@ -50,11 +50,10 @@ const PlantList = () => {
               <button
                 key={filter.name}
                 onClick={() => setActiveFilter(filter.name)}
-                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${
-                  activeFilter === filter.name
-                    ? 'bg-primary text-[#111813] shadow-md ring-2 ring-primary ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark'
-                    : 'bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-primary hover:text-primary'
-                }`}
+                className={`flex-shrink-0 whitespace-nowrap px-4 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${activeFilter === filter.name
+                  ? 'bg-primary text-[#111813] shadow-md ring-2 ring-primary ring-offset-2 ring-offset-background-light dark:ring-offset-background-dark'
+                  : 'bg-white dark:bg-surface-dark border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-primary hover:text-primary'
+                  }`}
               >
                 <span className="material-symbols-outlined text-[18px]">{filter.icon}</span>
                 {filter.label || filter.name}
@@ -72,11 +71,11 @@ const PlantList = () => {
                 placeholder="Tìm kiếm..."
               />
             </div>
-            
+
             {/* Sort Dropdown */}
             <div className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               <span className="hidden sm:inline">Sắp xếp:</span>
-              <select 
+              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="bg-transparent border-none focus:ring-0 text-[#111813] dark:text-white font-bold cursor-pointer outline-none"
@@ -113,7 +112,7 @@ const PlantList = () => {
                   </button>
                   <img src={plant.image} alt={plant.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
-                
+
                 <div className="p-4 flex flex-col flex-grow">
                   <div className="flex justify-between items-start mb-1">
                     <h3 className="text-lg font-bold text-[#111813] dark:text-white line-clamp-1">{plant.name}</h3>
@@ -125,7 +124,7 @@ const PlantList = () => {
                     </div>
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 font-medium">{plant.description}</p>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-4 mt-auto">
                     {plant.tags?.map(tag => (
                       <span key={tag} className="px-2 py-1 rounded bg-background-light dark:bg-background-dark text-[10px] font-bold text-gray-600 dark:text-gray-300 flex items-center gap-1 uppercase tracking-wider">
@@ -133,9 +132,9 @@ const PlantList = () => {
                       </span>
                     ))}
                   </div>
-                  
-                  <Link 
-                    to={`/plants/${plant.id}`} 
+
+                  <Link
+                    to={`/plants/${plant.id}`}
                     className="w-full py-2.5 rounded-lg bg-primary hover:bg-[#25d360] active:scale-95 text-[#111813] text-sm font-bold transition-all flex items-center justify-center gap-2"
                   >
                     Xem Chi Tiết
@@ -148,7 +147,7 @@ const PlantList = () => {
           <div className="py-20 text-center flex flex-col items-center gap-4">
             <span className="material-symbols-outlined text-6xl text-gray-300">potted_plant</span>
             <p className="text-xl font-bold text-gray-500">Không tìm thấy sản phẩm phù hợp.</p>
-            <button onClick={() => {setSearchTerm(''); setActiveFilter('Tất cả');}} className="text-primary font-bold hover:underline">Xóa tất cả bộ lọc</button>
+            <button onClick={() => { setSearchTerm(''); setActiveFilter('Tất cả'); }} className="text-primary font-bold hover:underline">Xóa tất cả bộ lọc</button>
           </div>
         )}
 
