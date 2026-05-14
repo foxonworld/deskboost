@@ -5,7 +5,7 @@ import Navbar from '../components/Navbar';
 import ChatbotWidget from '../components/ChatbotWidget';
 import { useCare } from '../context/CareContext';
 import { useNavigate } from 'react-router-dom';
-import { PLANTS, formatVND, MOCK_ALL_USER_PLANTS } from '../data/mockData';
+import { PLANTS, formatVND } from '../data/mockData';
 
 const Home = () => {
   const { pendingTasks } = useCare();
@@ -60,7 +60,7 @@ const Home = () => {
                   Xem Sản Phẩm
                 </Link>
                 <button
-                  onClick={() => navigate('/reminders-settings')}
+                  onClick={() => navigate('/app/settings')}
                   className="flex w-full sm:w-auto min-w-[160px] h-12 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-surface-light dark:bg-surface-dark px-6 text-text-main dark:text-white text-base font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   Lịch chăm sóc
@@ -77,7 +77,7 @@ const Home = () => {
                 
                 {/* Floating Activity Card (Synced with CareContext) */}
                 <button 
-                  onClick={() => navigate('/reminders-settings')}
+                  onClick={() => navigate('/app/settings')}
                   className="absolute bottom-6 left-6 right-6 md:left-auto md:right-6 md:w-64 bg-white/40 dark:bg-slate-900/40 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-2xl p-4 shadow-xl hover:scale-[1.03] active:scale-95 transition-all animate-in slide-in-from-bottom-5 duration-700 group text-left"
                 >
                   <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ const Home = () => {
                         </div>
                       </div>
                       <button className="w-full h-10 rounded-lg bg-[#f0f4f2] dark:bg-gray-700 text-text-main dark:text-white text-sm font-bold hover:bg-primary hover:text-text-main transition-colors">
-                        Thêm vào giỏ
+                        Liên hệ mua
                       </button>
                     </div>
                   </div>

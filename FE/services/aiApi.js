@@ -1,24 +1,14 @@
-import { post } from './api';
+import { post } from "./api";
 
-/**
- * AI API – proxy to Gemini via backend
- * The backend holds the Gemini API key; FE just sends requests here.
- * TODO: connect to backend when ready
- */
+export const diagnosePlant = (payload) => post("/ai/diagnose", payload);
+export const chatWithAI = (payload) => post("/ai/chat", payload);
 
-/**
- * Send a plant image (base64) for AI diagnosis.
- * @param {string} base64Image - data URL from FileReader
- * @returns {Promise<{ diagnosis: string, recommendations: string[] }>}
- */
-export const apiDiagnoseImage = (base64Image) =>
-  post('/ai/diagnose', { image: base64Image });
+// Backward-compatible aliases during MVP cleanup.
+export const apiDiagnoseImage = (
+  imageBase64,
+  plantId,
+  question = "What is wrong with this plant?",
+) => diagnosePlant({ plantId, imageBase64, question });
 
-/**
- * Send a chat message to the AI plant assistant.
- * @param {string} message - user message
- * @param {Array}  history - previous messages [{ role, content }]
- * @returns {Promise<{ reply: string }>}
- */
-export const apiChatWithAI = (message, history = []) =>
-  post('/ai/chat', { message, history });
+export const apiChatWithAI = (message, history = [], plantId) =>
+  chatWithAI({ plantId, message, history });

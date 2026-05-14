@@ -35,10 +35,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            {/* Care Notification Bell — only for logged-in non-admin users */}
-            {role && role !== 'admin' && (
-              <CareNotificationBell />
-            )}
+            {role && <CareNotificationBell />}
 
             {!role ? (
               <Link to="/login" className="flex items-center gap-2 rounded-lg h-10 px-4 bg-primary text-text-main text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
