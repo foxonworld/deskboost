@@ -3,10 +3,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PRODUCTS, formatVND } from '../data/mockData';
-import { useCart } from '../context/CartContext';
 
 const PlantList = () => {
-  const { addItem } = useCart();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('Tất cả');
   const [sortBy, setSortBy] = useState('Phổ biến');

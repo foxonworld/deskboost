@@ -8,7 +8,6 @@ const UserSidebar = () => {
   const menuItems = [
     { name: 'Dashboard', icon: 'dashboard', path: '/app/dashboard' },
     { name: 'My Collection', icon: 'potted_plant', path: '/app/my-plants' },
-    { name: 'My Orders', icon: 'receipt_long', path: '/orders' },
     { name: 'AI Plant Analysis', icon: 'smart_toy', path: '/app/ai-analysis' },
     { name: 'Profile', icon: 'person', path: '/app/profile' },
     { name: 'Reminders & Settings', icon: 'settings', path: '/app/settings' },

@@ -52,7 +52,7 @@ const PlantProfile = () => {
                 Status: Prime
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Link to={`/app/my-plants/${plant.id}/analyze`} className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl bg-[#4CAF50] text-white transition-all shadow-xl shadow-[#4CAF50]/20 hover:opacity-90 active:scale-95 group/btn">
+                <Link to={`/app/ai-analysis`} className="flex flex-col items-center justify-center gap-2 h-24 rounded-2xl bg-[#4CAF50] text-white transition-all shadow-xl shadow-[#4CAF50]/20 hover:opacity-90 active:scale-95 group/btn">
                   <span className="material-symbols-outlined text-3xl group-hover/btn:scale-110 transition-transform">biotech</span>
                   <span className="text-[10px] font-black uppercase tracking-widest">Bio Scan</span>
                 </Link>

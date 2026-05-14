@@ -1,16 +1,11 @@
-
 import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PRODUCTS, formatVND, getProductById } from '../data/mockData';
-import { useCart } from '../context/CartContext';
 
 const PlantDetail = () => {
   const { plantId } = useParams();
   const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
-  const { addItem, addItems } = useCart();
-  const navigate = useNavigate();
-  const [isAdded, setIsAdded] = useState(false);
   const [selectedRelated, setSelectedRelated] = useState(plant.relatedProductIds || []);
 
   const relatedProducts = (plant.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
@@ -29,49 +24,14 @@ const PlantDetail = () => {
 
   const combo = calculateCombo();
 
-  // Build a CartItem from the Product
-  const toCartItem = (qty = 1) => ({
-    id: plant.id,
-    name: plant.name,
-    image: plant.image,
-    price: plant.price,
-    quantity: qty,
-  });
-
-  const handleAddToCart = () => {
-    addItem(toCartItem());
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
+  const handleContactFacebook = () => {
+    alert("Đang chuyển hướng tới Facebook để nhắn tin...");
+    window.open("https://m.me/deskboost", "_blank");
   };
 
-  const handleBuyNow = () => {
-    addItem(toCartItem());
-    navigate('/cart');
-  };
-
-  const handleAddCombo = () => {
-    const items = [
-      toCartItem(),
-      ...selectedRelated.map(id => {
-        const p = getProductById(id);
-        const discountScale = 1 - (plant.comboDiscount || 0) / 100;
-        return {
-          id: p.id,
-          name: p.name,
-          image: p.image,
-          price: p.price * discountScale, // Apply discount to each item or just handle it here
-          quantity: 1
-        };
-      })
-    ];
-    // NOTE: The main item also gets a discount in a combo!
-    const updatedItems = items.map(item => ({
-      ...item,
-      price: item.price * (1 - (plant.comboDiscount || 0) / 100)
-    }));
-    
-    addItems(updatedItems);
-    navigate('/cart');
+  const handleContactZalo = () => {
+    alert("Đang chuyển hướng tới Zalo để nhắn tin...");
+    window.open("https://zalo.me/YOUR_ZALO_NUMBER", "_blank");
   };
 
   return (
@@ -238,13 +198,6 @@ const PlantDetail = () => {
                         <p className="text-xl font-black text-primary leading-none">{formatVND(combo.total)}</p>
                       </div>
                     </div>
-                    <button 
-                      onClick={handleAddCombo}
-                      className="w-full py-3.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-xs rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg flex items-center justify-center gap-2 uppercase tracking-widest"
-                    >
-                       <span className="material-symbols-outlined text-sm">shopping_basket</span>
-                       Thêm trọn bộ vào giỏ
-                    </button>
                   </div>
                 )}
               </div>
@@ -252,22 +205,21 @@ const PlantDetail = () => {
 
             <div className="flex flex-col gap-3">
               <button
-                onClick={handleAddToCart}
-                className={`w-full py-5 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-2 ${isAdded ? 'bg-green-500 text-white shadow-green-200' : 'bg-primary text-white shadow-primary/20 hover:bg-primary-dark'}`}
+                onClick={handleContactFacebook}
+                className="w-full py-4 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 bg-[#0866FF] text-white hover:bg-[#0050d1]"
               >
-                <span className="material-symbols-outlined text-2xl">{isAdded ? 'check_circle' : 'shopping_cart'}</span>
-                {isAdded ? 'Đã thêm vào giỏ!' : 'Thêm vào giỏ hàng'}
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="FB" className="w-7 h-7 filter brightness-0 invert" />
+                Dự kiến mua qua Messenger
               </button>
               <button
-                onClick={handleBuyNow}
-                className="w-full py-4 rounded-2xl font-bold text-lg border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all"
+                onClick={handleContactZalo}
+                className="w-full py-4 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 bg-[#0068FF] text-white hover:bg-[#0055d4]"
               >
-                Mua ngay
+                Nhắn tin Zalo ngay
               </button>
             </div>
           </div>
         </div>
-
 
       </main>
     </div>
