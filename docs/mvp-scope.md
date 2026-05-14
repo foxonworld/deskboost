@@ -1,111 +1,150 @@
 # DeskBoost – MVP Scope
 
-> Mục tiêu: **Deployable MVP** phục vụ EXE201. Ưu tiên deploy nhanh + test thật với user.
+> Source of truth: current codebase + finalized API contract. Keep scope lean for EXE201.
 
 ---
 
-## Phân loại tính năng
+## Current Status
 
-### ✅ KEEP – Giữ lại, hoàn thiện
-
-| Page / Feature | File | Việc cần làm |
-|---|---|---|
-| Landing Page | `Home.jsx` | Thêm CTA thật, link Zalo/FB |
-| Login | `Login.jsx` | Nối backend auth |
-| Register | `Register.jsx` | Nối backend auth |
-| Forgot Password | `ForgotPassword.jsx` | Email reset (có thể defer) |
-| My Plants | `MyPlants.jsx` | Nối API thật thay mock |
-| Add Plant | `AddPlantUser.jsx` | Nối API thật |
-| Plant Profile | `PlantProfile.jsx` | Nối API thật |
-| AI Plant Analysis | `AIPlantAnalysis.jsx` | **Thay mock bằng Gemini API** |
-| Care Reminders | `RemindersSettings.jsx` | Nối backend, bỏ hardcode |
-| Care Notification Bell | `CareNotificationBell.jsx` | Giữ UI, feed data từ API |
-| Plant List (Marketplace) | `PlantList.jsx` | Thêm nút liên hệ Zalo/FB |
-| Plant Detail | `PlantDetail.jsx` | Thêm nút liên hệ Zalo/FB |
-| User Profile | `UserProfile.jsx` | Nối backend |
-| Dashboard | `Dashboard.jsx` | Thay hardcode bằng data thật |
-| UserLayout / Navbar / Sidebar | components | Giữ nguyên |
-| ThemeToggle | `ThemeToggle.tsx` | Giữ nguyên |
-| CareContext | `CareContext.jsx` | Refactor để nhận data từ API |
+- Frontend exists and was cleaned to MVP scope.
+- Backend is not implemented yet.
+- API contract is finalized in `docs/api-contract.md`.
+- Backend target remains NestJS + Prisma + PostgreSQL.
+- Backend implementation will be handled later by Tuan.
+- Deprecated commerce/admin pages, routes, navigation, and mock data are removed from active MVP flow.
+- `mockData.ts` is now MVP fallback only, not primary architecture.
 
 ---
 
-### ❌ REMOVE – Xóa hoàn toàn khỏi MVP
+## Current MVP Scope
 
-> **Lý do:** Gây confusion, làm nặng codebase, không nằm trong MVP scope.
-
-| File | Lý do xóa |
-|---|---|
-| `ShoppingCart.jsx` | E-commerce không cần cho MVP |
-| `Checkout.jsx` | E-commerce không cần cho MVP |
-| `PaymentSuccess.jsx` | E-commerce không cần cho MVP |
-| `PaymentCancelled.jsx` | E-commerce không cần cho MVP |
-| `MyOrders.jsx` | E-commerce không cần cho MVP |
-| `OrderDetail.jsx` | E-commerce không cần cho MVP |
-| `PlantAnalyze.jsx` | **Trùng** với `AIPlantAnalysis.jsx` – giữ cái kia |
-| `DiagnosisResult.jsx` | Kết quả mock – merge vào `AIPlantAnalysis.jsx` |
-| `services/commerceApi.js` | Toàn bộ Cart/Payment/Order API |
-| `context/CartContext.jsx` | Không cần cart |
-| Routes commerce trong `AppRouter.tsx` | `/cart`, `/checkout`, `/orders/*`, `/payment-*` |
-
-**Admin pages – xóa toàn bộ hoặc ẩn:**
-
-| File | Lý do |
-|---|---|
-| `AdminDashboard.jsx` | Không cần cho MVP user-facing |
-| `AdminFinancials.jsx` | Không có doanh thu thật |
-| `AdminMailManagement.jsx` | Phức tạp không cần |
-| `AdminManageUserPlants.jsx` | Quản lý manual – không cần |
-| `AdminOrderManagement.jsx` | Liên quan e-commerce |
-| `AdminSystemSettings.jsx` | Không cần |
-| `AdminUserList.jsx` / `AdminUserDetail.jsx` | Defer |
-| `AdminPlantList.jsx` / `AdminAddPlant.jsx` / `AdminEditPlant.jsx` | Có thể giữ nếu cần seed data |
+| Feature            | Current frontend state                                                                           | Backend state          |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ---------------------- |
+| Landing            | `Home.jsx` exists                                                                                | Not needed             |
+| Auth               | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx` exist | Planned                |
+| Add Plant          | `AddPlantUser.jsx` exists                                                                        | Planned                |
+| My Plants          | `MyPlants.jsx`, `PlantProfile.jsx` exist                                                         | Planned                |
+| AI Diagnosis       | `AIPlantAnalysis.jsx` exists                                                                     | Planned backend proxy  |
+| Reminder           | `RemindersSettings.jsx`, `CareContext.jsx`, `CareNotificationBell.jsx` exist                     | Planned                |
+| Feedback           | `feedbackApi.js` exists                                                                          | Planned                |
+| Simple Marketplace | `PlantList.jsx`, `PlantDetail.jsx` exist                                                         | Planned public catalog |
 
 ---
 
-### 🔜 FUTURE – Để sau EXE201
+## Current Routes
 
-| Feature | Lý do defer |
-|---|---|
-| Thanh toán VNPay/Momo | Cần merchant account |
-| Cart & Orders | Cần warehouse/fulfillment |
-| Admin full dashboard | Cần thêm time |
-| QR/NFC plant tag | Hardware dependency |
-| Workspace scanner | Hardware dependency |
-| Analytics nâng cao | Cần đủ user data |
-| Notifications push | Cần FCM setup |
-| Multi-language | Defer |
+Public:
 
----
-
-## MVP Routes sau khi cleanup
-
-```
-/                           → Home (Landing)
-/plants                     → PlantList (Marketplace - hiển thị)
-/plants/:plantId            → PlantDetail (+ nút liên hệ)
-/login                      → Login
-/register                   → Register
-/forgot-password            → ForgotPassword
-
-/app/dashboard              → Dashboard
-/app/my-plants              → MyPlants
-/app/my-plants/:id/profile  → PlantProfile
-/app/add-plant              → AddPlantUser
-/app/ai-analysis            → AIPlantAnalysis (Gemini thật)
-/app/settings               → RemindersSettings
-/app/profile                → UserProfile
+```txt
+/                -> Home
+/plants          -> PlantList
+/plants/:plantId -> PlantDetail
+/login           -> Login
+/register        -> Register
+/forgot-password -> ForgotPassword
 ```
 
-**Tổng: 13 routes** (giảm từ 27 routes hiện tại)
+Protected by `ProtectedRoute`:
+
+```txt
+/app/dashboard              -> Dashboard
+/app/my-plants              -> MyPlants
+/app/my-plants/:id/profile  -> PlantProfile
+/app/add-plant              -> AddPlantUser
+/app/profile                -> UserProfile
+/app/ai-analysis            -> AIPlantAnalysis
+/app/settings               -> RemindersSettings
+```
+
+Fallback:
+
+```txt
+* -> /
+```
 
 ---
 
-## MVP Backend cần có
+## Current Active Navigation
 
-Chỉ cần **5 nhóm API** cho MVP:
+`Navbar.jsx`:
 
-```
+- `/`
+- `/plants`
+- `/login` when logged out
+- `/app/profile` when logged in
+- logout when logged in
+- care notification bell when logged in
+
+`UserSidebar.jsx`:
+
+- `/app/dashboard`
+- `/app/my-plants`
+- `/app/ai-analysis`
+- `/app/profile`
+- `/app/settings`
+
+No cart/checkout/order/payment/shipping/admin navigation is active.
+
+---
+
+## Out of Scope
+
+Do not implement or reintroduce for MVP:
+
+- Payment
+- Cart
+- Checkout
+- Orders
+- Shipping
+- Admin dashboard
+- QR/NFC
+- Workspace scanner
+- Advanced analytics
+- AI chat
+
+Clarification: simple marketplace means catalog display + contact-oriented purchase path only. It does not include commerce transaction flows.
+
+---
+
+## Current Technical Decisions
+
+- Use React 19 + Vite 6.
+- Use React Router DOM v7.
+- Use `HashRouter` in `App.tsx`.
+- Keep `/app/*` protected by `ProtectedRoute`.
+- Keep frontend auth state in `AuthContext.jsx`.
+- Store MVP access token + user in `localStorage` through `authStorage.js`.
+- Keep `VITE_USE_MOCK_AUTH` defaulting to mock auth until backend exists.
+- Use centralized API client `FE/services/api.js`.
+- Use service layer files matching `docs/api-contract.md`:
+  - `authApi.js`
+  - `userApi.js`
+  - `plantApi.js`
+  - `reminderApi.js`
+  - `aiApi.js`
+  - `feedbackApi.js`
+- Keep backend base URL as `/api/v1` via `VITE_API_URL`.
+- Backend will proxy AI provider calls; frontend must not store AI provider secrets.
+- Keep fallback data minimal and MVP-only.
+
+---
+
+## Backend MVP Scope
+
+Backend not implemented yet.
+
+Planned backend stack:
+
+- NestJS
+- Prisma
+- PostgreSQL
+- JWT Bearer auth
+- REST + JSON
+- Base path `/api/v1`
+
+Backend should implement only the finalized contract:
+
+```txt
 POST   /auth/register
 POST   /auth/login
 POST   /auth/forgot-password
@@ -113,22 +152,48 @@ POST   /auth/forgot-password
 GET    /users/me
 PUT    /users/me
 
-GET    /plants                  # catalog (marketplace)
+GET    /plants
 GET    /plants/:id
 
-GET    /my-plants               # cây của user
+GET    /my-plants
 POST   /my-plants
 GET    /my-plants/:id
 PUT    /my-plants/:id
 DELETE /my-plants/:id
 
-GET    /reminders               # reminder của user
+GET    /reminders
 POST   /reminders
 PUT    /reminders/:id
 DELETE /reminders/:id
 
-POST   /ai/diagnose             # proxy Gemini Vision API
-POST   /ai/chat                 # proxy Gemini Chat API
+POST   /ai/diagnose
+POST   /ai/chat
+
+POST   /feedback
 ```
 
-> **Lưu ý:** `/ai/*` chỉ là proxy đơn giản để giấu API key, không cần logic phức tạp.
+Do not add cart/order/payment/admin APIs for MVP.
+
+---
+
+## Next Priorities
+
+1. Keep docs synchronized before code changes.
+2. Tuan implements backend from `docs/api-contract.md`.
+3. Verify backend auth returns `{ user, accessToken }`.
+4. Switch frontend auth from mock to real via `VITE_USE_MOCK_AUTH=false`.
+5. Connect current pages to existing service layer incrementally.
+6. Replace fallback data only after matching backend endpoints exist.
+7. Preserve current MVP route/navigation boundaries.
+
+---
+
+## Known Limitations
+
+- No backend or database exists yet.
+- Mock auth remains active by default.
+- Some pages still need final API wiring.
+- `mockData.ts` is still present for MVP fallback.
+- Reminder behavior is still frontend/local-state oriented until backend exists.
+- AI diagnosis requires backend proxy before real provider integration.
+- `ChatbotWidget.jsx` exists in components, but AI chat must not be expanded as an MVP feature.
