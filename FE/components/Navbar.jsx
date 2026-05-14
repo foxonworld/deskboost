@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import CareNotificationBell from './CareNotificationBell';
+import { useAuth } from '../hooks/useAuth';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const role = localStorage.getItem('role');
+  const { isAuthenticated, isLoading, logout } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('role');
-    localStorage.removeItem('isLoggedIn');
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -35,9 +35,9 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            {role && <CareNotificationBell />}
+            {isAuthenticated && <CareNotificationBell />}
 
-            {!role ? (
+            {!isAuthenticated ? (
               <Link to="/login" className="flex items-center gap-2 rounded-lg h-10 px-4 bg-primary text-text-main text-sm font-bold shadow-sm hover:bg-primary/90 transition-all">
                 <span className="material-symbols-outlined text-lg">account_circle</span>
                 <span>Đăng nhập</span>
@@ -45,7 +45,7 @@ const Navbar = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <Link to="/app/profile" className="hidden sm:block text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">Hồ sơ</Link>
-                <button onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors hidden sm:block">Đăng xuất</button>
+                <button disabled={isLoading} onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors hidden sm:block disabled:opacity-60">{isLoading ? 'Đang xuất...' : 'Đăng xuất'}</button>
                 <Link to="/app/profile" className="bg-primary/10 rounded-full w-10 h-10 flex items-center justify-center border border-primary/20 hover:border-primary/40 transition-colors">
                   <span className="material-symbols-outlined text-primary">person</span>
                 </Link>

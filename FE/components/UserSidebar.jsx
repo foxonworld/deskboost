@@ -1,8 +1,11 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const UserSidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, isLoading } = useAuth();
   const currentPath = location.pathname;
 
   const menuItems = [
@@ -13,10 +16,9 @@ const UserSidebar = () => {
     { name: 'Reminders & Settings', icon: 'settings', path: '/app/settings' },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('role');
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = '/';
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
   };
 
   return (
@@ -58,16 +60,17 @@ const UserSidebar = () => {
             <span className="material-symbols-outlined text-slate-400">person</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-bold dark:text-white truncate max-w-[120px]">User Account</span>
+            <span className="text-sm font-bold dark:text-white truncate max-w-[120px]">{user?.name || 'User Account'}</span>
             <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Free Plan</span>
           </div>
         </div>
         <button
+          disabled={isLoading}
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-bold text-sm"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors font-bold text-sm disabled:opacity-60"
         >
           <span className="material-symbols-outlined">logout</span>
-          <span>Logout</span>
+          <span>{isLoading ? 'Logging out...' : 'Logout'}</span>
         </button>
       </div>
     </aside>

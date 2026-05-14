@@ -1,5 +1,33 @@
 # Changelog
 
+## [Frontend Auth Shell] – 2026-05-14
+
+### Added – MVP auth flow
+
+- Added `FE/context/AuthContext.jsx` with `user`, `token`, `isAuthenticated`, `isLoading`, and `error` auth state.
+- Added `FE/hooks/useAuth.js` as the frontend auth hook.
+- Added `FE/utils/authStorage.js` for JWT access token + minimal user profile persistence in `localStorage`.
+- Added `FE/routes/ProtectedRoute.jsx` to redirect unauthenticated users to `/login` while preserving intended route.
+
+### Changed – Auth UX/navigation
+
+- Wrapped the app with `AuthProvider` in `FE/App.tsx`.
+- Protected `/app/*` pages in `FE/routes/AppRouter.tsx`: dashboard, my plants, add plant, plant profile, AI analysis, reminders/settings, user profile.
+- Updated `FE/pages/Login.jsx` and `FE/pages/Register.jsx` to use auth context, mock-ready auth responses, loading/disabled submit states, friendly errors, and post-auth redirect.
+- Updated `FE/components/Navbar.jsx` and `FE/components/UserSidebar.jsx` to reflect auth state and clear auth on logout.
+- Updated `FE/services/authApi.js` to keep `/auth/login` and `/auth/register` contract alignment while defaulting to temporary mock auth until backend exists.
+
+### Validation
+
+- `npm run build` passed.
+- `npm run lint` passed.
+
+### Backend integration TODO
+
+- Set `VITE_USE_MOCK_AUTH=false` after backend auth endpoints exist.
+- Verify real backend response matches `docs/api-contract.md`: `{ user, accessToken }` for login/register.
+- Keep MVP auth as access-token-only; no refresh token/cookie session/social auth.
+
 ## [MVP Architecture Cleanup] – 2026-05-14
 
 ### Removed – Out-of-scope MVP surfaces

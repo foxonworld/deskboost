@@ -1,18 +1,23 @@
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Home from '../pages/Home';
-import PlantList from '../pages/PlantList';
-import PlantDetail from '../pages/PlantDetail';
-import Login from '../pages/Login';
-import Register from '../pages/Register';
-import ForgotPassword from '../pages/ForgotPassword';
-import Dashboard from '../pages/Dashboard';
-import MyPlants from '../pages/MyPlants';
-import PlantProfile from '../pages/PlantProfile';
-import AddPlantUser from '../pages/AddPlantUser';
-import UserProfile from '../pages/UserProfile';
-import AIPlantAnalysis from '../pages/AIPlantAnalysis';
-import RemindersSettings from '../pages/RemindersSettings';
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Home from "../pages/Home";
+import PlantList from "../pages/PlantList";
+import PlantDetail from "../pages/PlantDetail";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+import Dashboard from "../pages/Dashboard";
+import MyPlants from "../pages/MyPlants";
+import PlantProfile from "../pages/PlantProfile";
+import AddPlantUser from "../pages/AddPlantUser";
+import UserProfile from "../pages/UserProfile";
+import AIPlantAnalysis from "../pages/AIPlantAnalysis";
+import RemindersSettings from "../pages/RemindersSettings";
+import ProtectedRoute from "./ProtectedRoute";
+
+const protect = (element: React.ReactNode) => (
+  <ProtectedRoute>{element}</ProtectedRoute>
+);
 
 const AppRouter: React.FC = () => {
   return (
@@ -26,13 +31,16 @@ const AppRouter: React.FC = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       {/* User Routes */}
-      <Route path="/app/dashboard" element={<Dashboard />} />
-      <Route path="/app/my-plants" element={<MyPlants />} />
-      <Route path="/app/my-plants/:id/profile" element={<PlantProfile />} />
-      <Route path="/app/add-plant" element={<AddPlantUser />} />
-      <Route path="/app/profile" element={<UserProfile />} />
-      <Route path="/app/ai-analysis" element={<AIPlantAnalysis />} />
-      <Route path="/app/settings" element={<RemindersSettings />} />
+      <Route path="/app/dashboard" element={protect(<Dashboard />)} />
+      <Route path="/app/my-plants" element={protect(<MyPlants />)} />
+      <Route
+        path="/app/my-plants/:id/profile"
+        element={protect(<PlantProfile />)}
+      />
+      <Route path="/app/add-plant" element={protect(<AddPlantUser />)} />
+      <Route path="/app/profile" element={protect(<UserProfile />)} />
+      <Route path="/app/ai-analysis" element={protect(<AIPlantAnalysis />)} />
+      <Route path="/app/settings" element={protect(<RemindersSettings />)} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

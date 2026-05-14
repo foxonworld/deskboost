@@ -1,14 +1,26 @@
-
-import React from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const Register = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { register, isLoading, error, clearError } = useAuth();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleRegister = (e) => {
+  const redirectTo = location.state?.from?.pathname || '/app/dashboard';
+
+  const handleRegister = async (e) => {
     e.preventDefault();
-    localStorage.setItem('role', 'user');
-    navigate('/app/dashboard');
+    clearError();
+    try {
+      await register({ name, email, password });
+      navigate(redirectTo, { replace: true });
+    } catch {
+      // AuthContext owns friendly error state.
+    }
   };
 
   return (
@@ -26,49 +38,33 @@ const Register = () => {
         <form onSubmit={handleRegister} className="p-6 pt-2 space-y-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-text-main">Full Name</label>
-            <input 
-              required
-              type="text" 
-              className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm"
-              placeholder="Sarah Jenkins"
-            />
+            <input required disabled={isLoading} type="text" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60" placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-text-main">Email address</label>
-            <input 
-              required
-              type="email" 
-              className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm"
-              placeholder="sarah@example.com"
-            />
+            <input required disabled={isLoading} type="email" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60" placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-text-main">Password</label>
-            <input 
-              required
-              type="password" 
-              className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm"
-              placeholder="Create a password"
-            />
+            <input required disabled={isLoading} type="password" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          
+
           <div className="flex items-center gap-2 py-2">
-            <input type="checkbox" required className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" id="terms" />
+            <input type="checkbox" required disabled={isLoading} className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 disabled:opacity-60" id="terms" />
             <label htmlFor="terms" className="text-xs text-text-secondary">
               I agree to the <a href="#" className="text-primary font-bold">Terms of Service</a> and <a href="#" className="text-primary font-bold">Privacy Policy</a>
             </label>
           </div>
 
-          <button 
-            type="submit"
-            className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20"
-          >
-            Create Account
+          {error && <p className="text-sm text-red-500 text-center font-bold">{error}</p>}
+
+          <button type="submit" disabled={isLoading} className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20 disabled:opacity-60">
+            {isLoading ? 'Creating account...' : 'Create Account'}
           </button>
 
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">
-              Already have an account? <Link to="/login" className="text-text-main font-bold hover:underline">Log in</Link>
+              Already have an account? <Link to="/login" state={location.state} className="text-text-main font-bold hover:underline">Log in</Link>
             </p>
           </div>
         </form>
