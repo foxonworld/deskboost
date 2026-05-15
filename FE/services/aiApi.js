@@ -1,7 +1,115 @@
-import { post } from "./api";
+import { get, post } from "./api";
 
-export const diagnosePlant = (payload) => post("/ai/diagnose", payload);
-export const chatWithAI = (payload) => post("/ai/chat", payload);
+const USE_MOCK_AI = import.meta.env.VITE_USE_MOCK_AI !== "false";
+
+const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const now = () => new Date().toISOString();
+
+const mockDialogs = [
+  {
+    id: "dlg_mock_001",
+    plantId: "user-1",
+    plantName: "Spikey",
+    title: "Watering guidance",
+    lastMessage: "Water only when soil is dry.",
+    createdAt: now(),
+    messages: [
+      { role: "user", content: "How often should I water it?" },
+      {
+        role: "assistant",
+        content: "Check the top soil first; snake plants prefer drying out.",
+      },
+    ],
+  },
+];
+
+const makePlantReply = ({ plantId, message, plantContext }) => {
+  const plantName =
+    plantContext?.nickname || plantContext?.name || "selected plant";
+  const species = plantContext?.species || "plant";
+  const status = plantContext?.status || "unknown";
+
+  return {
+    dialogId: `dlg_mock_${Date.now()}`,
+    plantId,
+    reply: `Mock AI care reply for ${plantName} (${species}). Current status: ${status}. Based on your question: "${message}", keep advice focused on watering, light, soil, and visible health only.`,
+    disclaimer:
+      "AI advice is for reference only. Backend AI is not connected yet.",
+    createdAt: now(),
+    source: "mock-fallback",
+  };
+};
+
+const fallback = async (factory) => {
+  await delay();
+  return factory();
+};
+
+const requestWithFallback = async (requestFn, fallbackFn) => {
+  if (USE_MOCK_AI) return fallback(fallbackFn);
+  try {
+    return await requestFn();
+  } catch (error) {
+    return fallback(fallbackFn);
+  }
+};
+
+export const diagnosePlant = (payload) =>
+  requestWithFallback(
+    () => post("/ai/diagnose", payload),
+    () => ({
+      diagnosisId: `diag_mock_${Date.now()}`,
+      plantId: payload?.plantId,
+      summary:
+        "Mock diagnosis fallback. Backend AI diagnose endpoint is unavailable.",
+      recommendations: [
+        "Check light exposure.",
+        "Avoid overwatering.",
+        "Inspect leaves weekly.",
+      ],
+      createdAt: now(),
+      source: "mock-fallback",
+    }),
+  );
+
+export const sendPlantContextChatMessage = ({
+  plantId,
+  message,
+  history = [],
+  plantContext,
+}) => {
+  const payload = { plantId, message, history, plantContext };
+  return requestWithFallback(
+    () => post("/ai/chat", payload),
+    () => makePlantReply(payload),
+  );
+};
+
+export const chatWithAI = sendPlantContextChatMessage;
+
+export const getMyAiDialogs = (params) =>
+  requestWithFallback(
+    () => get("/ai/dialogs", params),
+    () => ({ items: mockDialogs, source: "mock-fallback" }),
+  );
+
+export const getMyAiDialog = (id) =>
+  requestWithFallback(
+    () => get(`/ai/dialogs/${id}`),
+    () => mockDialogs.find((dialog) => dialog.id === id) || null,
+  );
+
+export const getAiConfigStatus = () =>
+  requestWithFallback(
+    () => get("/admin/ai-config/status"),
+    () => ({
+      provider: "gemini",
+      configured: false,
+      mode: "mock-fallback",
+      lastCheckedAt: now(),
+    }),
+  );
 
 // Backward-compatible aliases during MVP cleanup.
 export const apiDiagnoseImage = (
@@ -10,5 +118,5 @@ export const apiDiagnoseImage = (
   question = "What is wrong with this plant?",
 ) => diagnosePlant({ plantId, imageBase64, question });
 
-export const apiChatWithAI = (message, history = [], plantId) =>
-  chatWithAI({ plantId, message, history });
+export const apiChatWithAI = (message, history = [], plantId, plantContext) =>
+  sendPlantContextChatMessage({ plantId, message, history, plantContext });

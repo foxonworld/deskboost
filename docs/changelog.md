@@ -1,5 +1,38 @@
 # Changelog
 
+## [Phase 2 Backend Integration Prep] – 2026-05-15
+
+### Changed – API contract
+
+- Updated `docs/api-contract.md` with frontend mock flags: `VITE_USE_MOCK_AI` and `VITE_USE_MOCK_ADMIN`.
+- Finalized plant-context AI chat request shape with `plantId`, `message`, `history`, and `plantContext`.
+- Added AI dialog list response example and backend endpoint priority list for Tuan.
+- Reconfirmed guardrails: backend keeps AI keys in `.env`; admin sees status/config only; marketplace remains contact-only.
+
+### Added – Frontend services
+
+- Added `FE/services/adminApi.js` with `getAdminSummary`, `getAdminUsers`, `getAdminUser`, `updateAdminUserStatus`, `getAdminUserPlants`, `getAdminUserPlant`, `updateAdminUserPlantStatus`, `getAdminMarketplacePlants`, `createAdminMarketplacePlant`, `updateAdminMarketplacePlant`, `deleteAdminMarketplacePlant`, `getAdminAiDialogs`, `getAdminAiDialog`, and `getAdminAiConfigStatus`.
+- Extended `FE/services/aiApi.js` with `sendPlantContextChatMessage`, `getMyAiDialogs`, `getMyAiDialog`, and `getAiConfigStatus`.
+- Added small colocated mock fallback data in AI/admin services. Defaults: `VITE_USE_MOCK_AI !== "false"`, `VITE_USE_MOCK_ADMIN !== "false"`.
+
+### Changed – Service-driven UI
+
+- Updated `FE/pages/AIChat.jsx` to send selected plant context via service functions and show loading/error/empty/fallback states.
+- Updated `FE/pages/admin/AdminOverview.jsx`, `FE/pages/admin/AdminUsers.jsx`, `FE/pages/admin/AdminPlants.jsx`, `FE/pages/admin/AdminMarketplace.jsx`, and `FE/pages/admin/AdminAI.jsx` to load via `adminApi` with stable mock fallback.
+
+### Backend endpoints Tuan needs
+
+- `POST /ai/chat`, `GET /ai/dialogs`, `GET /ai/dialogs/:id`.
+- `GET /admin/summary`.
+- `GET /admin/users`, `GET /admin/users/:id`, `PUT /admin/users/:id/status`.
+- `GET /admin/user-plants`, `GET /admin/user-plants/:id`, `PUT /admin/user-plants/:id/status`.
+- `GET /admin/marketplace-plants`, `POST /admin/marketplace-plants`, `PUT /admin/marketplace-plants/:id`, `DELETE /admin/marketplace-plants/:id`.
+- `GET /admin/ai-dialogs`, `GET /admin/ai-dialogs/:id`, `GET /admin/ai-config/status`.
+
+### Guardrails
+
+- No backend code, real backend connection requirement, cart, checkout, payment, orders, shipping, charts, enterprise admin dashboard, API key editing UI, or general chatbot memory system added.
+
 ## [Frontend Phase 1 UX Polish] – 2026-05-15
 
 ### Changed – AI Chat UX

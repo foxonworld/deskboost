@@ -1,41 +1,84 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import { getAdminSummary } from '../../services/adminApi';
 
-const statusCards = [
-  { label: 'Users', value: 'Ready shell', icon: 'group', note: 'List/search connects in Phase 2.' },
-  { label: 'User plants', value: 'Ready shell', icon: 'potted_plant', note: 'Review/status tools deferred.' },
-  { label: 'Marketplace', value: 'Simple contact', icon: 'storefront', note: 'Price + Zalo/Facebook only.' },
-  { label: 'AI Chat', value: 'Mock fallback', icon: 'smart_toy', note: 'Plant-context dialog later.' },
+const cards = [
+  { key: 'users', label: 'Users', icon: 'group', note: 'Basic account review only.' },
+  { key: 'userPlants', label: 'User plants', icon: 'potted_plant', note: 'Care status review only.' },
+  { key: 'marketplacePlants', label: 'Marketplace', icon: 'storefront', note: 'Contact-only listings.' },
+  { key: 'aiDialogs', label: 'AI dialogs', icon: 'smart_toy', note: 'Plant-context history only.' },
 ];
 
-const AdminOverview = () => (
-  <AdminLayout>
-    <div className="space-y-5">
-      <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Overview</p>
-        <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Admin MVP status</h1>
-        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-          Phase 1 keeps admin intentional and lightweight: route shell, clear sections, and guardrails. Charts, analytics, and enterprise dashboard widgets are intentionally deferred.
-        </p>
-      </section>
+const AdminOverview = () => {
+  const [summary, setSummary] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {statusCards.map((card) => (
-          <article key={card.label} className="rounded-[28px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <span className="rounded-2xl bg-[#4CAF50]/10 p-3 text-[#4CAF50]">
-                <span className="material-symbols-outlined">{card.icon}</span>
-              </span>
-              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-slate-400">Phase 1</span>
-            </div>
-            <h2 className="mt-4 text-sm font-black uppercase tracking-widest text-slate-400">{card.label}</h2>
-            <p className="mt-2 text-lg font-black text-slate-900 dark:text-white">{card.value}</p>
-            <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{card.note}</p>
-          </article>
-        ))}
-      </section>
-    </div>
-  </AdminLayout>
-);
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await getAdminSummary();
+        if (active) setSummary(data);
+      } catch (err) {
+        if (active) setError(err?.message || 'Could not load admin summary.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return (
+    <AdminLayout>
+      <div className="space-y-5">
+        <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Overview</p>
+          <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Admin MVP status</h1>
+          <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
+            Lightweight service-driven admin. No charts, analytics, enterprise dashboard widgets, or ecommerce flows.
+          </p>
+          {summary?.source === 'mock-fallback' && (
+            <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+              Mock fallback active until backend /admin endpoints are ready.
+            </p>
+          )}
+          {error && <p className="mt-4 text-sm font-bold text-red-500">{error}</p>}
+        </section>
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {loading ? (
+            cards.map((card) => (
+              <article key={card.key} className="rounded-[28px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+                <div className="h-20 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />
+              </article>
+            ))
+          ) : (
+            cards.map((card) => (
+              <article key={card.key} className="rounded-[28px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="rounded-2xl bg-[#4CAF50]/10 p-3 text-[#4CAF50]">
+                    <span className="material-symbols-outlined">{card.icon}</span>
+                  </span>
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-slate-400">Phase 2 prep</span>
+                </div>
+                <h2 className="mt-4 text-sm font-black uppercase tracking-widest text-slate-400">{card.label}</h2>
+                <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{summary?.[card.key] ?? 0}</p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{card.note}</p>
+              </article>
+            ))
+          )}
+        </section>
+      </div>
+    </AdminLayout>
+  );
+};
 
 export default AdminOverview;

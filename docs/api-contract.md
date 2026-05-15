@@ -13,6 +13,7 @@
 - Frontend never calls AI provider directly.
 - Backend keeps AI keys in backend `.env` only.
 - Admin UI shows AI config/status only; no raw key editing.
+- AI Chat is plant-care-specific, using a selected saved plant context.
 - Marketplace is display + contact only.
 - No cart/order/payment/checkout/shipping APIs.
 - Keep responses stable and simple.
@@ -25,7 +26,14 @@ Frontend:
 
 ```env
 VITE_API_URL=http://localhost:8080/api/v1
+VITE_USE_MOCK_AUTH=true
+VITE_USE_MOCK_AI=true
+VITE_USE_MOCK_ADMIN=true
 ```
+
+- Set `VITE_USE_MOCK_AI=false` only after `/ai/*` and `/admin/ai-config/status` are ready.
+- Set `VITE_USE_MOCK_ADMIN=false` only after `/admin/*` endpoints are ready.
+- Even when mock flags are `false`, frontend services may fall back to small mock data if backend is unavailable during Phase 2 prep.
 
 Backend:
 
@@ -213,7 +221,17 @@ AI chat:
       "role": "assistant",
       "content": "Yellow leaves may come from overwatering."
     }
-  ]
+  ],
+  "plantContext": {
+    "id": "myplant_001",
+    "nickname": "Monstera near window",
+    "name": "Swiss Cheese Plant",
+    "species": "Monstera Deliciosa",
+    "status": "needs-water",
+    "light": "indirect",
+    "water": "weekly",
+    "notes": "Likes indirect light."
+  }
 }
 ```
 
@@ -288,6 +306,23 @@ AI chat result:
 }
 ```
 
+AI dialog list:
+
+```json
+{
+  "items": [
+    {
+      "id": "dlg_001",
+      "plantId": "myplant_001",
+      "plantName": "Monstera near window",
+      "title": "Watering guidance",
+      "lastMessage": "Water only when the top soil is dry.",
+      "createdAt": "2026-05-15T03:42:00.000Z"
+    }
+  ]
+}
+```
+
 AI config status:
 
 ```json
@@ -332,23 +367,27 @@ Common status codes: `400`, `401`, `403`, `404`, `409`, `422`, `429`, `500`.
 
 ## 8. Frontend Service Mapping
 
-| Frontend file                | API endpoints                             |
-| ---------------------------- | ----------------------------------------- |
-| `FE/services/api.js`         | Base fetch, auth header, error normalize  |
-| `FE/services/authApi.js`     | `/auth/*`                                 |
-| `FE/services/userApi.js`     | `/users/me`                               |
-| `FE/services/plantApi.js`    | `/plants`, `/my-plants`                   |
-| `FE/services/reminderApi.js` | `/reminders`                              |
-| `FE/services/aiApi.js`       | `/ai/diagnose`, `/ai/chat`, `/ai/dialogs` |
-| `FE/services/feedbackApi.js` | `/feedback`                               |
-| `FE/services/adminApi.js`    | `/admin/*`                                |
+| Frontend file                | API endpoints                                                        |
+| ---------------------------- | -------------------------------------------------------------------- |
+| `FE/services/api.js`         | Base fetch, auth header, error normalize                             |
+| `FE/services/authApi.js`     | `/auth/*`                                                            |
+| `FE/services/userApi.js`     | `/users/me`                                                          |
+| `FE/services/plantApi.js`    | `/plants`, `/my-plants`                                              |
+| `FE/services/reminderApi.js` | `/reminders`                                                         |
+| `FE/services/aiApi.js`       | `/ai/diagnose`, `/ai/chat`, `/ai/dialogs`, `/admin/ai-config/status` |
+| `FE/services/feedbackApi.js` | `/feedback`                                                          |
+| `FE/services/adminApi.js`    | `/admin/*`                                                           |
 
-Suggested new/updated service functions:
+Current service functions:
 
 ```js
 // aiApi.js
-getMyAiDialogs();
+diagnosePlant(payload);
+sendPlantContextChatMessage({ plantId, message, history, plantContext });
+chatWithAI(payload);
+getMyAiDialogs(params);
 getMyAiDialog(id);
+getAiConfigStatus();
 
 // adminApi.js
 getAdminSummary();
@@ -369,7 +408,23 @@ getAdminAiConfigStatus();
 
 ---
 
-## 9. Out-of-scope APIs
+## 9. Backend Endpoints Tuan Needs To Implement
+
+Priority order for Phase 2 backend integration:
+
+1. `POST /ai/chat` with selected `plantId` + `plantContext`, returns plant-care-only reply and stores basic dialog.
+2. `GET /ai/dialogs` and `GET /ai/dialogs/:id` for current user's basic AI dialog history.
+3. `GET /admin/summary` for lightweight counts only.
+4. `GET /admin/users`, `GET /admin/users/:id`, `PUT /admin/users/:id/status`.
+5. `GET /admin/user-plants`, `GET /admin/user-plants/:id`, `PUT /admin/user-plants/:id/status`.
+6. `GET /admin/marketplace-plants`, `POST /admin/marketplace-plants`, `PUT /admin/marketplace-plants/:id`, `DELETE /admin/marketplace-plants/:id`.
+7. `GET /admin/ai-dialogs`, `GET /admin/ai-dialogs/:id`.
+8. `GET /admin/ai-config/status` returning provider/configured/lastCheckedAt only; no raw key value.
+9. Keep `POST /ai/diagnose` aligned with existing contract if image diagnosis remains in MVP.
+
+---
+
+## 10. Out-of-scope APIs
 
 Do not build for MVP:
 

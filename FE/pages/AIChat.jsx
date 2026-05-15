@@ -1,20 +1,61 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import UserLayout from '../components/UserLayout';
 import { MY_PLANTS } from '../data/mockData';
+import { getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
 
 const starterMessages = [
   {
-    id: 'mock-1',
+    id: 'starter-1',
     from: 'assistant',
-    text: 'Chọn một cây để AI dùng đúng ngữ cảnh chăm sóc. Phase 1 đang dùng mock fallback, chưa gọi backend.',
+    text: 'Chọn một cây để AI dùng đúng ngữ cảnh chăm sóc. Backend chưa sẵn sàng nên service tự dùng mock fallback.',
   },
 ];
+
+const normalizePlantContext = (plant) => ({
+  id: plant.id,
+  nickname: plant.nickname,
+  name: plant.name,
+  species: plant.species,
+  status: plant.status,
+  light: plant.light,
+  water: plant.water,
+  notes: plant.notes,
+});
 
 const AIChat = () => {
   const [selectedPlantId, setSelectedPlantId] = useState(MY_PLANTS[0]?.id || '');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState(starterMessages);
   const [isSending, setIsSending] = useState(false);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [fallbackNote, setFallbackNote] = useState('');
+
+  useEffect(() => {
+    let active = true;
+
+    const loadHistory = async () => {
+      setIsHistoryLoading(true);
+      setError('');
+      try {
+        const data = await getMyAiDialogs({ limit: 5 });
+        if (!active) return;
+        if (data?.source === 'mock-fallback') {
+          setFallbackNote('Using mock AI history until backend endpoints are ready.');
+        }
+      } catch (err) {
+        if (!active) return;
+        setError(err?.message || 'Could not load AI dialog history.');
+      } finally {
+        if (active) setIsHistoryLoading(false);
+      }
+    };
+
+    loadHistory();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const selectedPlant = useMemo(
     () => MY_PLANTS.find((plant) => plant.id === selectedPlantId),
@@ -23,23 +64,53 @@ const AIChat = () => {
   const hasPlants = MY_PLANTS.length > 0;
   const canSend = Boolean(input.trim() && selectedPlant && !isSending);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const text = input.trim();
     if (!canSend || !text) return;
 
-    setIsSending(true);
-    setMessages((current) => [
-      ...current,
-      { id: `user-${Date.now()}`, from: 'user', text },
-      {
-        id: `mock-${Date.now()}`,
-        from: 'assistant',
-        text: `Mock fallback: Phase 2 sẽ gửi câu hỏi về ${selectedPlant.nickname} (${selectedPlant.species}) tới backend AI API.`,
-      },
-    ]);
+    const userMessage = { id: `user-${Date.now()}`, from: 'user', text };
+    setMessages((current) => [...current, userMessage]);
     setInput('');
-    window.setTimeout(() => setIsSending(false), 250);
+    setIsSending(true);
+    setError('');
+
+    try {
+      const history = messages.map((message) => ({
+        role: message.from === 'user' ? 'user' : 'assistant',
+        content: message.text,
+      }));
+      const result = await sendPlantContextChatMessage({
+        plantId: selectedPlant.id,
+        message: text,
+        history,
+        plantContext: normalizePlantContext(selectedPlant),
+      });
+
+      setMessages((current) => [
+        ...current,
+        {
+          id: result?.dialogId || `assistant-${Date.now()}`,
+          from: 'assistant',
+          text: result?.reply || 'Mock fallback reply unavailable.',
+        },
+      ]);
+      if (result?.source === 'mock-fallback') {
+        setFallbackNote('Using mock AI reply until backend /ai/chat is available.');
+      }
+    } catch (err) {
+      setError(err?.message || 'Could not send AI chat message.');
+      setMessages((current) => [
+        ...current,
+        {
+          id: `assistant-error-${Date.now()}`,
+          from: 'assistant',
+          text: 'AI service unavailable. Please try again later.',
+        },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -49,8 +120,18 @@ const AIChat = () => {
           <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">AI Chat MVP</p>
           <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Plant care chat</h1>
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-            Select one saved plant first. AI answers are scoped to that plant's care profile, notes, and status when backend support arrives.
+            Select one saved plant first. AI answers stay scoped to that plant's care profile, notes, and status.
           </p>
+          {fallbackNote && (
+            <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+              {fallbackNote}
+            </p>
+          )}
+          {error && (
+            <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-xs font-bold text-red-700 dark:bg-red-950/30 dark:text-red-300">
+              {error}
+            </p>
+          )}
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
@@ -60,7 +141,7 @@ const AIChat = () => {
               <span className="rounded-full bg-[#4CAF50]/10 px-3 py-1 text-[11px] font-black text-[#4CAF50]">Context</span>
             </div>
             <p className="mt-2 px-1 text-xs font-semibold leading-5 text-slate-400">
-              Selected plant → chat context. No general-purpose chatbot in Phase 1.
+              Selected plant → chat context. No general-purpose chatbot.
             </p>
 
             <div className="mt-4 space-y-3">
@@ -108,6 +189,16 @@ const AIChat = () => {
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+              {isHistoryLoading && (
+                <div className="rounded-3xl bg-slate-50 px-5 py-4 text-sm font-bold text-slate-400 dark:bg-slate-800">
+                  Loading dialog history...
+                </div>
+              )}
+              {!isHistoryLoading && messages.length === 0 && (
+                <div className="rounded-3xl border border-dashed border-slate-200 px-5 py-8 text-center text-sm font-bold text-slate-400 dark:border-slate-700">
+                  No messages yet. Select a plant and ask a care question.
+                </div>
+              )}
               {messages.map((message) => {
                 const user = message.from === 'user';
                 return (
@@ -120,6 +211,13 @@ const AIChat = () => {
                   </div>
                 );
               })}
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="rounded-3xl bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-slate-800">
+                    AI is preparing plant-specific advice...
+                  </div>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSubmit} className="border-t border-slate-100 dark:border-slate-800 p-4 sm:p-5">
