@@ -104,7 +104,7 @@ const Home = () => {
         </section>
 
         {/* Feature Section */}
-        <section className="w-full bg-surface-light dark:bg-surface-dark py-16 md:py-24 border-y border-[#f0f4f2] dark:border-[#1e3a29]">
+        <section className="w-full bg-surface-light dark:bg-surface-dark py-16 md:py-24 border-y border-[#E8F5E9] dark:border-[#1e3a29]">
           <div className="w-full max-w-7xl px-4 md:px-10 mx-auto">
             <div className="flex flex-col gap-12">
               <div className="flex flex-col gap-4 text-center items-center">
@@ -121,7 +121,7 @@ const Home = () => {
                   { icon: 'desk', title: 'Sẵn sàng bày bàn', text: 'Chậu cây nhỏ gọn, chống rò rỉ nước được thiết kế dành riêng cho bàn làm việc hiện đại.' },
                   { icon: 'smart_toy', title: 'Bác sĩ cây trồng AI', text: 'Chụp ảnh bất cứ lúc nào. AI của chúng tôi sẽ chẩn đoán ngay lập tức và hướng dẫn bạn.' }
                 ].map((f, i) => (
-                  <div key={i} className="group flex flex-col gap-4 rounded-xl border border-[#dbe6df] dark:border-gray-700 bg-white dark:bg-background-dark p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50">
+                  <div key={i} className="group flex flex-col gap-4 rounded-xl border border-[#A5D6A7]/50 dark:border-gray-700 bg-white dark:bg-background-dark p-6 hover:shadow-lg transition-all duration-300 hover:border-primary/50">
                     <div className="size-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                       <span className="material-symbols-outlined text-3xl">{f.icon}</span>
                     </div>
@@ -170,7 +170,7 @@ const Home = () => {
                           <span>{p.id % 2 === 0 ? 'Chịu hạn tốt' : 'Ưa bóng râm'}</span>
                         </div>
                       </div>
-                      <button className="w-full h-10 rounded-lg bg-[#f0f4f2] dark:bg-gray-700 text-text-main dark:text-white text-sm font-bold hover:bg-primary hover:text-text-main transition-colors">
+                      <button className="w-full h-10 rounded-lg bg-[#F0FDF4] dark:bg-gray-700 text-text-main dark:text-white text-sm font-bold hover:bg-[#43A047] hover:text-white transition-colors">
                         Liên hệ mua
                       </button>
                     </div>
@@ -196,7 +196,7 @@ const Home = () => {
             </p>
             <div className="space-y-4">
                <div className="flex items-center gap-4 group">
-                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-slate-900 transition-all">
+                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-[#4CAF50] group-hover:text-white transition-all">
                     <span className="material-symbols-outlined text-xl">person</span>
                   </div>
                   <div>
@@ -205,7 +205,7 @@ const Home = () => {
                   </div>
                </div>
                <div className="flex items-center gap-4 group">
-                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-slate-900 transition-all">
+                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-[#4CAF50] group-hover:text-white transition-all">
                     <span className="material-symbols-outlined text-xl">phone</span>
                   </div>
                   <div>
@@ -214,7 +214,7 @@ const Home = () => {
                   </div>
                </div>
                <div className="flex items-center gap-4 group">
-                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-primary group-hover:text-slate-900 transition-all">
+                  <div className="size-10 rounded-xl bg-slate-800 flex items-center justify-center group-hover:bg-[#4CAF50] group-hover:text-white transition-all">
                     <span className="material-symbols-outlined text-xl">mail</span>
                   </div>
                   <div>
@@ -273,7 +273,7 @@ const Home = () => {
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-none"
                   required
                 ></textarea>
-                <button className="w-full bg-primary text-slate-900 font-black py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                <button className="w-full bg-primary text-white font-black py-4 rounded-xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
                   <span className="material-symbols-outlined text-lg">rocket_launch</span>
                   Gửi yêu cầu ngay
                 </button>

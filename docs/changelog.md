@@ -1,5 +1,23 @@
 # Changelog
 
+## [Green Palette Consistency Pass] – 2026-05-15
+
+### Changed – softer MVP greens
+
+- Replaced harsh/neon primary green with calmer `#4CAF50` and hover `#43A047` in Tailwind runtime config.
+- Normalized green UI accents across navbar, buttons, active nav states, sidebar/admin shell, hero/contact accents, AI chat/analysis, badges, cards, borders, rings, shadows, and reminder states.
+- Softened green backgrounds/borders toward `#F0FDF4`, `#E8F5E9`, `#A5D6A7`, and readable text green `#2E7D32` where appropriate.
+- Preserved layout, spacing, product structure, black/dark typography, and lightweight admin scope.
+
+### Validation
+
+- `npm run build` passed.
+- `npm run lint` (`tsc --noEmit`) passed.
+
+### Guardrails
+
+- No redesign, dependencies, backend/API changes, or ecommerce/cart/checkout/payment/order/shipping work added.
+
 ## [Shared UI Consistency Pass] – 2026-05-15
 
 ### Added – reusable UI states

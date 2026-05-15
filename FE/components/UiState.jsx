@@ -3,7 +3,7 @@ import React from 'react';
 const toneStyles = {
   error: 'border-red-100 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300',
   warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300',
-  success: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/40 dark:bg-emerald-950/30 dark:text-emerald-300',
+  success: 'border-[#A5D6A7] bg-[#F0FDF4] text-[#2E7D32] dark:border-[#2E7D32]/40 dark:bg-[#2E7D32]/20 dark:text-[#A5D6A7]',
   info: 'border-slate-100 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300',
 };
 

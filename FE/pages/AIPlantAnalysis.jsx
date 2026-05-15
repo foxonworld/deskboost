@@ -116,7 +116,7 @@ const AIPlantAnalysis = () => {
 
           <div className="space-y-5">
             <div className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800"><h3 className="text-base font-black text-slate-900 dark:text-white mb-3">Cách hoạt động</h3><div className="space-y-3">{['Chụp rõ lá/thân bị ảnh hưởng.', 'Gửi ảnh qua aiApi.diagnosePlant.', 'Nhận gợi ý chăm sóc cây, không tư vấn ngoài phạm vi.'].map((desc, i) => <div key={desc} className="flex gap-3 text-sm font-medium text-slate-500"><span className="font-black text-[#4CAF50]">0{i + 1}</span>{desc}</div>)}</div></div>
-            <div className="p-4 bg-gradient-to-br from-[#4CAF50]/8 to-emerald-50 dark:from-[#4CAF50]/10 dark:to-emerald-900/10 rounded-2xl border border-[#4CAF50]/15 space-y-2"><div className="flex items-center gap-2 text-[#4CAF50]"><span className="material-symbols-outlined text-base">lightbulb</span><span className="font-black text-sm">Mẹo xịn</span></div><p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">Chụp cả mặt trên và dưới lá để tăng chất lượng chẩn đoán.</p></div>
+            <div className="p-4 bg-gradient-to-br from-[#F0FDF4] to-[#E8F5E9] dark:from-[#4CAF50]/10 dark:to-[#2E7D32]/10 rounded-2xl border border-[#4CAF50]/15 space-y-2"><div className="flex items-center gap-2 text-[#4CAF50]"><span className="material-symbols-outlined text-base">lightbulb</span><span className="font-black text-sm">Mẹo xịn</span></div><p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">Chụp cả mặt trên và dưới lá để tăng chất lượng chẩn đoán.</p></div>
           </div>
         </div>
       </div>

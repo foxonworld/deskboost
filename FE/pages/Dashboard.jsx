@@ -82,7 +82,7 @@ const Dashboard = () => {
             </Link>
             <div className="grid grid-cols-2 gap-4">
               <Link to="/app/my-plants" className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-50 dark:border-slate-800 text-center flex flex-col items-center gap-4 hover:border-[#4CAF50] hover:shadow-xl transition-all group">
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
+                <div className="p-4 bg-[#F0FDF4] dark:bg-[#4CAF50]/10 rounded-2xl text-[#2E7D32] dark:text-[#A5D6A7] group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined text-3xl">psychiatry</span>
                 </div>
                 <span className="font-black text-xs uppercase tracking-widest text-slate-600 dark:text-slate-400">Jungle</span>

@@ -109,7 +109,7 @@ const PlantDetail = () => {
                 <p className="text-xs font-bold">{plant.water}</p>
               </div>
               <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
-                <span className="material-symbols-outlined text-green-500">spa</span>
+                <span className="material-symbols-outlined text-[#4CAF50]">spa</span>
                 <p className="text-[10px] font-black uppercase text-gray-400">Độ khó</p>
                 <p className="text-xs font-bold">{plant.difficulty}</p>
               </div>

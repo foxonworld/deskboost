@@ -82,7 +82,7 @@ const MyPlants = () => {
             {filteredPlants.map(plant => (
               <div key={plant.id} className="group flex flex-col rounded-[32px] bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500">
                 <div className="relative aspect-[5/4] w-full overflow-hidden">
-                  <div className="absolute top-4 right-4 z-10"><span className="inline-flex items-center gap-2 rounded-2xl bg-white/90 dark:bg-black/80 px-4 py-2 text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border text-[#4CAF50] border-green-100">{(plant.status || 'thriving').replace('-', ' ')}</span></div>
+                  <div className="absolute top-4 right-4 z-10"><span className="inline-flex items-center gap-2 rounded-2xl bg-white/90 dark:bg-black/80 px-4 py-2 text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border text-[#4CAF50] border-[#A5D6A7]">{(plant.status || 'thriving').replace('-', ' ')}</span></div>
                   <img src={plant.image || plant.imageUrl} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={plant.nickname || plant.name} />
                 </div>
                 <div className="flex flex-col p-8 gap-6 flex-1">

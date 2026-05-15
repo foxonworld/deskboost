@@ -33,7 +33,7 @@ const urgencyConfig = {
 const taskTypeConfig = {
   watering: { icon: 'water_drop', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
   misting: { icon: 'opacity', color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
-  fertilizing: { icon: 'eco', color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
+  fertilizing: { icon: 'eco', color: 'text-[#2E7D32]', bg: 'bg-[#F0FDF4] dark:bg-[#4CAF50]/10' },
 };
 
 // Animated check-mark confirmation overlay
@@ -135,7 +135,7 @@ const RemindersSettings = () => {
           </div>
           <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-[#4CAF50] to-[#81C784] rounded-full transition-all duration-500"
+              className="h-full bg-gradient-to-r from-[#4CAF50] to-[#A5D6A7] rounded-full transition-all duration-500"
               style={{ width: `${tasks.length > 0 ? (doneTasks.length / tasks.length) * 100 : 0}%` }}
             />
           </div>
@@ -285,7 +285,7 @@ const RemindersSettings = () => {
           <div className="p-6 space-y-6">
             {[
               { id: 'watering', name: 'Nhắc nhở tưới nước', desc: 'Thông báo khi đến giờ tưới cây theo lịch.', icon: 'water_drop', color: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20' },
-              { id: 'fertilizing', name: 'Lịch bón phân', desc: 'Nhắc bổ sung dinh dưỡng 2 tuần / 1 tháng một lần.', icon: 'eco', color: 'text-green-600 bg-green-50 dark:bg-green-900/20' },
+              { id: 'fertilizing', name: 'Lịch bón phân', desc: 'Nhắc bổ sung dinh dưỡng 2 tuần / 1 tháng một lần.', icon: 'eco', color: 'text-[#2E7D32] bg-[#F0FDF4] dark:bg-[#4CAF50]/10' },
               { id: 'mist', name: 'Phun sương & độ ẩm', desc: 'Nhắc nhở hàng ngày để giữ ẩm cho cây nhiệt đới.', icon: 'opacity', color: 'text-cyan-500 bg-cyan-50 dark:bg-cyan-900/20' },
               { id: 'care_tips', name: 'Mẹo chăm sóc từ AI', desc: 'Nhận gợi ý chăm sóc được cá nhân hóa từ AI.', icon: 'auto_awesome', color: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20' },
             ].map(item => (
@@ -331,7 +331,7 @@ const RemindersSettings = () => {
               onClick={handleSave}
               className={`px-8 py-3 rounded-xl font-black text-sm shadow-lg transition-all ${
                 savedFeedback
-                  ? 'bg-green-500 text-white shadow-green-200 scale-95'
+                  ? 'bg-[#43A047] text-white shadow-[#A5D6A7] scale-95'
                   : 'bg-[#4CAF50] text-white shadow-[#4CAF50]/20 hover:scale-105 active:scale-95'
               }`}
             >
