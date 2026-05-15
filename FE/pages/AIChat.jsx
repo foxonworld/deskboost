@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import UserLayout from '../components/UserLayout';
 import { MY_PLANTS } from '../data/mockData';
 import { getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
+import { EmptyState, Spinner, StateNotice } from '../components/UiState';
 
 const starterMessages = [
   {
@@ -123,14 +124,14 @@ const AIChat = () => {
             Select one saved plant first. AI answers are based on the selected plant context only: profile, notes, care status, light, and watering needs.
           </p>
           {fallbackNote && (
-            <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
+            <StateNotice tone="warning" className="mt-4 text-xs">
               {fallbackNote}
-            </p>
+            </StateNotice>
           )}
           {error && (
-            <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-xs font-bold text-red-700 dark:bg-red-950/30 dark:text-red-300">
+            <StateNotice tone="error" className="mt-4 text-xs">
               {error}
-            </p>
+            </StateNotice>
           )}
         </div>
 
@@ -146,11 +147,7 @@ const AIChat = () => {
 
             <div className="mt-4 space-y-3">
               {!hasPlants ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 p-5 text-center">
-                  <span className="material-symbols-outlined text-3xl text-slate-300">potted_plant</span>
-                  <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">No saved plants yet</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">Add a plant before using AI care chat.</p>
-                </div>
+                <EmptyState title="No data found" description="Add a plant before using AI care chat." />
               ) : (
                 MY_PLANTS.map((plant) => {
                   const active = plant.id === selectedPlantId;
@@ -200,16 +197,13 @@ const AIChat = () => {
 
             <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
               {isHistoryLoading && (
-                <div className="rounded-3xl bg-slate-50 px-5 py-4 text-sm font-bold text-slate-400 dark:bg-slate-800">
-                  Loading recent plant-context dialog history...
+                <div className="rounded-3xl bg-slate-50 px-5 py-4 text-sm font-bold text-slate-400 dark:bg-slate-800 inline-flex items-center gap-2">
+                  <Spinner />
+                  Loading...
                 </div>
               )}
               {!isHistoryLoading && messages.length === 0 && (
-                <div className="rounded-3xl border border-dashed border-slate-200 px-5 py-8 text-center dark:border-slate-700">
-                  <span className="material-symbols-outlined text-4xl text-slate-300">forum</span>
-                  <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">No chat yet</p>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">Ask watering, light, or health questions. AI will answer from the selected plant context.</p>
-                </div>
+                <EmptyState icon="forum" title="No data found" description="Ask watering, light, or health questions. AI will answer from the selected plant context." />
               )}
               {messages.map((message) => {
                 const user = message.from === 'user';
@@ -226,8 +220,8 @@ const AIChat = () => {
               {isSending && (
                 <div className="flex justify-start">
                   <div className="inline-flex items-center gap-2 rounded-3xl bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-slate-800">
-                    <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
-                    AI is preparing advice from selected plant context...
+                    <Spinner />
+                    Loading...
                   </div>
                 </div>
               )}
@@ -247,8 +241,8 @@ const AIChat = () => {
                   disabled={!canSend}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#4CAF50] px-5 py-3 text-xs font-black uppercase tracking-widest text-white transition hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                 >
-                  {isSending && <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>}
-                  {isSending ? 'Sending' : 'Send'}
+                  {isSending && <Spinner />}
+                  {isSending ? 'Loading...' : 'Submit'}
                 </button>
               </div>
             </form>

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -70,15 +71,15 @@ const Register = () => {
         <form onSubmit={handleRegister} className="p-6 pt-2 space-y-4" noValidate>
           <div className="space-y-1">
             <label htmlFor="name" className="text-sm font-medium text-text-main">Full Name</label>
-            <input id="name" required disabled={disabled} type="text" autoComplete="name" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
+            <input id="name" required disabled={disabled} type="text" autoComplete="name" className={`${formControlClass} h-12`} placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label htmlFor="email" className="text-sm font-medium text-text-main">Email address</label>
-            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="email" required disabled={disabled} type="email" autoComplete="email" className={`${formControlClass} h-12`} placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label htmlFor="password" className="text-sm font-medium text-text-main">Password</label>
-            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className={`${formControlClass} h-12`} placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="flex items-start gap-2 py-2">
@@ -88,11 +89,11 @@ const Register = () => {
             </label>
           </div>
 
-          {shownError && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 text-center font-semibold">{shownError}</p>}
+          {shownError && <StateNotice tone="error" className="text-center">{shownError}</StateNotice>}
 
-          <button type="submit" disabled={disabled} className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            {isLoading && <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>}
-            {isLoading ? 'Creating account...' : isBootstrapping ? 'Restoring session...' : 'Create Account'}
+          <button type="submit" disabled={disabled} className={`${primaryButtonClass} h-12 w-full`}>
+            {isLoading && <Spinner className="text-lg" />}
+            {isLoading ? 'Saving...' : isBootstrapping ? 'Loading...' : 'Submit'}
           </button>
 
           <div className="text-center pt-4">

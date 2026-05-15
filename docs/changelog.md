@@ -1,5 +1,27 @@
 # Changelog
 
+## [Shared UI Consistency Pass] – 2026-05-15
+
+### Added – reusable UI states
+
+- Added `FE/components/UiState.jsx` with lightweight `LoadingState`, `EmptyState`, `StateNotice`, `Spinner`, and shared form/button class helpers.
+
+### Changed – consistency cleanup
+
+- Normalized loading/empty/error copy across auth, Add Plant, AI Diagnosis, AI Chat, My Plants, and Marketplace screens.
+- Standardized auth form input heights, disabled states, validation notice styling, and loading button behavior.
+- Improved Add Plant and My Plants mobile spacing at small widths without redesigning layouts.
+- Improved AI Diagnosis upload focus visibility, remove-image button label, disabled submit state, and image validation copy.
+- Reused shared notice/state components for low-risk duplicated loading/empty/error wrappers.
+
+### Validation
+
+- `npm run build` passed.
+
+### Guardrails
+
+- No new features, backend code, API contract changes, dependencies, ecommerce/cart/checkout/payment/order/shipping, charts, analytics, or large design system added.
+
 ## [Mobile Dashboard Drawer Layout Fix] – 2026-05-15
 
 ### Fixed – Mobile dashboard layout

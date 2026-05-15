@@ -1,6 +1,6 @@
 # DeskBoost – Frontend Architecture
 
-> Current frontend source of truth · React 19 + Vite 6 · updated for AI Chat + lightweight Admin MVP planning
+> Current frontend source of truth · React 19 + Vite 6 · updated for AI Chat + lightweight Admin MVP readiness
 
 ---
 
@@ -9,9 +9,9 @@
 - Frontend is implemented with React 19 + Vite 6.
 - Routing uses React Router DOM v7 with `HashRouter`.
 - User MVP routes exist.
-- AI Diagnosis exists.
-- AI Chat service helper exists, but no dedicated page/route yet.
-- Admin dashboard is not currently implemented.
+- AI Diagnosis exists and uses the AI service boundary with mock fallback.
+- AI Chat route/page exists and uses plant-context service helpers.
+- Lightweight Admin dashboard/routes exist and use admin service helpers with mock fallback.
 - Backend is not implemented yet.
 - Backend direction is ASP.NET Core Web API + PostgreSQL.
 
@@ -62,7 +62,7 @@ Protected user:
 
 ---
 
-## Planned Route Additions
+## Implemented Route Additions
 
 User:
 
@@ -73,16 +73,14 @@ User:
 Admin:
 
 ```txt
-/admin                    -> AdminDashboard
-/admin/users              -> AdminUsers
-/admin/user-plants        -> AdminUserPlants
-/admin/plant-status       -> AdminPlantStatus
-/admin/marketplace-plants -> AdminMarketplacePlants
-/admin/ai-dialogs         -> AdminAiDialogs
-/admin/ai-config          -> AdminAiConfigStatus
+/admin             -> AdminOverview
+/admin/users       -> AdminUsers
+/admin/plants      -> AdminPlants
+/admin/marketplace -> AdminMarketplace
+/admin/ai          -> AdminAI
 ```
 
-Admin routes must be guarded by authentication + `ADMIN` role. Keep role logic simple.
+Admin routes are guarded by authentication + `ADMIN` role. Role logic stays simple for MVP.
 
 ---
 
@@ -105,12 +103,12 @@ Admin routes must be guarded by authentication + `ADMIN` role. Keep role logic s
 - `/app/profile`
 - `/app/settings`
 
-Needed nav changes:
+Current nav readiness:
 
-- Add `/app/ai-chat` to user sidebar.
-- Add admin entry only for `ADMIN` users.
-- Add lightweight admin sidebar/layout only if needed.
-- Do not add ecommerce nav.
+- `/app/ai-chat` is in user dashboard navigation.
+- Admin entry is visible only for `ADMIN` users.
+- Lightweight admin sidebar/layout is implemented.
+- Ecommerce nav remains out of scope.
 
 ---
 
@@ -152,13 +150,14 @@ Current services:
 | `aiApi.js`       | AI diagnose/chat helpers                     |
 | `feedbackApi.js` | feedback submission                          |
 
-Needed services:
+Readiness notes:
 
-| File          | New/updated responsibility                                     |
-| ------------- | -------------------------------------------------------------- |
-| `aiApi.js`    | Add dialog history helpers if contract uses separate endpoints |
-| `adminApi.js` | Lightweight admin endpoints grouped by MVP admin pages         |
-| `authApi.js`  | Ensure returned user includes `role`                           |
+| File          | Current readiness                                               |
+| ------------- | --------------------------------------------------------------- |
+| `api.js`      | Hardened JSON/non-JSON/error response parsing                  |
+| `aiApi.js`    | Diagnose, plant-context chat, dialog helpers with mock fallback |
+| `adminApi.js` | Lightweight admin endpoints grouped by MVP admin pages          |
+| `authApi.js`  | Login/register/forgot-password mock-ready service boundary      |
 
 ---
 

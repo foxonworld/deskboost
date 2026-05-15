@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -57,19 +58,19 @@ const Login = () => {
         <form onSubmit={handleLogin} className="p-6 pt-2 space-y-5" noValidate>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">Email address</label>
-            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-xl border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="email" required disabled={disabled} type="email" autoComplete="email" className={`${formControlClass} h-12`} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center gap-4">
               <label htmlFor="password" className="text-sm font-medium">Password</label>
               <Link to="/forgot-password" className="text-text-secondary hover:text-primary text-sm font-medium">Forgot password?</Link>
             </div>
-            <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className="w-full rounded-xl border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className={`${formControlClass} h-12`} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
-          {shownError && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 text-center font-semibold">{shownError}</p>}
-          <button type="submit" disabled={disabled} className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-            {isLoading && <span className="material-symbols-outlined animate-spin text-lg">progress_activity</span>}
-            {isLoading ? 'Signing in...' : isBootstrapping ? 'Restoring session...' : 'Log In'}
+          {shownError && <StateNotice tone="error" className="text-center">{shownError}</StateNotice>}
+          <button type="submit" disabled={disabled} className={`${primaryButtonClass} h-12 w-full`}>
+            {isLoading && <Spinner className="text-lg" />}
+            {isLoading ? 'Loading...' : isBootstrapping ? 'Loading...' : 'Submit'}
           </button>
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">Don't have an account? <Link to="/register" state={location.state} className="text-text-main font-bold hover:underline">Sign up</Link></p>

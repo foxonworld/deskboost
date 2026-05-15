@@ -54,8 +54,23 @@ export const login = async (payload) => {
   }
 };
 
-export const forgotPassword = (email) =>
-  post("/auth/forgot-password", { email });
+export const forgotPassword = async (email) => {
+  if (USE_MOCK_AUTH) {
+    await delay();
+    if (!email) throw new Error("Please enter your email address.");
+    return {
+      ok: true,
+      message: "If the email exists, reset instructions will be sent.",
+      source: "mock-fallback",
+    };
+  }
+
+  try {
+    return await post("/auth/forgot-password", { email });
+  } catch (err) {
+    normalizeError(err);
+  }
+};
 
 export const apiRegister = (name, email, password) =>
   register({ name, email, password });

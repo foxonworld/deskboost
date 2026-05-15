@@ -51,15 +51,32 @@ const getHeaders = (body) => {
   return headers;
 };
 
+const safeParseJson = (text) => {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+};
+
 const parseResponse = async (res) => {
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  const contentType = res.headers.get("content-type") || "";
+  const data = contentType.includes("application/json")
+    ? safeParseJson(text)
+    : safeParseJson(text) || (text ? { message: text } : null);
 
   if (!res.ok) {
     const payload = data?.error || data || {};
-    const message = payload.message || res.statusText || "Request failed";
+    const message =
+      payload.message ||
+      payload.title ||
+      (text && !contentType.includes("application/json") ? text : null) ||
+      res.statusText ||
+      "Request failed";
     if (res.status === 401) clearAuth();
-    throw new ApiError(message, res.status, payload.code, payload.details);
+    throw new ApiError(message, res.status, payload.code, payload.details || payload);
   }
 
   return data;
