@@ -1,5 +1,33 @@
 # Changelog
 
+## [Mobile Dashboard Drawer Layout Fix] – 2026-05-15
+
+### Fixed – Mobile dashboard layout
+
+- Changed `FE/components/UserSidebar.jsx` mobile navigation from an in-flow block into a fixed overlay drawer trigger so dashboard content keeps full mobile width.
+- Changed `FE/components/AdminLayout.jsx` mobile admin navigation into the same fixed overlay pattern so admin content is not squeezed.
+- Cleaned `FE/components/Navbar.jsx` mobile menu profile label to avoid duplicate/confusing user/User Dashboard wording.
+- Overlay menus close on backdrop, close button, or nav link click.
+
+### Guardrails
+
+- Desktop sidebars remain unchanged.
+- No route, API, backend, dependency, ecommerce/cart/checkout/payment/order/shipping changes.
+
+## [Responsive Dashboard Navigation Fix] – 2026-05-15
+
+### Changed – Mobile/tablet navigation
+
+- Added visible mobile user dashboard navigation in `FE/components/UserSidebar.jsx` with labeled menu access for Dashboard, My Plants, Add Plant, AI Diagnosis, AI Chat, Reminder, Feedback, and Marketplace.
+- Added visible mobile admin dashboard navigation in `FE/components/AdminLayout.jsx` for Admin Overview, Users, Plants, Marketplace, and AI.
+- Improved `FE/components/Navbar.jsx` so ADMIN users get a clear Admin Dashboard entry on desktop and inside the mobile menu.
+- Mobile menus close after selecting a navigation link and use accessible labels without adding dependencies or routes.
+
+### Guardrails
+
+- Desktop navigation remains unchanged in structure.
+- No backend code, API contract changes, new dependencies, ecommerce/cart/checkout/payment/order/shipping flow, or major redesign added.
+
 ## [Frontend Product Polish Pass] – 2026-05-15
 
 ### Changed – MVP UX polish
