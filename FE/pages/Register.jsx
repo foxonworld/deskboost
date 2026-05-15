@@ -56,29 +56,29 @@ const Register = () => {
   const disabled = isLoading || isBootstrapping;
 
   return (
-    <div className="min-h-screen bg-background-light flex items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-background-light flex items-center justify-center p-4 sm:p-6 dark:bg-background-dark">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
         <div className="pt-8 px-6 pb-2 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
             <span className="material-symbols-outlined text-primary text-4xl">potted_plant</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">DeskBoost</h1>
-          <h2 className="text-xl font-bold mt-4">Create an account</h2>
-          <p className="text-text-secondary text-sm mt-1">Start your desk plant care workspace.</p>
+          <h1 className="text-2xl font-bold tracking-tight dark:text-white">DeskBoost</h1>
+          <h2 className="text-xl font-bold mt-4 dark:text-white">Create an account</h2>
+          <p className="text-text-secondary text-sm mt-1 dark:text-slate-400">Start your desk plant care workspace.</p>
         </div>
 
         <form onSubmit={handleRegister} className="p-6 pt-2 space-y-4" noValidate>
           <div className="space-y-1">
             <label htmlFor="name" className="text-sm font-medium text-text-main">Full Name</label>
-            <input id="name" required disabled={disabled} type="text" autoComplete="name" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed" placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
+            <input id="name" required disabled={disabled} type="text" autoComplete="name" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label htmlFor="email" className="text-sm font-medium text-text-main">Email address</label>
-            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed" placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-1">
             <label htmlFor="password" className="text-sm font-medium text-text-main">Password</label>
-            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className="w-full rounded-lg border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className="w-full rounded-xl border-gray-200 h-11 px-4 focus:ring-primary focus:border-primary text-sm disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="flex items-start gap-2 py-2">

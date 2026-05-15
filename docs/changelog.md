@@ -1,5 +1,18 @@
 # Changelog
 
+## [Frontend Product Polish Pass] – 2026-05-15
+
+### Changed – MVP UX polish
+
+- Improved `FE/pages/AIChat.jsx` chat readability, selected plant context display, empty/loading states, and mobile spacing while keeping AI answers scoped to selected plant context.
+- Improved lightweight admin states in `FE/pages/admin/AdminUsers.jsx`, `FE/pages/admin/AdminPlants.jsx`, `FE/pages/admin/AdminMarketplace.jsx`, and `FE/pages/admin/AdminAI.jsx` with clearer fallback/error/empty/loading copy and intentional cards/tables.
+- Clarified marketplace contact-only product cards in `FE/pages/PlantList.jsx` with price/contact CTA language and no cart/checkout/payment flow.
+- Improved auth/navigation consistency in `FE/pages/Login.jsx`, `FE/pages/Register.jsx`, and `FE/components/Navbar.jsx` with stronger active states and dark-mode card polish.
+
+### Guardrails
+
+- No backend code, API contract changes, new dependencies, full CRUD, charts/analytics, API key editing UI, cart, checkout, payment, orders, or shipping added.
+
 ## [Backend Planning Docs Update] – 2026-05-15
 
 ### Changed – Backend roadmap

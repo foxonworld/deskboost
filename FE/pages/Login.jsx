@@ -43,28 +43,28 @@ const Login = () => {
   const disabled = isLoading || isBootstrapping;
 
   return (
-    <div className="min-h-screen bg-background-light flex items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-background-light flex items-center justify-center p-4 sm:p-6 dark:bg-background-dark">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
         <div className="pt-8 px-6 pb-2 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
             <span className="material-symbols-outlined text-primary text-4xl">potted_plant</span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">DeskBoost</h1>
-          <h2 className="text-xl font-bold mt-4">Welcome back</h2>
-          <p className="text-text-secondary text-sm mt-1">Sign in to continue caring for your desk plants.</p>
+          <h1 className="text-2xl font-bold tracking-tight dark:text-white">DeskBoost</h1>
+          <h2 className="text-xl font-bold mt-4 dark:text-white">Welcome back</h2>
+          <p className="text-text-secondary text-sm mt-1 dark:text-slate-400">Sign in to continue caring for your desk plants.</p>
         </div>
 
         <form onSubmit={handleLogin} className="p-6 pt-2 space-y-5" noValidate>
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium">Email address</label>
-            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-lg border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input id="email" required disabled={disabled} type="email" autoComplete="email" className="w-full rounded-xl border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-2">
             <div className="flex justify-between items-center gap-4">
               <label htmlFor="password" className="text-sm font-medium">Password</label>
               <Link to="/forgot-password" className="text-text-secondary hover:text-primary text-sm font-medium">Forgot password?</Link>
             </div>
-            <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className="w-full rounded-lg border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className="w-full rounded-xl border-gray-200 h-12 px-4 focus:ring-primary focus:border-primary disabled:opacity-60 disabled:cursor-not-allowed dark:border-slate-700 dark:bg-slate-800 dark:text-white" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           {shownError && <p role="alert" className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 text-center font-semibold">{shownError}</p>}
           <button type="submit" disabled={disabled} className="w-full bg-primary hover:bg-primary-dark text-white font-bold h-12 rounded-xl transition-all shadow-md shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">

@@ -38,7 +38,7 @@ const PlantList = () => {
         {/* Header Section */}
         <div className="mb-8 md:mb-12">
           <h2 className="text-3xl md:text-4xl font-extrabold mb-3 tracking-tight">Tìm người bạn đồng hành hoàn hảo</h2>
-          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl font-medium">Mang sức sống đến không gian làm việc của bạn với bộ sưu tập cây cảnh dễ chăm sóc và tinh tế.</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl font-medium">Mang sức sống đến không gian làm việc của bạn. Marketplace MVP chỉ hỗ trợ xem giá và liên hệ người bán.</p>
         </div>
 
         {/* Filters & Sort */}
@@ -105,14 +105,14 @@ const PlantList = () => {
                       </span>
                     )}
                   </div>
-                  <button className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/80 dark:bg-black/50 backdrop-blur-sm text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="material-symbols-outlined text-[20px]">favorite</span>
-                  </button>
+                  <span className="absolute top-3 right-3 z-10 rounded-full bg-white/90 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[#4CAF50] shadow-sm dark:bg-black/60">
+                    Liên hệ
+                  </span>
                   <img src={plant.image} alt={plant.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 </div>
 
                 <div className="p-4 flex flex-col flex-grow">
-                  <div className="flex justify-between items-start mb-1">
+                  <div className="flex flex-col gap-2 mb-2 sm:flex-row sm:items-start sm:justify-between">
                     <h3 className="text-lg font-bold text-[#111813] dark:text-white line-clamp-1">{plant.name}</h3>
                     <div className="flex flex-col items-end">
                       <span className="text-lg font-black text-primary">{formatVND(plant.price)}</span>
@@ -121,7 +121,8 @@ const PlantList = () => {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2 font-medium">{plant.description}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2 font-medium">{plant.description}</p>
+                  <p className="mb-4 rounded-xl bg-primary/10 px-3 py-2 text-xs font-black text-primary">Contact-only: xem chi tiết để liên hệ, không có giỏ hàng/thanh toán.</p>
 
                   <div className="flex flex-wrap gap-2 mb-4 mt-auto">
                     {plant.tags?.map(tag => (
@@ -135,7 +136,7 @@ const PlantList = () => {
                     to={`/plants/${plant.id}`}
                     className="w-full py-2.5 rounded-lg bg-primary hover:bg-[#25d360] active:scale-95 text-[#111813] text-sm font-bold transition-all flex items-center justify-center gap-2"
                   >
-                    Xem Chi Tiết
+                    Xem giá & liên hệ
                   </Link>
                 </div>
               </div>

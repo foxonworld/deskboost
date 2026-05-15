@@ -39,19 +39,20 @@ const AdminAI = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           Plant-context AI operations only. Admin can view provider config/status, never edit raw API keys.
         </p>
-        {status?.source === 'mock-fallback' && <p className="mt-4 text-xs font-bold text-amber-600">Mock fallback active.</p>}
-        {error && <p className="mt-4 text-sm font-bold text-red-500">{error}</p>}
+        {status?.source === 'mock-fallback' && <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">Mock fallback active until backend endpoints are ready.</p>}
+        {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
 
         <div className="mt-6 grid gap-4 lg:grid-cols-[280px_1fr]">
           <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
             <p className="text-xs font-black uppercase tracking-widest text-slate-400">Config/status</p>
             {loading ? (
-              <p className="mt-3 text-sm font-bold text-slate-400">Loading AI status...</p>
+              <p className="mt-3 text-sm font-bold text-slate-400">Loading provider status (view-only)...</p>
             ) : (
               <div className="mt-3 space-y-2 text-sm font-bold text-slate-600 dark:text-slate-300">
                 <p>Provider: {status?.provider || 'unknown'}</p>
                 <p>Configured: {status?.configured ? 'yes' : 'no'}</p>
                 <p>Mode: {status?.mode || status?.source || 'backend'}</p>
+                <p className="text-xs text-slate-400">API keys stay backend-only. No editing UI.</p>
               </div>
             )}
           </div>
@@ -62,7 +63,7 @@ const AdminAI = () => {
               {loading ? (
                 <p className="text-sm font-bold text-slate-400">Loading dialogs...</p>
               ) : dialogs.length === 0 ? (
-                <p className="text-sm font-bold text-slate-400">No AI dialogs found.</p>
+                <p className="text-sm font-bold text-slate-400">No AI dialogs found yet. Plant-context chat history will appear here.</p>
               ) : (
                 dialogs.map((dialog) => (
                   <div key={dialog.id} className="rounded-2xl bg-slate-50 p-4 dark:bg-slate-800">

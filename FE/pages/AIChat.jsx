@@ -120,7 +120,7 @@ const AIChat = () => {
           <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">AI Chat MVP</p>
           <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Plant care chat</h1>
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-            Select one saved plant first. AI answers stay scoped to that plant's care profile, notes, and status.
+            Select one saved plant first. AI answers are based on the selected plant context only: profile, notes, care status, light, and watering needs.
           </p>
           {fallbackNote && (
             <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
@@ -180,31 +180,43 @@ const AIChat = () => {
           </aside>
 
           <section className="flex min-h-[520px] flex-col rounded-[28px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-            <div className="border-b border-slate-100 dark:border-slate-800 p-5">
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Chat context</p>
-              <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">{selectedPlant?.nickname || 'Select a plant'}</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-400">
-                {selectedPlant ? `AI will use ${selectedPlant.species}, status: ${selectedPlant.status}.` : 'Plant context required before sending.'}
-              </p>
+            <div className="border-b border-slate-100 dark:border-slate-800 p-4 sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-black uppercase tracking-widest text-slate-400">Selected plant context</p>
+                  <h2 className="mt-1 truncate text-xl font-black text-slate-900 dark:text-white">{selectedPlant?.nickname || 'Select a plant'}</h2>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">
+                    {selectedPlant ? `AI answers based on ${selectedPlant.species}, status: ${selectedPlant.status}.` : 'Plant context required before sending.'}
+                  </p>
+                </div>
+                {selectedPlant && (
+                  <div className="grid grid-cols-2 gap-2 text-xs sm:min-w-56">
+                    <span className="rounded-2xl bg-slate-50 px-3 py-2 font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">Light: {selectedPlant.light}</span>
+                    <span className="rounded-2xl bg-slate-50 px-3 py-2 font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-300">Water: {selectedPlant.water}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
               {isHistoryLoading && (
                 <div className="rounded-3xl bg-slate-50 px-5 py-4 text-sm font-bold text-slate-400 dark:bg-slate-800">
-                  Loading dialog history...
+                  Loading recent plant-context dialog history...
                 </div>
               )}
               {!isHistoryLoading && messages.length === 0 && (
-                <div className="rounded-3xl border border-dashed border-slate-200 px-5 py-8 text-center text-sm font-bold text-slate-400 dark:border-slate-700">
-                  No messages yet. Select a plant and ask a care question.
+                <div className="rounded-3xl border border-dashed border-slate-200 px-5 py-8 text-center dark:border-slate-700">
+                  <span className="material-symbols-outlined text-4xl text-slate-300">forum</span>
+                  <p className="mt-2 text-sm font-black text-slate-700 dark:text-slate-200">No chat yet</p>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">Ask watering, light, or health questions. AI will answer from the selected plant context.</p>
                 </div>
               )}
               {messages.map((message) => {
                 const user = message.from === 'user';
                 return (
                   <div key={message.id} className={`flex ${user ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[88%] sm:max-w-[80%] rounded-3xl px-5 py-3 text-sm font-semibold leading-6 ${
-                      user ? 'bg-[#4CAF50] text-white' : 'bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-200'
+                    <div className={`max-w-[92%] sm:max-w-[80%] rounded-3xl px-4 py-3 text-sm font-semibold leading-6 shadow-sm sm:px-5 ${
+                      user ? 'bg-[#4CAF50] text-white' : 'bg-slate-50 text-slate-700 ring-1 ring-slate-100 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700'
                     }`}>
                       {message.text}
                     </div>
@@ -213,8 +225,9 @@ const AIChat = () => {
               })}
               {isSending && (
                 <div className="flex justify-start">
-                  <div className="rounded-3xl bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-slate-800">
-                    AI is preparing plant-specific advice...
+                  <div className="inline-flex items-center gap-2 rounded-3xl bg-slate-50 px-5 py-3 text-sm font-semibold text-slate-400 dark:bg-slate-800">
+                    <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>
+                    AI is preparing advice from selected plant context...
                   </div>
                 </div>
               )}
@@ -247,3 +260,4 @@ const AIChat = () => {
 };
 
 export default AIChat;
+
