@@ -16,6 +16,10 @@
 - AI Chat is plant-care-specific, using a selected saved plant context.
 - Marketplace is display + contact only.
 - No cart/order/payment/checkout/shipping APIs.
+- Care Reminder MVP uses in-app reminders plus Google Calendar / `.ics` export as the preferred external reminder path.
+- Browser notifications are not the main reminder strategy because users may close the web app or deny permission.
+- Email reminders are optional backend enhancement only if scheduler/email infrastructure is ready.
+- Do not add SMS, Zalo bot, Messenger bot, mobile push, or complex web push APIs.
 - Keep responses stable and simple.
 
 ---
@@ -140,12 +144,14 @@ Response shape is same as register.
 
 ### Reminders
 
-| Method | Endpoint         | Auth | Purpose         |
-| ------ | ---------------- | ---: | --------------- |
-| GET    | `/reminders`     |  Yes | List reminders  |
-| POST   | `/reminders`     |  Yes | Create reminder |
-| PUT    | `/reminders/:id` |  Yes | Update reminder |
-| DELETE | `/reminders/:id` |  Yes | Delete reminder |
+| Method | Endpoint                  | Auth | Purpose                                             |
+| ------ | ------------------------- | ---: | --------------------------------------------------- |
+| GET    | `/reminders`              |  Yes | List reminders                                      |
+| POST   | `/reminders`              |  Yes | Create reminder                                     |
+| PUT    | `/reminders/:id`          |  Yes | Update reminder                                     |
+| PUT    | `/reminders/:id/done`     |  Yes | Mark reminder as done                               |
+| GET    | `/reminders/:id/calendar` |  Yes | Return Google Calendar event data or `.ics` content |
+| DELETE | `/reminders/:id`          |  Yes | Delete reminder                                     |
 
 ### AI
 
@@ -235,6 +241,43 @@ AI chat:
 }
 ```
 
+Create reminder:
+
+```json
+{
+  "plantId": "myplant_001",
+  "title": "Water Monstera",
+  "careType": "watering",
+  "dueAt": "2026-05-16T02:00:00.000Z",
+  "repeatRule": "weekly",
+  "notes": "Check top 2-3 cm of soil first."
+}
+```
+
+Mark reminder done:
+
+```json
+{
+  "doneAt": "2026-05-16T02:10:00.000Z"
+}
+```
+
+Calendar event data response:
+
+```json
+{
+  "provider": "google-calendar-compatible",
+  "title": "Water Monstera",
+  "description": "DeskBoost reminder for Monstera near window. Check top 2-3 cm of soil first.",
+  "startsAt": "2026-05-16T02:00:00.000Z",
+  "endsAt": "2026-05-16T02:15:00.000Z",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "icsUrl": "https://api.example.com/api/v1/reminders/rem_001/calendar?format=ics"
+}
+```
+
+Alternative `.ics` response is allowed when requested with `format=ics` and should use `text/calendar` content type.
+
 Create/update marketplace plant:
 
 ```json
@@ -289,6 +332,28 @@ My plants list:
       "notes": "Bought in May.",
       "createdAt": "2026-05-14T10:00:00.000Z",
       "updatedAt": "2026-05-14T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+Reminder list:
+
+```json
+{
+  "items": [
+    {
+      "id": "rem_001",
+      "plantId": "myplant_001",
+      "plantName": "Monstera near window",
+      "title": "Water Monstera",
+      "careType": "watering",
+      "dueAt": "2026-05-16T02:00:00.000Z",
+      "repeatRule": "weekly",
+      "status": "pending",
+      "lastDoneAt": null,
+      "createdAt": "2026-05-15T08:00:00.000Z",
+      "updatedAt": "2026-05-15T08:00:00.000Z"
     }
   ]
 }
@@ -373,7 +438,7 @@ Common status codes: `400`, `401`, `403`, `404`, `409`, `422`, `429`, `500`.
 | `FE/services/authApi.js`     | `/auth/*`                                                            |
 | `FE/services/userApi.js`     | `/users/me`                                                          |
 | `FE/services/plantApi.js`    | `/plants`, `/my-plants`                                              |
-| `FE/services/reminderApi.js` | `/reminders`                                                         |
+| `FE/services/reminderApi.js` | `/reminders`, `/reminders/:id/done`, `/reminders/:id/calendar`       |
 | `FE/services/aiApi.js`       | `/ai/diagnose`, `/ai/chat`, `/ai/dialogs`, `/admin/ai-config/status` |
 | `FE/services/feedbackApi.js` | `/feedback`                                                          |
 | `FE/services/adminApi.js`    | `/admin/*`                                                           |
@@ -412,15 +477,16 @@ getAdminAiConfigStatus();
 
 Priority order for Phase 2 backend integration:
 
-1. `POST /ai/chat` with selected `plantId` + `plantContext`, returns plant-care-only reply and stores basic dialog.
-2. `GET /ai/dialogs` and `GET /ai/dialogs/:id` for current user's basic AI dialog history.
-3. `GET /admin/summary` for lightweight counts only.
-4. `GET /admin/users`, `GET /admin/users/:id`, `PUT /admin/users/:id/status`.
-5. `GET /admin/user-plants`, `GET /admin/user-plants/:id`, `PUT /admin/user-plants/:id/status`.
-6. `GET /admin/marketplace-plants`, `POST /admin/marketplace-plants`, `PUT /admin/marketplace-plants/:id`, `DELETE /admin/marketplace-plants/:id`.
-7. `GET /admin/ai-dialogs`, `GET /admin/ai-dialogs/:id`.
-8. `GET /admin/ai-config/status` returning provider/configured/lastCheckedAt only; no raw key value.
-9. Keep `POST /ai/diagnose` aligned with existing contract if image diagnosis remains in MVP.
+1. Reminder MVP: `GET /reminders`, `POST /reminders`, `PUT /reminders/:id`, `PUT /reminders/:id/done`, `GET /reminders/:id/calendar`; support Google Calendar / `.ics`; email reminder optional only if backend has scheduler/email ready.
+2. `POST /ai/chat` with selected `plantId` + `plantContext`, returns plant-care-only reply and stores basic dialog.
+3. `GET /ai/dialogs` and `GET /ai/dialogs/:id` for current user's basic AI dialog history.
+4. `GET /admin/summary` for lightweight counts only.
+5. `GET /admin/users`, `GET /admin/users/:id`, `PUT /admin/users/:id/status`.
+6. `GET /admin/user-plants`, `GET /admin/user-plants/:id`, `PUT /admin/user-plants/:id/status`.
+7. `GET /admin/marketplace-plants`, `POST /admin/marketplace-plants`, `PUT /admin/marketplace-plants/:id`, `DELETE /admin/marketplace-plants/:id`.
+8. `GET /admin/ai-dialogs`, `GET /admin/ai-dialogs/:id`.
+9. `GET /admin/ai-config/status` returning provider/configured/lastCheckedAt only; no raw key value.
+10. Keep `POST /ai/diagnose` aligned with existing contract if image diagnosis remains in MVP.
 
 ---
 
@@ -442,3 +508,8 @@ Do not build for MVP:
 - Realtime websocket APIs
 - Social login APIs
 - Complex conversation memory APIs
+- SMS reminder APIs
+- Zalo bot reminder APIs
+- Messenger bot reminder APIs
+- Mobile push reminder APIs
+- Complex web push/service-worker notification APIs

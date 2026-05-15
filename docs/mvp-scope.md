@@ -17,17 +17,17 @@
 
 ## User-side MVP Scope
 
-| Feature            | Current frontend state                                                                           | Required change                                                 |
-| ------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| Landing            | `Home.jsx` exists                                                                                | Keep                                                            |
-| Auth               | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx` exist | Add simple role handling when backend supports `USER` / `ADMIN` |
-| Add Plant          | `AddPlantUser.jsx` exists                                                                        | Keep; connect to API when backend exists                        |
-| My Plants          | `MyPlants.jsx`, `PlantProfile.jsx` exist                                                         | Keep; feeds AI Chat plant selector                              |
-| AI Diagnosis       | `AIPlantAnalysis.jsx`, `aiApi.js` exist                                                          | Keep; share plant context concept with AI Chat                  |
-| AI Chat            | Service helper exists in `aiApi.js`; no page/route yet                                           | Add MVP page/route                                              |
-| Reminder           | `RemindersSettings.jsx`, `CareContext.jsx`, `CareNotificationBell.jsx` exist                     | Keep                                                            |
-| Feedback           | `feedbackApi.js` exists                                                                          | Add/verify UI if needed                                         |
-| Simple Marketplace | `PlantList.jsx`, `PlantDetail.jsx` exist                                                         | Keep display/price/contact only                                 |
+| Feature            | Current frontend state                                                                           | Required change                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| Landing            | `Home.jsx` exists                                                                                | Keep                                                                    |
+| Auth               | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx` exist | Add simple role handling when backend supports `USER` / `ADMIN`         |
+| Add Plant          | `AddPlantUser.jsx` exists                                                                        | Keep; connect to API when backend exists                                |
+| My Plants          | `MyPlants.jsx`, `PlantProfile.jsx` exist                                                         | Keep; feeds AI Chat plant selector                                      |
+| AI Diagnosis       | `AIPlantAnalysis.jsx`, `aiApi.js` exist                                                          | Keep; share plant context concept with AI Chat                          |
+| AI Chat            | Service helper exists in `aiApi.js`; no page/route yet                                           | Add MVP page/route                                                      |
+| Reminder           | `RemindersSettings.jsx`, `CareContext.jsx`, `CareNotificationBell.jsx` exist                     | Keep; add Google Calendar / `.ics` export as MVP external reminder path |
+| Feedback           | `feedbackApi.js` exists                                                                          | Add/verify UI if needed                                                 |
+| Simple Marketplace | `PlantList.jsx`, `PlantDetail.jsx` exist                                                         | Keep display/price/contact only                                         |
 
 ---
 
@@ -136,6 +136,37 @@ Excluded:
 
 ---
 
+## Care Reminder MVP Scope
+
+Included:
+
+- In-app care reminders for user-owned plants.
+- Reminder list/create/update flows.
+- Mark reminder as done without deleting history.
+- Add to Google Calendar or export `.ics` so reminders still work when users close the web app.
+- Calendar event data should include title, due date/time, plant name, care type, and notes when available.
+
+Optional backend enhancement:
+
+- Email reminder delivery if backend schedule/email infrastructure is ready.
+- Email is not a Phase 2 blocker.
+
+Not the main strategy:
+
+- Browser notifications are not the primary MVP channel because users may close the web app or block browser permission.
+- Frontend may keep lightweight in-app reminder UI, but should not depend on browser notifications for reliable external reminders.
+
+Excluded:
+
+- SMS.
+- Zalo bot.
+- Messenger bot.
+- Mobile push.
+- Complex web push/service-worker notification system.
+- Realtime notification infrastructure.
+
+---
+
 ## Backend MVP Scope
 
 Planned stack:
@@ -169,3 +200,6 @@ Backend owns:
 - Enterprise admin dashboard
 - Raw API key editing
 - General-purpose chatbot
+- SMS/Zalo/Messenger reminder bots
+- Mobile push notifications
+- Complex web push notification system

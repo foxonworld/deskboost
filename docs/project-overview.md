@@ -30,7 +30,7 @@ DeskBoost helps users manage desk plants:
 - Add and manage personal plants.
 - Run AI plant diagnosis.
 - Use AI Chat for advice based on one selected existing plant.
-- Manage care reminders.
+- Manage care reminders with in-app tracking plus Google Calendar / `.ics` export for reliable external reminders.
 - Submit feedback.
 - Admins manage core MVP records through a lightweight dashboard.
 
@@ -46,7 +46,7 @@ User-side:
 4. My Plants
 5. AI Diagnosis
 6. AI Chat
-7. Reminder
+7. Reminder: in-app reminders + Google Calendar / `.ics` export; email optional if backend has time
 8. Feedback
 9. Simple Marketplace
 
@@ -76,6 +76,9 @@ Admin-side lightweight MVP:
 - Raw API key editing in frontend/admin UI
 - General-purpose chatbot
 - Complex long-term conversation memory
+- SMS/Zalo/Messenger reminder bots
+- Mobile push notifications
+- Complex web push/service-worker reminder system
 
 Marketplace means users view plants/products, see price, then contact via Zalo/Facebook. No transaction workflow.
 
@@ -175,6 +178,15 @@ Backend target changed to:
 - API keys stored in backend `.env` only
 
 Backend should implement only endpoints documented in `docs/api-contract.md`.
+
+Care Reminder backend direction:
+
+- Implement reminder list/create/update/mark-done.
+- Provide `.ics` export or calendar event data for Google Calendar integration.
+- Treat email reminders as optional enhancement only if scheduler/email setup is ready.
+- Do not build SMS, Zalo bot, Messenger bot, mobile push, or complex web push for MVP.
+
+Browser notification note: not the main reminder channel because users may close the web app or deny browser permissions. Google Calendar / `.ics` is the MVP external reminder path.
 
 ---
 

@@ -37,7 +37,7 @@ FRONTEND_ORIGIN=http://localhost:5173
 - [ ] `/users/me`.
 - [ ] Public marketplace catalog: `/plants`.
 - [ ] User plant CRUD: `/my-plants`.
-- [ ] Reminder CRUD: `/reminders`.
+- [ ] Reminder MVP: `/reminders`, mark-done, Google Calendar / `.ics` export.
 - [ ] AI Chat ưu tiên cao: `POST /ai/chat` dùng cây đã chọn.
 - [ ] AI dialog history: `GET /ai/dialogs`, `GET /ai/dialogs/:id`.
 - [ ] Lightweight Admin: summary/users/user-plants.
@@ -45,6 +45,7 @@ FRONTEND_ORIGIN=http://localhost:5173
 - [ ] Admin AI dialogs + AI config status.
 - [ ] AI Diagnosis: `POST /ai/diagnose`.
 - [ ] Feedback: `POST /feedback`.
+- [ ] Optional/future: email reminder nếu scheduler/email sẵn sàng.
 - [ ] Optional/future: forgot password.
 
 ---
@@ -109,7 +110,13 @@ User shape FE cần:
 - [ ] `GET /reminders`
 - [ ] `POST /reminders`
 - [ ] `PUT /reminders/:id`
+- [ ] `PUT /reminders/:id/done`
+- [ ] `GET /reminders/:id/calendar`
 - [ ] `DELETE /reminders/:id`
+- [ ] Google Calendar / `.ics` export là external reminder chính cho MVP.
+- [ ] Email reminder optional nếu backend có scheduler/email provider.
+- [ ] Browser notification không phải kênh chính vì user có thể đóng web app hoặc block permission.
+- [ ] Không build SMS/Zalo bot/Messenger bot/mobile push/complex web push.
 
 ### AI
 
@@ -189,6 +196,51 @@ User shape FE cần:
       "updatedAt": "2026-05-14T10:00:00.000Z"
     }
   ]
+}
+```
+
+### Create reminder request
+
+```json
+{
+  "plantId": "myplant_001",
+  "title": "Water Monstera",
+  "careType": "watering",
+  "dueAt": "2026-05-16T02:00:00.000Z",
+  "repeatRule": "weekly",
+  "notes": "Check top 2-3 cm of soil first."
+}
+```
+
+### Reminder response
+
+```json
+{
+  "id": "rem_001",
+  "plantId": "myplant_001",
+  "plantName": "Monstera near window",
+  "title": "Water Monstera",
+  "careType": "watering",
+  "dueAt": "2026-05-16T02:00:00.000Z",
+  "repeatRule": "weekly",
+  "status": "pending",
+  "lastDoneAt": null,
+  "createdAt": "2026-05-15T08:00:00.000Z",
+  "updatedAt": "2026-05-15T08:00:00.000Z"
+}
+```
+
+### Calendar event data response
+
+```json
+{
+  "provider": "google-calendar-compatible",
+  "title": "Water Monstera",
+  "description": "DeskBoost reminder for Monstera near window. Check top 2-3 cm of soil first.",
+  "startsAt": "2026-05-16T02:00:00.000Z",
+  "endsAt": "2026-05-16T02:15:00.000Z",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "icsUrl": "https://api.example.com/api/v1/reminders/rem_001/calendar?format=ics"
 }
 ```
 
@@ -341,7 +393,21 @@ User shape FE cần:
 
 ---
 
-## 7. AI Diagnosis requirements
+## 7. Care Reminder requirements
+
+- [ ] Reminder thuộc user hiện tại; validate `plantId` thuộc user.
+- [ ] Hỗ trợ list/create/update.
+- [ ] Hỗ trợ mark done qua `PUT /reminders/:id/done`.
+- [ ] `GET /reminders/:id/calendar` trả Google Calendar-compatible event data hoặc `.ics`.
+- [ ] `.ics` response nên dùng `text/calendar` khi request `format=ics`.
+- [ ] Calendar data gồm title, description, startsAt, endsAt, timezone, plant/care info nếu có.
+- [ ] Email reminder chỉ optional/future nếu có scheduler/email infra.
+- [ ] Không coi browser notification là kênh chính vì user có thể đóng app/block permission.
+- [ ] Không SMS/Zalo bot/Messenger bot/mobile push/complex web push.
+
+---
+
+## 8. AI Diagnosis requirements
 
 - [ ] Frontend không gọi AI provider trực tiếp.
 - [ ] Backend nhận request từ `/ai/diagnose`.
@@ -353,7 +419,7 @@ User shape FE cần:
 
 ---
 
-## 8. AI Chat requirements
+## 9. AI Chat requirements
 
 - [ ] `POST /ai/chat` phải dùng cây người dùng đã chọn.
 - [ ] Request có `plantId` và `plantContext`.
@@ -367,7 +433,7 @@ User shape FE cần:
 
 ---
 
-## 9. Admin MVP requirements
+## 10. Admin MVP requirements
 
 - [ ] Admin nhẹ, đủ màn hình hiện tại.
 - [ ] `GET /admin/summary` trả counts/status đơn giản.
@@ -383,7 +449,7 @@ User shape FE cần:
 
 ---
 
-## 10. Marketplace requirements
+## 11. Marketplace requirements
 
 - [ ] Marketplace chỉ là catalog hiển thị.
 - [ ] Plant/product có `name`, `description`, `imageUrl`, `priceText`, `careLevel`, `contactUrl`.
@@ -398,7 +464,7 @@ User shape FE cần:
 
 ---
 
-## 11. Out-of-scope APIs/features
+## 12. Out-of-scope APIs/features
 
 Không build cho MVP:
 
@@ -419,10 +485,13 @@ Không build cho MVP:
 - Complex AI memory.
 - General-purpose chatbot.
 - QR/NFC/workspace scanner APIs.
+- SMS/Zalo bot/Messenger bot reminder APIs.
+- Mobile push reminder APIs.
+- Complex web push/service-worker reminder APIs.
 
 ---
 
-## 12. Notes về frontend mock flags
+## 13. Notes về frontend mock flags
 
 Frontend hiện có mock-first behavior vì backend chưa triển khai.
 

@@ -140,21 +140,21 @@ Needed:
 
 Current services:
 
-| File             | Current responsibility                       |
-| ---------------- | -------------------------------------------- |
-| `api.js`         | Base fetch, auth header, JSON/error handling |
-| `authApi.js`     | register/login/forgot password               |
-| `userApi.js`     | current user profile                         |
-| `plantApi.js`    | public catalog + my-plants CRUD              |
-| `reminderApi.js` | reminder CRUD                                |
-| `aiApi.js`       | AI diagnose/chat helpers                     |
-| `feedbackApi.js` | feedback submission                          |
+| File             | Current responsibility                                   |
+| ---------------- | -------------------------------------------------------- |
+| `api.js`         | Base fetch, auth header, JSON/error handling             |
+| `authApi.js`     | register/login/forgot password                           |
+| `userApi.js`     | current user profile                                     |
+| `plantApi.js`    | public catalog + my-plants CRUD                          |
+| `reminderApi.js` | reminder CRUD + mark-done + calendar export/service data |
+| `aiApi.js`       | AI diagnose/chat helpers                                 |
+| `feedbackApi.js` | feedback submission                                      |
 
 Readiness notes:
 
 | File          | Current readiness                                               |
 | ------------- | --------------------------------------------------------------- |
-| `api.js`      | Hardened JSON/non-JSON/error response parsing                  |
+| `api.js`      | Hardened JSON/non-JSON/error response parsing                   |
 | `aiApi.js`    | Diagnose, plant-context chat, dialog helpers with mock fallback |
 | `adminApi.js` | Lightweight admin endpoints grouped by MVP admin pages          |
 | `authApi.js`  | Login/register/forgot-password mock-ready service boundary      |
@@ -179,6 +179,26 @@ Reusable UI candidates:
 - Chat message list.
 - Chat input box.
 - Empty state when user has no plants.
+
+---
+
+## Care Reminder Frontend Plan
+
+MVP behavior:
+
+1. Show in-app reminder list/settings for user plants.
+2. Support create/update reminder with plant, care type, due date/time, repeat metadata if simple.
+3. Support mark reminder as done without forcing delete.
+4. Add UI action for Google Calendar / `.ics` export once backend provides `.ics` or event data.
+5. Keep browser notifications secondary only; they are unreliable when users close the web app or deny permission.
+6. Treat email reminders as backend-optional; frontend can show capability only when backend exposes/supports it.
+
+Do not add:
+
+- SMS/Zalo/Messenger bot flows.
+- Mobile push.
+- Complex web push/service-worker notification system.
+- Realtime notification infra.
 
 ---
 
@@ -211,6 +231,8 @@ Admin pages:
 - Admin must only show AI config/status.
 - Marketplace remains contact-oriented through Zalo/Facebook URLs.
 - No cart/checkout/order/payment/shipping code.
+- Care Reminder external path is Google Calendar / `.ics`, not complex browser/web push.
+- Email reminders are optional backend enhancement, not required frontend blocker.
 
 ---
 

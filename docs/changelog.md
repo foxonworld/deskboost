@@ -1,5 +1,59 @@
 # Changelog
 
+## [Care Reminder Calendar Export UX] – 2026-05-15
+
+### Added – global calendar actions
+
+- Added top-level “Add all to Google Calendar” and “Download all .ics” actions on `FE/pages/RemindersSettings.jsx`.
+- Global export uses enabled, incomplete reminders only; disabled and completed reminders are skipped.
+- Combined `.ics` export creates one calendar file containing all exportable reminder events.
+
+### Changed – shared export helpers
+
+- Updated `FE/services/reminderApi.js` with shared combined export helpers that reuse existing event generation logic.
+- Kept per-reminder “Add to Calendar” and “Download .ics” actions.
+- Calendar copy stays one-time add/export only; no OAuth, real calendar sync, backend dependency, or API contract change added.
+
+## [Care Reminder Frontend MVP Flow] – 2026-05-15
+
+### Added – reminder service/UI
+
+- Completed frontend Care Reminder MVP flow with service-level mock fallback in `FE/services/reminderApi.js`.
+- Added reminder CRUD helpers, mark-done helper, calendar endpoint fallback, Google Calendar URL generation, and frontend `.ics` generation.
+- Updated `FE/pages/RemindersSettings.jsx` with loading/error/empty states, today/upcoming/completed grouping, mark done, enabled/disabled toggle, delete action, and MVP reminder form.
+- Reminder form supports plant, reminder type, frequency, reminder time, and enabled/disabled state.
+
+### Calendar export behavior
+
+- Added one-time “Add to Google Calendar” CTA using a generated Google Calendar URL when backend is unavailable.
+- Added “Download .ics” CTA generated on the frontend when backend calendar export is unavailable.
+- Copy clarifies calendar behavior is add/export only, not automatic Google Calendar sync and no OAuth requirement.
+
+### Guardrails
+
+- No real email sending, browser push notification, SMS, Zalo/Messenger bot, complex scheduler, API contract change, backend code, dependency, or page redesign added.
+- Email reminder remains copy-only as future backend enhancement.
+
+### Remaining backend requirements
+
+- Implement reminder endpoints for list, create, update, delete, mark done, and calendar event/export data when backend is ready.
+- Email reminders require backend scheduler plus email provider before UI can present them as active.
+
+## [Care Reminder MVP Scope Finalization] – 2026-05-15
+
+### Changed – reminder scope/API docs
+
+- Finalized Care Reminder MVP as in-app reminders plus Google Calendar / `.ics` export.
+- Updated `docs/mvp-scope.md`, `docs/project-overview.md`, `docs/frontend-architecture.md`, `docs/api-contract.md`, `plans/backend-plan.md`, and `docs/backend-api-checklist-for-tuan.md`.
+- Added reminder endpoint expectations: list, create, update, mark done, calendar export/event data.
+- Marked email reminder as optional backend enhancement if scheduler/email infrastructure is ready.
+- Clarified browser notifications are not the main strategy because users may close the web app or deny permissions.
+
+### Guardrails
+
+- No SMS, Zalo bot, Messenger bot, mobile push, complex web push, realtime notification system, backend code, or frontend code added.
+- MVP remains scope-first and calendar/export oriented.
+
 ## [Green Palette Consistency Pass] – 2026-05-15
 
 ### Changed – softer MVP greens

@@ -44,7 +44,7 @@ Không dùng NestJS/Prisma cho scope mới.
 | Users       | current profile, admin user list/detail/status                        |
 | Marketplace | public contact-only catalog, admin CRUD display records               |
 | My Plants   | user-owned plant CRUD                                                 |
-| Reminders   | user care reminders                                                   |
+| Reminders   | user care reminders, mark-done, Google Calendar / `.ics` export       |
 | AI          | diagnosis, plant-specific chat, basic dialog history                  |
 | Feedback    | user/visitor feedback                                                 |
 | Admin       | lightweight management screens only; no enterprise/finance dashboards |
@@ -112,6 +112,8 @@ Implement only endpoints in `docs/api-contract.md`:
 /plants
 /my-plants
 /reminders
+/reminders/:id/done
+/reminders/:id/calendar
 /ai/diagnose
 /ai/chat
 /ai/dialogs
@@ -125,7 +127,40 @@ Forgot password is not Phase 2 blocker. Implement later if email/reset-token flo
 
 ---
 
-## 6. AI scope
+## 6. Care Reminder scope
+
+Care Reminder MVP includes:
+
+- In-app reminder records for user-owned plants.
+- List/create/update reminder endpoints.
+- Mark reminder as done without deleting the reminder.
+- Google Calendar / `.ics` export as the preferred external reminder method.
+- Calendar event data containing title, plant name, care type, due date/time, timezone, and notes when available.
+
+Backend endpoint expectations:
+
+```txt
+GET /reminders
+POST /reminders
+PUT /reminders/:id
+PUT /reminders/:id/done
+GET /reminders/:id/calendar
+DELETE /reminders/:id
+```
+
+Optional enhancement only:
+
+- Email reminder delivery if scheduler + email provider setup is already available.
+- Email reminder is not a Phase 2 blocker.
+
+Important guardrail:
+
+- Browser notifications are not the main channel because users may close the web app or block permission.
+- Do not build SMS, Zalo bot, Messenger bot, mobile push, or complex web push/service-worker notifications for MVP.
+
+---
+
+## 7. AI scope
 
 AI Diagnosis:
 
@@ -154,7 +189,7 @@ AI config:
 
 ---
 
-## 7. Marketplace scope
+## 8. Marketplace scope
 
 Included:
 
@@ -175,7 +210,7 @@ Excluded:
 
 ---
 
-## 8. Lightweight admin scope
+## 9. Lightweight admin scope
 
 Admin MVP endpoints support:
 
@@ -196,7 +231,7 @@ Do not add:
 
 ---
 
-## 9. Implementation order based on frontend priority
+## 10. Implementation order based on frontend priority
 
 1. Create ASP.NET Core Web API project structure.
 2. Configure PostgreSQL connection, migrations, seed minimal catalog/admin user.
@@ -205,7 +240,7 @@ Do not add:
 5. Implement `/users/me` profile read/update.
 6. Implement public marketplace catalog: `GET /plants`, `GET /plants/:id`.
 7. Implement user plants CRUD: `/my-plants`.
-8. Implement reminders CRUD: `/reminders`.
+8. Implement reminders: `/reminders`, mark-done, and Google Calendar / `.ics` export.
 9. Implement highest FE priority AI Chat: `POST /ai/chat` with selected `plantId` + `plantContext`.
 10. Implement user AI dialog history: `GET /ai/dialogs`, `GET /ai/dialogs/:id`.
 11. Implement lightweight admin summary/users/user-plants endpoints.
@@ -213,13 +248,14 @@ Do not add:
 13. Implement admin AI dialog endpoints + `GET /admin/ai-config/status`.
 14. Implement/verify `POST /ai/diagnose` if image diagnosis remains MVP.
 15. Implement feedback: `POST /feedback`.
-16. Optional/future: `POST /auth/forgot-password`.
-17. Verify API response/error shapes match `docs/api-contract.md`.
-18. Coordinate frontend mock flags: `VITE_USE_MOCK_AI=false`, `VITE_USE_MOCK_ADMIN=false` only after related backend endpoints are stable.
+16. Optional/future: email reminder delivery if backend scheduler/email setup is ready.
+17. Optional/future: `POST /auth/forgot-password`.
+18. Verify API response/error shapes match `docs/api-contract.md`.
+19. Coordinate frontend mock flags: `VITE_USE_MOCK_AI=false`, `VITE_USE_MOCK_ADMIN=false` only after related backend endpoints are stable.
 
 ---
 
-## 10. Scope guardrails
+## 11. Scope guardrails
 
 - `docs/api-contract.md` is the API source of truth.
 - Keep MVP practical for EXE201.
@@ -232,3 +268,5 @@ Do not add:
 - Do not add API key editing UI/API.
 - Do not overbuild AI memory.
 - Do not add new features outside the current API contract.
+- Reminder MVP external channel is Google Calendar / `.ics`, not browser notification dependency.
+- Do not add SMS, Zalo bot, Messenger bot, mobile push, or complex web push notification systems.
