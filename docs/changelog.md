@@ -1,5 +1,28 @@
 # Changelog
 
+## [Frontend Phase 1 UX Polish] – 2026-05-15
+
+### Changed – AI Chat UX
+
+- Clarified selected-plant context messaging on `/app/ai-chat`.
+- Improved plant picker selected state, no-plants empty state, placeholder readability, send disabled/loading state, and mobile layout.
+- Kept AI Chat as plant-care-only mock fallback; no backend integration or general-purpose chatbot added.
+
+### Changed – Admin shell UX
+
+- Improved `AdminLayout` navigation clarity with section hints and responsive mobile navigation.
+- Added simple Admin MVP status cards only; no charts, analytics, or enterprise dashboard widgets.
+- Polished skeleton admin pages so placeholders look intentional and state Phase 2 boundaries.
+
+### Changed – Role/navigation UX
+
+- Kept Navbar admin link ADMIN-only.
+- Improved Forbidden page copy/actions so non-admin users understand the flow back to user app.
+
+### Guardrails
+
+- No cart, checkout, payment, orders, shipping, refund, API key editing UI, backend integration, or major redesign added.
+
 ## [Frontend Phase 1 MVP Structure] – 2026-05-15
 
 ### Added – AI Chat/Admin shell
