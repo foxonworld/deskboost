@@ -1,37 +1,60 @@
 # DeskBoost – MVP Scope
 
-> Source of truth: current codebase + finalized API contract. Keep scope lean for EXE201.
+> Source of truth: current codebase + latest EXE201 scope change. Keep practical; avoid overengineering.
 
 ---
 
 ## Current Status
 
-- Frontend exists and was cleaned to MVP scope.
+- Frontend exists and is user-MVP oriented.
 - Backend is not implemented yet.
-- API contract is finalized in `docs/api-contract.md`.
-- Backend target remains NestJS + Prisma + PostgreSQL.
-- Backend implementation will be handled later by Tuan.
-- Deprecated commerce/admin pages, routes, navigation, and mock data are removed from active MVP flow.
-- `mockData.ts` is now MVP fallback only, not primary architecture.
+- Backend direction is now ASP.NET Core Web API + PostgreSQL.
+- AI Chat is now in MVP.
+- Lightweight Admin Dashboard is now in MVP.
+- Old enterprise admin and full ecommerce remain out of scope.
 
 ---
 
-## Current MVP Scope
+## User-side MVP Scope
 
-| Feature            | Current frontend state                                                                           | Backend state          |
-| ------------------ | ------------------------------------------------------------------------------------------------ | ---------------------- |
-| Landing            | `Home.jsx` exists                                                                                | Not needed             |
-| Auth               | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx` exist | Planned                |
-| Add Plant          | `AddPlantUser.jsx` exists                                                                        | Planned                |
-| My Plants          | `MyPlants.jsx`, `PlantProfile.jsx` exist                                                         | Planned                |
-| AI Diagnosis       | `AIPlantAnalysis.jsx` exists                                                                     | Planned backend proxy  |
-| Reminder           | `RemindersSettings.jsx`, `CareContext.jsx`, `CareNotificationBell.jsx` exist                     | Planned                |
-| Feedback           | `feedbackApi.js` exists                                                                          | Planned                |
-| Simple Marketplace | `PlantList.jsx`, `PlantDetail.jsx` exist                                                         | Planned public catalog |
+| Feature            | Current frontend state                                                                           | Required change                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Landing            | `Home.jsx` exists                                                                                | Keep                                                            |
+| Auth               | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `AuthContext.jsx`, `ProtectedRoute.jsx` exist | Add simple role handling when backend supports `USER` / `ADMIN` |
+| Add Plant          | `AddPlantUser.jsx` exists                                                                        | Keep; connect to API when backend exists                        |
+| My Plants          | `MyPlants.jsx`, `PlantProfile.jsx` exist                                                         | Keep; feeds AI Chat plant selector                              |
+| AI Diagnosis       | `AIPlantAnalysis.jsx`, `aiApi.js` exist                                                          | Keep; share plant context concept with AI Chat                  |
+| AI Chat            | Service helper exists in `aiApi.js`; no page/route yet                                           | Add MVP page/route                                              |
+| Reminder           | `RemindersSettings.jsx`, `CareContext.jsx`, `CareNotificationBell.jsx` exist                     | Keep                                                            |
+| Feedback           | `feedbackApi.js` exists                                                                          | Add/verify UI if needed                                         |
+| Simple Marketplace | `PlantList.jsx`, `PlantDetail.jsx` exist                                                         | Keep display/price/contact only                                 |
 
 ---
 
-## Current Routes
+## Admin-side MVP Scope
+
+Admin dashboard must stay lightweight.
+
+| Feature                      | MVP intent                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------- |
+| User Management              | List users, view basic profile/status, simple role/status actions if backend supports |
+| User Plant Management        | View/manage user-submitted plants                                                     |
+| Plant Status Management      | Maintain simple plant health/status values                                            |
+| Marketplace Plant Management | CRUD simple display catalog records with price/contact fields                         |
+| AI Chat/Dialog History       | View basic AI dialog history for support/debug                                        |
+| AI Config Status page        | Show configured/not configured provider status only; no raw key editing               |
+
+Constraints:
+
+- Do not rebuild old large admin dashboard.
+- Do not add enterprise features.
+- Do not expose API keys.
+- Do not add advanced analytics.
+- Role model stays `USER` / `ADMIN`.
+
+---
+
+## Current Active Routes
 
 Public:
 
@@ -44,7 +67,7 @@ Public:
 /forgot-password -> ForgotPassword
 ```
 
-Protected by `ProtectedRoute`:
+Protected user routes:
 
 ```txt
 /app/dashboard              -> Dashboard
@@ -56,144 +79,93 @@ Protected by `ProtectedRoute`:
 /app/settings               -> RemindersSettings
 ```
 
-Fallback:
+Needed new routes:
 
 ```txt
-* -> /
+/app/ai-chat                -> AIChat
+/admin                      -> AdminDashboard
+/admin/users                -> AdminUsers
+/admin/user-plants          -> AdminUserPlants
+/admin/plant-status         -> AdminPlantStatus
+/admin/marketplace-plants   -> AdminMarketplacePlants
+/admin/ai-dialogs           -> AdminAiDialogs
+/admin/ai-config            -> AdminAiConfigStatus
 ```
 
 ---
 
-## Current Active Navigation
+## Marketplace Scope
 
-`Navbar.jsx`:
+Included:
 
-- `/`
-- `/plants`
-- `/login` when logged out
-- `/app/profile` when logged in
-- logout when logged in
-- care notification bell when logged in
+- Public plant/product list.
+- Public plant/product detail.
+- Price text.
+- Zalo/Facebook contact URL.
 
-`UserSidebar.jsx`:
+Excluded:
 
-- `/app/dashboard`
-- `/app/my-plants`
-- `/app/ai-analysis`
-- `/app/profile`
-- `/app/settings`
-
-No cart/checkout/order/payment/shipping/admin navigation is active.
+- Cart
+- Checkout
+- Payment
+- Orders
+- Shipping
+- Refund
+- Inventory enterprise workflow
 
 ---
 
-## Out of Scope
+## AI Chat MVP Scope
 
-Do not implement or reintroduce for MVP:
+Included:
+
+- User opens AI Chat.
+- System shows user's existing plants.
+- User selects one plant.
+- User sends question about that plant.
+- Backend responds using selected plant info.
+- Basic AI dialog history is saved.
+- AI Chat can share context with AI Diagnosis.
+
+Excluded:
+
+- General-purpose chatbot.
+- Complex long-term memory.
+- Multi-agent workflows.
+- Direct frontend provider calls.
+
+---
+
+## Backend MVP Scope
+
+Planned stack:
+
+- ASP.NET Core Web API
+- PostgreSQL
+- JWT Bearer auth
+- REST + JSON
+- Base path `/api/v1`
+
+Backend owns:
+
+- Auth and role checks.
+- Data persistence.
+- AI provider calls.
+- AI provider API keys in backend `.env`.
+
+---
+
+## Explicitly Out of Scope
 
 - Payment
 - Cart
 - Checkout
 - Orders
 - Shipping
-- Admin dashboard
+- Refund
 - QR/NFC
 - Workspace scanner
 - Advanced analytics
-- AI chat
-
-Clarification: simple marketplace means catalog display + contact-oriented purchase path only. It does not include commerce transaction flows.
-
----
-
-## Current Technical Decisions
-
-- Use React 19 + Vite 6.
-- Use React Router DOM v7.
-- Use `HashRouter` in `App.tsx`.
-- Keep `/app/*` protected by `ProtectedRoute`.
-- Keep frontend auth state in `AuthContext.jsx`.
-- Store MVP access token + user in `localStorage` through `authStorage.js`.
-- Keep `VITE_USE_MOCK_AUTH` defaulting to mock auth until backend exists.
-- Use centralized API client `FE/services/api.js`.
-- Use service layer files matching `docs/api-contract.md`:
-  - `authApi.js`
-  - `userApi.js`
-  - `plantApi.js`
-  - `reminderApi.js`
-  - `aiApi.js`
-  - `feedbackApi.js`
-- Keep backend base URL as `/api/v1` via `VITE_API_URL`.
-- Backend will proxy AI provider calls; frontend must not store AI provider secrets.
-- Keep fallback data minimal and MVP-only.
-
----
-
-## Backend MVP Scope
-
-Backend not implemented yet.
-
-Planned backend stack:
-
-- NestJS
-- Prisma
-- PostgreSQL
-- JWT Bearer auth
-- REST + JSON
-- Base path `/api/v1`
-
-Backend should implement only the finalized contract:
-
-```txt
-POST   /auth/register
-POST   /auth/login
-POST   /auth/forgot-password
-
-GET    /users/me
-PUT    /users/me
-
-GET    /plants
-GET    /plants/:id
-
-GET    /my-plants
-POST   /my-plants
-GET    /my-plants/:id
-PUT    /my-plants/:id
-DELETE /my-plants/:id
-
-GET    /reminders
-POST   /reminders
-PUT    /reminders/:id
-DELETE /reminders/:id
-
-POST   /ai/diagnose
-POST   /ai/chat
-
-POST   /feedback
-```
-
-Do not add cart/order/payment/admin APIs for MVP.
-
----
-
-## Next Priorities
-
-1. Keep docs synchronized before code changes.
-2. Tuan implements backend from `docs/api-contract.md`.
-3. Verify backend auth returns `{ user, accessToken }`.
-4. Switch frontend auth from mock to real via `VITE_USE_MOCK_AUTH=false`.
-5. Connect current pages to existing service layer incrementally.
-6. Replace fallback data only after matching backend endpoints exist.
-7. Preserve current MVP route/navigation boundaries.
-
----
-
-## Known Limitations
-
-- No backend or database exists yet.
-- Mock auth remains active by default.
-- Some pages still need final API wiring.
-- `mockData.ts` is still present for MVP fallback.
-- Reminder behavior is still frontend/local-state oriented until backend exists.
-- AI diagnosis requires backend proxy before real provider integration.
-- `ChatbotWidget.jsx` exists in components, but AI chat must not be expanded as an MVP feature.
+- Enterprise admin dashboard
+- Raw API key editing
+- General-purpose chatbot

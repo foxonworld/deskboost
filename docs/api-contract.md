@@ -1,54 +1,44 @@
 # DeskBoost – MVP API Contract
 
-> Frontend: React 19 + Vite. Backend target: NestJS + Prisma + PostgreSQL.  
-> Owner FE: frontend lead. Owner BE: Tuan.  
-> Goal: simple contract so frontend can replace mock data with real API.
+> Frontend: React 19 + Vite. Backend target: ASP.NET Core Web API + PostgreSQL. Goal: practical EXE201 contract for user MVP + AI Chat + lightweight Admin MVP.
 
 ---
 
-## 1. API design principles
+## 1. API Design Principles
 
-- Keep MVP small. Build only APIs required by current frontend routes.
-- Use REST + JSON.
-- Base path versioned as `/api/v1`.
-- Use JWT Bearer auth for protected routes.
-- Frontend never calls Gemini/AI provider directly.
-- Backend proxies all AI calls and keeps AI keys server-side.
-- Products catalog is display-only. No cart/order/payment APIs.
-- Standardize response and error shapes early.
-- Prefer simple pagination for catalog lists.
-- Use ISO 8601 strings for dates.
-- Use `camelCase` JSON fields for frontend ease.
+- REST + JSON.
+- Base path: `/api/v1`.
+- JWT Bearer auth for protected routes.
+- Simple roles: `USER`, `ADMIN`.
+- Frontend never calls AI provider directly.
+- Backend keeps AI keys in backend `.env` only.
+- Admin UI shows AI config/status only; no raw key editing.
+- Marketplace is display + contact only.
+- No cart/order/payment/checkout/shipping APIs.
+- Keep responses stable and simple.
 
 ---
 
-## 2. Base URL and environment variables
+## 2. Environment
 
-### Frontend env
+Frontend:
 
 ```env
-# FE/.env.local
 VITE_API_URL=http://localhost:8080/api/v1
 ```
 
-Frontend service wrapper should read:
-
-```js
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-```
-
-### Backend env
+Backend:
 
 ```env
-# Backend .env
 PORT=8080
 DATABASE_URL=postgresql://user:password@localhost:5432/deskboost
 JWT_SECRET=change-me
+AI_PROVIDER=gemini
 GEMINI_API_KEY=server-side-only
 FRONTEND_ORIGIN=http://localhost:5173
 ```
 
-### Auth header
+Auth header:
 
 ```http
 Authorization: Bearer <accessToken>
@@ -56,20 +46,11 @@ Authorization: Bearer <accessToken>
 
 ---
 
-## 3. Auth flow
-
-### MVP choice
-
-- Use JWT access token only.
-- Store token in frontend `localStorage` for MVP speed.
-- No refresh token in MVP.
-- On `401`, frontend clears token and redirects to `/login`.
+## 3. Auth
 
 ### Register
 
 `POST /auth/register`
-
-Request:
 
 ```json
 {
@@ -87,6 +68,7 @@ Response:
     "id": "usr_001",
     "name": "Nguyen Van A",
     "email": "user@example.com",
+    "role": "USER",
     "avatarUrl": null,
     "phone": null,
     "createdAt": "2026-05-14T10:00:00.000Z"
@@ -99,22 +81,11 @@ Response:
 
 `POST /auth/login`
 
-Request:
-
-```json
-{
-  "email": "user@example.com",
-  "password": "12345678"
-}
-```
-
-Response: same as register.
+Response shape is same as register.
 
 ### Forgot password
 
 `POST /auth/forgot-password`
-
-Request:
 
 ```json
 {
@@ -122,36 +93,27 @@ Request:
 }
 ```
 
-Response:
-
 ```json
 {
   "message": "If this email exists, reset instructions were sent."
 }
 ```
 
-MVP note: backend can log reset token or skip real email if email provider is not ready. Do not reveal whether email exists.
-
 ---
 
-## 4. Endpoint list
+## 4. Endpoint List
 
-### Auth
+### Public/Auth/User
 
 | Method | Endpoint                | Auth | Purpose                |
 | ------ | ----------------------- | ---: | ---------------------- |
 | POST   | `/auth/register`        |   No | Create account         |
 | POST   | `/auth/login`           |   No | Login                  |
 | POST   | `/auth/forgot-password` |   No | Request password reset |
+| GET    | `/users/me`             |  Yes | Current user profile   |
+| PUT    | `/users/me`             |  Yes | Update profile         |
 
-### User profile
-
-| Method | Endpoint    | Auth | Purpose              |
-| ------ | ----------- | ---: | -------------------- |
-| GET    | `/users/me` |  Yes | Current user profile |
-| PUT    | `/users/me` |  Yes | Update profile       |
-
-### Products catalog / public plants
+### Marketplace catalog
 
 | Method | Endpoint      | Auth | Purpose                                   |
 | ------ | ------------- | ---: | ----------------------------------------- |
@@ -170,45 +132,54 @@ MVP note: backend can log reset token or skip real email if email provider is no
 
 ### Reminders
 
-| Method | Endpoint         | Auth | Purpose             |
-| ------ | ---------------- | ---: | ------------------- |
-| GET    | `/reminders`     |  Yes | List care reminders |
-| POST   | `/reminders`     |  Yes | Create reminder     |
-| PUT    | `/reminders/:id` |  Yes | Update reminder     |
-| DELETE | `/reminders/:id` |  Yes | Delete reminder     |
+| Method | Endpoint         | Auth | Purpose         |
+| ------ | ---------------- | ---: | --------------- |
+| GET    | `/reminders`     |  Yes | List reminders  |
+| POST   | `/reminders`     |  Yes | Create reminder |
+| PUT    | `/reminders/:id` |  Yes | Update reminder |
+| DELETE | `/reminders/:id` |  Yes | Delete reminder |
 
-### AI Diagnosis
+### AI
 
-| Method | Endpoint       | Auth | Purpose                                     |
-| ------ | -------------- | ---: | ------------------------------------------- |
-| POST   | `/ai/diagnose` |  Yes | Diagnose plant from image via backend proxy |
-| POST   | `/ai/chat`     |  Yes | Chat follow-up via backend proxy            |
+| Method | Endpoint          | Auth | Purpose                             |
+| ------ | ----------------- | ---: | ----------------------------------- |
+| POST   | `/ai/diagnose`    |  Yes | Diagnose plant via backend AI proxy |
+| POST   | `/ai/chat`        |  Yes | Plant-specific AI Chat reply        |
+| GET    | `/ai/dialogs`     |  Yes | User's basic AI dialog history      |
+| GET    | `/ai/dialogs/:id` |  Yes | User's dialog detail                |
 
 ### Feedback
 
-| Method | Endpoint    |     Auth | Purpose                      |
-| ------ | ----------- | -------: | ---------------------------- |
-| POST   | `/feedback` | Optional | Submit user/visitor feedback |
+| Method | Endpoint    |     Auth | Purpose         |
+| ------ | ----------- | -------: | --------------- |
+| POST   | `/feedback` | Optional | Submit feedback |
+
+### Lightweight Admin
+
+All admin endpoints require `ADMIN`.
+
+| Method | Endpoint                        | Purpose                                       |
+| ------ | ------------------------------- | --------------------------------------------- |
+| GET    | `/admin/summary`                | Lightweight counts/status for admin dashboard |
+| GET    | `/admin/users`                  | List users                                    |
+| GET    | `/admin/users/:id`              | User detail                                   |
+| PUT    | `/admin/users/:id/status`       | Update simple user status                     |
+| GET    | `/admin/user-plants`            | List user plants                              |
+| GET    | `/admin/user-plants/:id`        | User plant detail                             |
+| PUT    | `/admin/user-plants/:id/status` | Update plant status                           |
+| GET    | `/admin/marketplace-plants`     | List marketplace plants                       |
+| POST   | `/admin/marketplace-plants`     | Create marketplace plant                      |
+| PUT    | `/admin/marketplace-plants/:id` | Update marketplace plant                      |
+| DELETE | `/admin/marketplace-plants/:id` | Delete marketplace plant                      |
+| GET    | `/admin/ai-dialogs`             | List AI dialog history                        |
+| GET    | `/admin/ai-dialogs/:id`         | AI dialog detail                              |
+| GET    | `/admin/ai-config/status`       | AI provider config/status only                |
 
 ---
 
-## 5. Request body examples
+## 5. Core Request Examples
 
-### Update user profile
-
-`PUT /users/me`
-
-```json
-{
-  "name": "Nguyen Van A",
-  "phone": "0909123456",
-  "avatarUrl": "https://example.com/avatar.png"
-}
-```
-
-### Create my plant
-
-`POST /my-plants`
+Create my plant:
 
 ```json
 {
@@ -216,123 +187,57 @@ MVP note: backend can log reset token or skip real email if email provider is no
   "species": "Monstera Deliciosa",
   "location": "Desk corner",
   "imageUrl": "https://example.com/my-plant.jpg",
-  "notes": "Bought in May. Likes indirect light."
+  "notes": "Likes indirect light."
 }
 ```
 
-### Update my plant
-
-`PUT /my-plants/:id`
-
-```json
-{
-  "name": "Monstera at desk",
-  "species": "Monstera Deliciosa",
-  "location": "Work desk",
-  "imageUrl": "https://example.com/my-plant-new.jpg",
-  "notes": "Water every 5 days."
-}
-```
-
-### Create reminder
-
-`POST /reminders`
+AI diagnose:
 
 ```json
 {
   "plantId": "myplant_001",
-  "type": "watering",
-  "title": "Water Monstera",
-  "frequency": "weekly",
-  "nextRunAt": "2026-05-20T09:00:00.000Z",
-  "enabled": true
-}
-```
-
-Allowed reminder `type` values:
-
-```json
-["watering", "fertilizing", "pruning", "repotting", "custom"]
-```
-
-Allowed `frequency` values:
-
-```json
-["daily", "weekly", "monthly", "custom"]
-```
-
-### AI diagnose
-
-`POST /ai/diagnose`
-
-Use either `imageBase64` or `imageUrl`. Frontend MVP can send base64 from file upload.
-
-```json
-{
-  "plantId": "myplant_001",
-  "imageBase64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...",
+  "imageBase64": "data:image/jpeg;base64,...",
   "question": "What is wrong with this plant?"
 }
 ```
 
-### AI chat
-
-`POST /ai/chat`
+AI chat:
 
 ```json
 {
   "plantId": "myplant_001",
   "message": "How often should I water it this week?",
   "history": [
-    {
-      "role": "user",
-      "content": "My leaves are yellow."
-    },
+    { "role": "user", "content": "Leaves are yellow." },
     {
       "role": "assistant",
-      "content": "Yellow leaves can come from overwatering or poor drainage."
+      "content": "Yellow leaves may come from overwatering."
     }
   ]
 }
 ```
 
-### Submit feedback
-
-`POST /feedback`
+Create/update marketplace plant:
 
 ```json
 {
-  "name": "Nguyen Van A",
-  "email": "user@example.com",
-  "rating": 5,
-  "message": "The AI diagnosis flow is easy to use.",
-  "source": "ai-diagnosis"
+  "name": "Monstera Deliciosa",
+  "description": "Easy indoor plant with large split leaves.",
+  "imageUrl": "https://example.com/monstera.jpg",
+  "priceText": "150,000 VND",
+  "careLevel": "easy",
+  "light": "indirect",
+  "water": "weekly",
+  "contactUrl": "https://zalo.me/your-shop",
+  "status": "active"
 }
 ```
 
 ---
 
-## 6. Response body examples
+## 6. Core Response Examples
 
-### Get current user
-
-`GET /users/me`
-
-```json
-{
-  "id": "usr_001",
-  "name": "Nguyen Van A",
-  "email": "user@example.com",
-  "phone": "0909123456",
-  "avatarUrl": null,
-  "createdAt": "2026-05-14T10:00:00.000Z",
-  "updatedAt": "2026-05-14T10:00:00.000Z"
-}
-```
-
-### Product catalog list
-
-`GET /plants?page=1&limit=12&search=monstera`
+Catalog list:
 
 ```json
 {
@@ -342,46 +247,16 @@ Use either `imageBase64` or `imageUrl`. Frontend MVP can send base64 from file u
       "name": "Monstera Deliciosa",
       "description": "Easy indoor plant with large split leaves.",
       "imageUrl": "https://example.com/monstera.jpg",
-      "priceText": "Contact for price",
+      "priceText": "150,000 VND",
       "careLevel": "easy",
-      "light": "indirect",
-      "water": "weekly",
       "contactUrl": "https://zalo.me/your-shop"
     }
   ],
-  "pagination": {
-    "page": 1,
-    "limit": 12,
-    "total": 1,
-    "totalPages": 1
-  }
+  "pagination": { "page": 1, "limit": 12, "total": 1, "totalPages": 1 }
 }
 ```
 
-### Product detail
-
-`GET /plants/:id`
-
-```json
-{
-  "id": "plant_001",
-  "name": "Monstera Deliciosa",
-  "description": "Easy indoor plant with large split leaves.",
-  "imageUrl": "https://example.com/monstera.jpg",
-  "gallery": ["https://example.com/monstera-2.jpg"],
-  "priceText": "Contact for price",
-  "careLevel": "easy",
-  "light": "indirect",
-  "water": "weekly",
-  "humidity": "medium",
-  "temperature": "18-30°C",
-  "contactUrl": "https://zalo.me/your-shop"
-}
-```
-
-### My plants list
-
-`GET /my-plants`
+My plants list:
 
 ```json
 {
@@ -392,6 +267,7 @@ Use either `imageBase64` or `imageUrl`. Frontend MVP can send base64 from file u
       "species": "Monstera Deliciosa",
       "location": "Desk corner",
       "imageUrl": "https://example.com/my-plant.jpg",
+      "status": "healthy",
       "notes": "Bought in May.",
       "createdAt": "2026-05-14T10:00:00.000Z",
       "updatedAt": "2026-05-14T10:00:00.000Z"
@@ -400,92 +276,43 @@ Use either `imageBase64` or `imageUrl`. Frontend MVP can send base64 from file u
 }
 ```
 
-### Reminder list
-
-`GET /reminders`
+AI chat result:
 
 ```json
 {
-  "items": [
-    {
-      "id": "rem_001",
-      "plantId": "myplant_001",
-      "plantName": "Monstera near window",
-      "type": "watering",
-      "title": "Water Monstera",
-      "frequency": "weekly",
-      "nextRunAt": "2026-05-20T09:00:00.000Z",
-      "enabled": true,
-      "createdAt": "2026-05-14T10:00:00.000Z",
-      "updatedAt": "2026-05-14T10:00:00.000Z"
-    }
-  ]
-}
-```
-
-### AI diagnose result
-
-`POST /ai/diagnose`
-
-```json
-{
-  "diagnosisId": "diag_001",
+  "dialogId": "dlg_001",
   "plantId": "myplant_001",
-  "summary": "The plant may be overwatered.",
-  "confidence": 0.78,
-  "issues": [
-    {
-      "name": "Overwatering",
-      "severity": "medium",
-      "description": "Yellowing leaves and soft stems can indicate too much water."
-    }
-  ],
-  "recommendations": [
-    "Check soil moisture before watering.",
-    "Improve drainage.",
-    "Move plant to bright indirect light."
-  ],
-  "disclaimer": "AI diagnosis is for reference only and may be inaccurate."
+  "reply": "Water only when the top 2-3 cm of soil is dry.",
+  "disclaimer": "AI advice is for reference only.",
+  "createdAt": "2026-05-15T03:42:00.000Z"
 }
 ```
 
-### AI chat result
-
-`POST /ai/chat`
+AI config status:
 
 ```json
 {
-  "reply": "Water only when the top 2-3 cm of soil is dry. For this week, skip watering if the soil is still damp.",
-  "disclaimer": "AI advice is for reference only."
+  "provider": "gemini",
+  "configured": true,
+  "lastCheckedAt": "2026-05-15T03:42:00.000Z"
 }
 ```
 
-### Feedback result
-
-`POST /feedback`
+Admin summary:
 
 ```json
 {
-  "id": "fb_001",
-  "message": "Thanks for your feedback."
-}
-```
-
-### Delete response
-
-`DELETE /my-plants/:id`
-
-```json
-{
-  "success": true
+  "users": 12,
+  "userPlants": 30,
+  "marketplacePlants": 8,
+  "aiDialogs": 20,
+  "aiConfigured": true
 }
 ```
 
 ---
 
-## 7. Standard error response format
-
-Backend should return consistent errors:
+## 7. Standard Error Format
 
 ```json
 {
@@ -499,268 +326,64 @@ Backend should return consistent errors:
 }
 ```
 
-Common status codes:
-
-| Status | Code               | Meaning                                |
-| -----: | ------------------ | -------------------------------------- |
-|    400 | `BAD_REQUEST`      | Invalid request body/query             |
-|    401 | `UNAUTHORIZED`     | Missing/invalid token                  |
-|    403 | `FORBIDDEN`        | No access to resource                  |
-|    404 | `NOT_FOUND`        | Resource not found                     |
-|    409 | `CONFLICT`         | Email already used, duplicate resource |
-|    422 | `VALIDATION_ERROR` | Field-level validation failed          |
-|    429 | `RATE_LIMITED`     | Too many AI/auth requests              |
-|    500 | `INTERNAL_ERROR`   | Unexpected backend error               |
-
-Frontend should read `error.message` for user-facing toast/inline error.
+Common status codes: `400`, `401`, `403`, `404`, `409`, `422`, `429`, `500`.
 
 ---
 
-## 8. Frontend service file mapping
+## 8. Frontend Service Mapping
 
-Current service folder target:
+| Frontend file                | API endpoints                             |
+| ---------------------------- | ----------------------------------------- |
+| `FE/services/api.js`         | Base fetch, auth header, error normalize  |
+| `FE/services/authApi.js`     | `/auth/*`                                 |
+| `FE/services/userApi.js`     | `/users/me`                               |
+| `FE/services/plantApi.js`    | `/plants`, `/my-plants`                   |
+| `FE/services/reminderApi.js` | `/reminders`                              |
+| `FE/services/aiApi.js`       | `/ai/diagnose`, `/ai/chat`, `/ai/dialogs` |
+| `FE/services/feedbackApi.js` | `/feedback`                               |
+| `FE/services/adminApi.js`    | `/admin/*`                                |
 
-| Frontend file                | API endpoints                                            |
-| ---------------------------- | -------------------------------------------------------- |
-| `FE/services/api.js`         | Base `fetch`, auth header, JSON parse, error normalize   |
-| `FE/services/authApi.js`     | `/auth/register`, `/auth/login`, `/auth/forgot-password` |
-| `FE/services/userApi.js`     | `/users/me`                                              |
-| `FE/services/plantApi.js`    | `/plants`, `/plants/:id`, `/my-plants`, `/my-plants/:id` |
-| `FE/services/reminderApi.js` | `/reminders`, `/reminders/:id`                           |
-| `FE/services/aiApi.js`       | `/ai/diagnose`, `/ai/chat`                               |
-| `FE/services/feedbackApi.js` | `/feedback`                                              |
-
-Suggested MVP service functions:
+Suggested new/updated service functions:
 
 ```js
-// authApi.js
-register(payload);
-login(payload);
-forgotPassword(email);
-
-// userApi.js
-getMe();
-updateMe(payload);
-
-// plantApi.js
-getCatalogPlants(params);
-getCatalogPlant(id);
-getMyPlants();
-createMyPlant(payload);
-getMyPlant(id);
-updateMyPlant(id, payload);
-deleteMyPlant(id);
-
-// reminderApi.js
-getReminders();
-createReminder(payload);
-updateReminder(id, payload);
-deleteReminder(id);
-
 // aiApi.js
-diagnosePlant(payload);
-chatWithAI(payload);
+getMyAiDialogs();
+getMyAiDialog(id);
 
-// feedbackApi.js
-submitFeedback(payload);
+// adminApi.js
+getAdminSummary();
+getAdminUsers(params);
+getAdminUser(id);
+updateAdminUserStatus(id, payload);
+getAdminUserPlants(params);
+getAdminUserPlant(id);
+updateAdminUserPlantStatus(id, payload);
+getAdminMarketplacePlants(params);
+createAdminMarketplacePlant(payload);
+updateAdminMarketplacePlant(id, payload);
+deleteAdminMarketplacePlant(id);
+getAdminAiDialogs(params);
+getAdminAiDialog(id);
+getAdminAiConfigStatus();
 ```
 
 ---
 
-## 9. Suggested frontend TypeScript interfaces or JS object shapes
+## 9. Out-of-scope APIs
 
-These shapes are documentation only. Current pages can stay `.jsx`.
-
-```ts
-export type ID = string;
-
-export interface User {
-  id: ID;
-  name: string;
-  email: string;
-  phone?: string | null;
-  avatarUrl?: string | null;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  accessToken: string;
-}
-
-export interface CatalogPlant {
-  id: ID;
-  name: string;
-  description: string;
-  imageUrl: string;
-  gallery?: string[];
-  priceText?: string;
-  careLevel?: "easy" | "medium" | "hard";
-  light?: string;
-  water?: string;
-  humidity?: string;
-  temperature?: string;
-  contactUrl?: string;
-}
-
-export interface MyPlant {
-  id: ID;
-  name: string;
-  species?: string;
-  location?: string;
-  imageUrl?: string;
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Reminder {
-  id: ID;
-  plantId: ID;
-  plantName?: string;
-  type: "watering" | "fertilizing" | "pruning" | "repotting" | "custom";
-  title: string;
-  frequency: "daily" | "weekly" | "monthly" | "custom";
-  nextRunAt: string;
-  enabled: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface DiagnosisIssue {
-  name: string;
-  severity: "low" | "medium" | "high";
-  description: string;
-}
-
-export interface DiagnosisResult {
-  diagnosisId: ID;
-  plantId?: ID;
-  summary: string;
-  confidence?: number;
-  issues: DiagnosisIssue[];
-  recommendations: string[];
-  disclaimer: string;
-}
-
-export interface FeedbackPayload {
-  name?: string;
-  email?: string;
-  rating?: number;
-  message: string;
-  source?: string;
-}
-
-export interface ApiError {
-  error: {
-    code: string;
-    message: string;
-    details?: Record<string, string>;
-  };
-}
-```
-
-Pagination shape:
-
-```ts
-export interface PaginatedResponse<T> {
-  items: T[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
-}
-```
-
----
-
-## 10. Loading/error state requirements
-
-Frontend requirements per API call:
-
-- Show loading state while request is pending.
-- Disable submit buttons while pending to prevent duplicate requests.
-- Show empty state when list response has `items: []`.
-- Show inline validation errors from `error.details` when available.
-- Show toast or page-level error from `error.message`.
-- On `401`, clear token and redirect to `/login`.
-- AI diagnose can take longer. Show clear progress text like `Analyzing plant image...`.
-- AI errors should not crash page. Show retry button.
-- Delete actions require confirm dialog.
-- Public catalog should still work when user is logged out.
-
-Recommended frontend state shape:
-
-```js
-const [data, setData] = useState(null);
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState(null);
-```
-
----
-
-## 11. Notes for backend developer
-
-- Tuan should implement only endpoints listed in this document for MVP.
-- Use NestJS modules roughly matching domains: `AuthModule`, `UsersModule`, `PlantsModule`, `MyPlantsModule`, `RemindersModule`, `AiModule`, `FeedbackModule`.
-- Use Prisma models simple enough for demo and iteration.
-- Keep product catalog seedable from database. No admin UI required.
-- `GET /plants` is public and display-only.
-- `contactUrl` can be a Zalo/Facebook URL from seed data.
-- `POST /ai/diagnose` and `POST /ai/chat` must call Gemini from backend only.
-- Add rate limit for auth and AI endpoints if quick to implement.
-- Enable CORS for frontend origin.
-- Validate all DTOs with `class-validator`.
-- Never return password hash.
-- For user-owned resources, always filter by authenticated `userId`.
-- Keep response fields stable; frontend will map UI to these names.
-
-Suggested Prisma entities:
-
-```txt
-User
-CatalogPlant
-UserPlant
-Reminder
-DiagnosisLog
-Feedback
-```
-
-Minimum ownership rules:
-
-```txt
-User owns UserPlant
-User owns Reminder
-Reminder belongs to UserPlant
-DiagnosisLog optionally belongs to User and UserPlant
-Feedback optionally belongs to User
-```
-
----
-
-## 12. Out-of-scope APIs
-
-Do not build these for MVP:
+Do not build for MVP:
 
 - Cart APIs
 - Checkout APIs
 - Payment APIs
 - Order APIs
 - Shipping APIs
-- Inventory management APIs
-- Coupon/discount APIs
-- Admin dashboard APIs
-- Admin user management APIs
-- Admin product CRUD APIs
-- Push notification APIs
+- Refund APIs
+- QR/NFC APIs
+- Workspace scanner APIs
+- Advanced analytics APIs
+- Enterprise admin APIs
+- Raw API key edit/update APIs
 - Realtime websocket APIs
-- Review/rating APIs for products
-- Wishlist APIs
 - Social login APIs
-- Refresh token/session rotation APIs
-- File upload service APIs beyond simple `imageUrl` or base64 AI input
-
-If a page needs purchase behavior, frontend should link user to Zalo/Facebook via `contactUrl`.
+- Complex conversation memory APIs

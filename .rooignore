@@ -1,0 +1,366 @@
+# DeskBoost Roo semantic-index ignore
+
+# Goal:
+
+# Keep Roo semantic indexing focused on ACTIVE MVP source code,
+
+# architecture docs, workflows, and real product logic only.
+
+# =========================================================
+
+# Dependencies
+
+# =========================================================
+
+# Why:
+
+# Third-party packages dominate token usage and pollute semantic search.
+
+node_modules/
+\*\*/node_modules/
+
+# =========================================================
+
+# Build output / generated artifacts
+
+# =========================================================
+
+# Why:
+
+# Generated bundles duplicate source code and include minified/vendor output.
+
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+build/
+**/build/
+out/
+**/out/
+coverage/
+\*\*/coverage/
+.gh-pages/
+
+# =========================================================
+
+# Tool caches / generated metadata
+
+# =========================================================
+
+# Why:
+
+# Transient machine-generated files are not useful for architecture reasoning.
+
+.vite/
+**/.vite/
+.cache/
+**/.cache/
+.turbo/
+**/.turbo/
+.next/
+**/.next/
+.nuxt/
+**/.nuxt/
+.parcel-cache/
+**/.parcel-cache/
+.eslintcache
+\*.tsbuildinfo
+
+# Optional generated metadata
+
+FE/metadata.json
+
+# =========================================================
+
+# Logs / diagnostics / temp files
+
+# =========================================================
+
+# Why:
+
+# Logs and generated errors create noisy semantic search results.
+
+logs/ \*_/logs/
+_.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log\*
+
+# Optional local debug exports
+
+FE/build_error.txt
+
+# =========================================================
+
+# Runtime env / secrets
+
+# =========================================================
+
+# Why:
+
+# Environment-specific secrets should never be indexed.
+
+.env
+.env.\*
+\*.local
+
+# Keep examples indexed
+
+!.env.example
+!.env.sample
+
+# =========================================================
+
+# Binary/media/export files
+
+# =========================================================
+
+# Why:
+
+# Large media files provide little semantic value for code understanding.
+
+_.png
+_.jpg
+_.jpeg
+_.gif
+_.webp
+_.avif
+_.ico
+_.mp4
+_.mov
+_.avi
+_.mkv
+_.webm
+_.mp3
+_.wav
+_.zip
+_.rar
+_.7z
+_.tar
+_.gz
+_.pdf
+_.docx
+_.xlsx
+\*.pptx
+
+# Keep important SVG UI assets if needed
+
+_.svg
+!FE/assets/\*\*/_.svg
+!FE/public/\*_/_.svg
+
+# Temp/export folders
+
+exports/
+**/exports/
+tmp/
+**/tmp/
+temp/
+\*\*/temp/
+
+# =========================================================
+
+# IDE / OS / local workspace files
+
+# =========================================================
+
+# Why:
+
+# Editor state and OS metadata do not help Roo understand the product.
+
+.vscode/
+.idea/
+.DS*Store
+Thumbs.db
+*.suo
+_.ntvs\*
+_.njsproj
+\_.sln
+\*.sw?
+
+# =========================================================
+
+# Git internals
+
+# =========================================================
+
+# Why:
+
+# Git internals are huge and irrelevant for semantic reasoning.
+
+.git/
+
+# =========================================================
+
+# Roo / agent temporary internals
+
+# =========================================================
+
+# Why:
+
+# Ignore temporary/generated agent state,
+
+# but KEEP rules/prompts/docs that help coding workflows.
+
+.roo/cache/
+.roo/tmp/
+.roo/logs/
+.agent/cache/
+.agent/tmp/
+
+# =========================================================
+
+# Deprecated legacy feature areas
+
+# =========================================================
+
+# Why:
+
+# DeskBoost EXE201 no longer supports full e-commerce systems.
+
+# Keep lightweight admin MVP indexed.
+
+# Keep AI Chat indexed.
+
+# Only exclude deprecated commerce/order/payment systems.
+
+**/cart/
+**/Cart/
+**/checkout/
+**/Checkout/
+**/orders/
+**/Orders/
+**/payment/
+**/Payment/
+**/shipping/
+**/Shipping/
+
+**/_Cart_.jsx
+**/_Cart_.tsx
+**/_Checkout_.jsx
+**/_Checkout_.tsx
+**/_Order_.jsx
+**/_Order_.tsx
+**/_Payment_.jsx
+**/_Payment_.tsx
+**/_Shipping_.jsx
+**/_Shipping_.tsx
+
+# =========================================================
+
+# Keep ACTIVE MVP files indexed
+
+# =========================================================
+
+# Why:
+
+# Explicit negations protect current active source code,
+
+# architecture docs, workflows, routes, services, and auth flow.
+
+# Core project docs
+
+!CLAUDE.md
+!Claude.md
+!README.md
+
+# Docs
+
+!docs/
+!docs/\*_/_.md
+
+# Planning/workflow docs
+
+!plans/
+!plans/\*_/_.md
+
+# Roo workflows/rules/prompts
+
+!.roo/
+!.roo/**/\*.md
+!.roo/**/_.txt
+!.roo/\*\*/_.yaml
+!.roo/\*_/_.yml
+
+# Frontend root
+
+!FE/
+!FE/App.tsx
+!FE/index.tsx
+!FE/index.html
+!FE/package.json
+!FE/README.md
+!FE/tsconfig.json
+!FE/vite.config.ts
+
+# Frontend source folders
+
+!FE/components/
+!FE/components/\*_/_.{js,jsx,ts,tsx}
+
+!FE/context/
+!FE/context/\*_/_.{js,jsx,ts,tsx}
+
+!FE/data/
+!FE/data/\*_/_.{js,jsx,ts,tsx,json}
+
+!FE/hooks/
+!FE/hooks/\*_/_.{js,jsx,ts,tsx}
+
+!FE/pages/
+!FE/pages/\*_/_.{js,jsx,ts,tsx}
+
+!FE/routes/
+!FE/routes/\*_/_.{js,jsx,ts,tsx}
+
+!FE/services/
+!FE/services/\*_/_.{js,jsx,ts,tsx}
+
+!FE/utils/
+!FE/utils/\*_/_.{js,jsx,ts,tsx}
+
+!FE/assets/
+!FE/assets/\*_/_.{svg,png,jpg,jpeg,webp}
+
+# Future backend (keep indexed when added)
+
+!BE/
+!BE/\*_/_.{cs,json,sln,csproj}
+
+# =========================================================
+
+# Current indexing philosophy
+
+# =========================================================
+
+# Index:
+
+# - active MVP code
+
+# - AI flows
+
+# - lightweight admin MVP
+
+# - architecture docs
+
+# - auth flow
+
+# - services layer
+
+# - API contracts
+
+#
+
+# Exclude:
+
+# - generated output
+
+# - deprecated commerce systems
+
+# - logs/caches
+
+# - binaries
+
+# - stale legacy flows

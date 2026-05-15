@@ -1,78 +1,25 @@
 # DeskBoost – Frontend Architecture
 
-> Current frontend source of truth · React 19 + Vite 6 · MVP-only · Backend not implemented yet
+> Current frontend source of truth · React 19 + Vite 6 · updated for AI Chat + lightweight Admin MVP planning
 
 ---
 
 ## Current Status
 
-- Frontend cleanup is completed.
-- Active routes are MVP-only.
-- Deprecated commerce/admin routes and navigation are not active.
-- Central API client exists.
-- Service layer exists and follows `docs/api-contract.md`.
-- Auth shell exists with protected `/app/*` routes.
-- `mockData.ts` is reduced to MVP fallback data only.
+- Frontend is implemented with React 19 + Vite 6.
+- Routing uses React Router DOM v7 with `HashRouter`.
+- User MVP routes exist.
+- AI Diagnosis exists.
+- AI Chat service helper exists, but no dedicated page/route yet.
+- Admin dashboard is not currently implemented.
 - Backend is not implemented yet.
+- Backend direction is ASP.NET Core Web API + PostgreSQL.
 
 ---
 
-## Current Frontend Architecture
+## Current App Shell
 
-```txt
-FE/
-├── App.tsx
-├── index.tsx
-├── package.json
-├── routes/
-│   ├── AppRouter.tsx
-│   └── ProtectedRoute.jsx
-├── pages/
-│   ├── Home.jsx
-│   ├── PlantList.jsx
-│   ├── PlantDetail.jsx
-│   ├── Login.jsx
-│   ├── Register.jsx
-│   ├── ForgotPassword.jsx
-│   ├── Dashboard.jsx
-│   ├── MyPlants.jsx
-│   ├── PlantProfile.jsx
-│   ├── AddPlantUser.jsx
-│   ├── UserProfile.jsx
-│   ├── AIPlantAnalysis.jsx
-│   └── RemindersSettings.jsx
-├── components/
-│   ├── Navbar.jsx
-│   ├── UserLayout.jsx
-│   ├── UserSidebar.jsx
-│   ├── CareNotificationBell.jsx
-│   ├── ChatbotWidget.jsx
-│   ├── FloatingHomeButton.jsx
-│   └── ThemeToggle.tsx
-├── context/
-│   ├── AuthContext.jsx
-│   └── CareContext.jsx
-├── hooks/
-│   └── useAuth.js
-├── services/
-│   ├── api.js
-│   ├── authApi.js
-│   ├── userApi.js
-│   ├── plantApi.js
-│   ├── reminderApi.js
-│   ├── aiApi.js
-│   └── feedbackApi.js
-├── utils/
-│   └── authStorage.js
-└── data/
-    └── mockData.ts
-```
-
----
-
-## App Shell
-
-`App.tsx` currently wraps the app with:
+`App.tsx` wraps:
 
 ```txt
 HashRouter
@@ -81,18 +28,16 @@ HashRouter
         └── AppRouter
 ```
 
-Global UI helpers mounted in `App.tsx`:
+Global helpers:
 
 - `FloatingHomeButton`
 - `ThemeToggle`
 
 ---
 
-## Routing
+## Current Routes
 
-`AppRouter.tsx` defines current active routes.
-
-Public routes:
+Public:
 
 ```txt
 /                -> Home
@@ -103,7 +48,7 @@ Public routes:
 /forgot-password -> ForgotPassword
 ```
 
-Protected routes:
+Protected user:
 
 ```txt
 /app/dashboard              -> Dashboard
@@ -115,28 +60,44 @@ Protected routes:
 /app/settings               -> RemindersSettings
 ```
 
-Fallback:
+---
+
+## Planned Route Additions
+
+User:
 
 ```txt
-* -> /
+/app/ai-chat -> AIChat
 ```
 
-`ProtectedRoute.jsx` uses `useAuth()` and redirects unauthenticated users to `/login`.
+Admin:
+
+```txt
+/admin                    -> AdminDashboard
+/admin/users              -> AdminUsers
+/admin/user-plants        -> AdminUserPlants
+/admin/plant-status       -> AdminPlantStatus
+/admin/marketplace-plants -> AdminMarketplacePlants
+/admin/ai-dialogs         -> AdminAiDialogs
+/admin/ai-config          -> AdminAiConfigStatus
+```
+
+Admin routes must be guarded by authentication + `ADMIN` role. Keep role logic simple.
 
 ---
 
-## Navigation
+## Current Navigation
 
-`Navbar.jsx` active links/actions:
+`Navbar.jsx`:
 
 - `/`
 - `/plants`
-- `/login` for unauthenticated users
-- `/app/profile` for authenticated users
-- logout for authenticated users
-- `CareNotificationBell` for authenticated users
+- `/login` when logged out
+- `/app/profile` when logged in
+- logout when logged in
+- care notification bell when logged in
 
-`UserSidebar.jsx` active links:
+`UserSidebar.jsx`:
 
 - `/app/dashboard`
 - `/app/my-plants`
@@ -144,13 +105,18 @@ Fallback:
 - `/app/profile`
 - `/app/settings`
 
-No active navigation exists for cart, checkout, orders, payment, shipping, or admin.
+Needed nav changes:
+
+- Add `/app/ai-chat` to user sidebar.
+- Add admin entry only for `ADMIN` users.
+- Add lightweight admin sidebar/layout only if needed.
+- Do not add ecommerce nav.
 
 ---
 
 ## Auth Architecture
 
-Files:
+Current files:
 
 - `FE/context/AuthContext.jsx`
 - `FE/hooks/useAuth.js`
@@ -160,155 +126,95 @@ Files:
 
 Current behavior:
 
-- `AuthContext` owns `user`, `token`, `isAuthenticated`, `isLoading`, `error`.
-- `useAuth()` exposes auth context to pages/components.
-- `authStorage.js` persists `accessToken` and `authUser` in `localStorage`.
-- `ProtectedRoute` blocks protected pages when unauthenticated.
-- `authApi.js` defaults to mock auth unless `VITE_USE_MOCK_AUTH=false`.
-- Real backend auth must return `{ user, accessToken }`.
+- Token + user stored in `localStorage`.
+- Mock auth enabled by default.
+- Protected route redirects unauthenticated users.
+
+Needed:
+
+- User object should include simple `role: "USER" | "ADMIN"` after backend integration.
+- Add `AdminRoute` or extend guard for `ADMIN` routes.
+- Keep no refresh-token/session-complexity for MVP unless backend already requires it.
 
 ---
 
 ## Services Layer
 
-`FE/services/api.js` is the centralized API client.
+Current services:
 
-Current behavior:
+| File             | Current responsibility                       |
+| ---------------- | -------------------------------------------- |
+| `api.js`         | Base fetch, auth header, JSON/error handling |
+| `authApi.js`     | register/login/forgot password               |
+| `userApi.js`     | current user profile                         |
+| `plantApi.js`    | public catalog + my-plants CRUD              |
+| `reminderApi.js` | reminder CRUD                                |
+| `aiApi.js`       | AI diagnose/chat helpers                     |
+| `feedbackApi.js` | feedback submission                          |
 
-- Base URL: `import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1"`
-- Adds `Authorization: Bearer <token>` when token exists.
-- Sends JSON by default.
-- Supports `FormData` without forcing JSON content type.
-- Parses JSON responses.
-- Throws `ApiError` with `status`, `code`, `details`.
-- Clears local auth on `401`.
+Needed services:
 
-Service modules:
-
-| File             | Responsibility                           |
-| ---------------- | ---------------------------------------- |
-| `authApi.js`     | register, login, forgot password         |
-| `userApi.js`     | current user profile                     |
-| `plantApi.js`    | public catalog + my-plants CRUD          |
-| `reminderApi.js` | reminder CRUD                            |
-| `aiApi.js`       | backend-proxied AI diagnose/chat helpers |
-| `feedbackApi.js` | feedback submission                      |
+| File          | New/updated responsibility                                     |
+| ------------- | -------------------------------------------------------------- |
+| `aiApi.js`    | Add dialog history helpers if contract uses separate endpoints |
+| `adminApi.js` | Lightweight admin endpoints grouped by MVP admin pages         |
+| `authApi.js`  | Ensure returned user includes `role`                           |
 
 ---
 
-## Data Strategy
+## AI Chat Frontend Plan
 
-- Runtime data should come from service modules.
-- Backend does not exist yet.
-- Pages may use local fallback data while backend is missing.
-- `FE/data/mockData.ts` contains only MVP fallback catalog and my-plants records.
-- Removed mock commerce/admin datasets must not be restored for MVP.
+MVP page behavior:
 
----
+1. Load user's existing plants via `getMyPlants()`.
+2. Show plant selector.
+3. Require one selected plant.
+4. Send `{ plantId, message, history? }` through backend `/ai/chat`.
+5. Display assistant reply and disclaimer.
+6. Show basic local/session history; persist through backend when endpoint exists.
+7. Keep context plant-specific, not general chatbot.
 
-## Current MVP Scope
+Reusable UI candidates:
 
-In scope:
-
-- Landing
-- Auth
-- Add Plant
-- My Plants
-- AI Diagnosis
-- Reminder
-- Feedback
-- Simple Marketplace
-
-Simple Marketplace means public catalog/detail plus contact-oriented purchase path. It does not include commerce transactions.
+- Plant selector card/list.
+- Chat message list.
+- Chat input box.
+- Empty state when user has no plants.
 
 ---
 
-## Out of Scope
+## Admin MVP Frontend Plan
 
-Do not implement or reintroduce:
+Admin UI principles:
 
-- Payment
-- Cart
-- Checkout
-- Orders
-- Shipping
-- Admin dashboard
-- QR/NFC
-- Workspace scanner
-- Advanced analytics
-- AI chat
+- Lightweight table/list screens.
+- Simple detail/edit forms only where needed.
+- No charts-heavy dashboard.
+- No enterprise permissions matrix.
+- No API key editor.
 
-Note: `aiApi.js` includes `chatWithAI()` only because the API contract includes `/ai/chat`. Do not expand AI chat as a frontend MVP product area.
+Admin pages:
 
----
-
-## Current Technical Decisions
-
-- Keep frontend lean and MVP-first.
-- Do not redesign UI during backend integration.
-- Do not add new routes unless they are in MVP scope.
-- Do not add backend plans here; use `docs/api-contract.md` as contract source.
-- Keep API calls through `FE/services/*` only.
-- Keep AI provider keys server-side only.
-- Keep marketplace display/contact-only.
-- Keep `localStorage` token auth for MVP speed.
-- Keep out-of-scope commerce/admin code removed from active app.
+- `AdminDashboard`: quick links + simple counts if API provides them.
+- `AdminUsers`: basic user list/status/role display.
+- `AdminUserPlants`: user plant records.
+- `AdminPlantStatus`: simple status management.
+- `AdminMarketplacePlants`: marketplace plant CRUD for display catalog.
+- `AdminAiDialogs`: basic AI dialog history table/detail.
+- `AdminAiConfigStatus`: provider configured/status info only.
 
 ---
 
-## Backend Integration Boundary
+## Data/API Constraints
 
-Backend is planned, not present.
-
-Target stack:
-
-- NestJS
-- Prisma
-- PostgreSQL
-- JWT Bearer auth
-- REST JSON API
-- `/api/v1` base path
-
-Tuan should implement the finalized API contract only. Frontend should not assume extra endpoints beyond `docs/api-contract.md`.
+- Frontend must not call AI provider directly.
+- Frontend must not store AI API keys.
+- Admin must only show AI config/status.
+- Marketplace remains contact-oriented through Zalo/Facebook URLs.
+- No cart/checkout/order/payment/shipping code.
 
 ---
 
-## Mermaid Overview
+## Implementation Boundary
 
-```mermaid
-flowchart TD
-  A[App.tsx] --> B[HashRouter]
-  B --> C[AuthProvider]
-  C --> D[CareProvider]
-  D --> E[AppRouter]
-  E --> F[Public routes]
-  E --> G[ProtectedRoute]
-  G --> H[App pages]
-  H --> I[Services layer]
-  I --> J[API client]
-  J --> K[Planned backend API]
-  H --> L[MVP fallback data]
-```
-
----
-
-## Next Priorities
-
-1. Keep these docs synchronized with real code.
-2. Let Tuan implement backend from `docs/api-contract.md`.
-3. Turn off mock auth with `VITE_USE_MOCK_AUTH=false` after backend auth is ready.
-4. Connect pages to existing service functions without changing scope.
-5. Replace fallback data only after backend endpoints exist.
-6. Avoid reintroducing commerce/admin/enterprise features.
-
----
-
-## Known Limitations
-
-- Backend and database are absent.
-- Mock auth is enabled by default.
-- API calls may fail until backend exists.
-- Fallback data remains necessary for frontend usability.
-- Reminder data is still local/frontend-oriented.
-- Some pages may still need final API wiring.
-- `ChatbotWidget.jsx` remains in components, but AI chat is not an MVP feature to expand.
+This document is planning/documentation only. No frontend refactor or backend code should be generated from this update alone.

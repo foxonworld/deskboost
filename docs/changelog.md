@@ -1,5 +1,31 @@
 # Changelog
 
+## [EXE201 Scope Update Docs] – 2026-05-15
+
+### Changed – MVP scope
+
+- Updated planning docs to include AI Chat in MVP.
+- Updated planning docs to include lightweight Admin Dashboard in MVP.
+- Changed backend direction from NestJS/Prisma to ASP.NET Core Web API + PostgreSQL.
+- Kept marketplace simple: view plants/products, see price, contact via Zalo/Facebook.
+- Kept cart, checkout, payment, orders, shipping, refund out of scope.
+
+### Added – Planning/API direction
+
+- Added lightweight admin scope: users, user plants, plant status, marketplace plants, AI dialog history, AI config status.
+- Added AI Chat scope: select existing plant, chat using plant context, save basic dialog history.
+- Added simple `USER` / `ADMIN` role expectation.
+- Added admin API contract endpoints under `/admin/*`.
+- Added AI dialog history endpoints.
+- Added `docs/frontend-adjustment-plan.md`.
+
+### Guardrails
+
+- Do not rebuild old large admin dashboard.
+- Do not expose raw AI API keys in frontend/admin UI.
+- Do not build general-purpose chatbot or complex conversation memory.
+- Do not implement frontend/backend code as part of this documentation update.
+
 ## [Frontend Auth UX Stabilization] – 2026-05-15
 
 ### Changed – MVP auth UX polish

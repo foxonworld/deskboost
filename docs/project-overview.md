@@ -1,23 +1,23 @@
 # DeskBoost – Project Overview
 
-> EXE201 MVP · React 19 + Vite 6 · Frontend cleanup completed · Backend not implemented yet
+> EXE201 MVP · React 19 + Vite 6 frontend · ASP.NET Core Web API + PostgreSQL backend direction · docs updated for latest scope
 
 ---
 
 ## Current Status
 
-DeskBoost is a small MVP for desk plant care. The current codebase is frontend-only.
+DeskBoost is a lean EXE201 MVP for desk plant care. Current repo has frontend source only; backend is not implemented yet.
 
-| Area             | Current state                                                                       |
-| ---------------- | ----------------------------------------------------------------------------------- |
-| Frontend         | Implemented with React 19, Vite 6, React Router DOM v7                              |
-| Frontend cleanup | Completed; deprecated commerce/admin surfaces removed from active routes/navigation |
-| Backend          | Not implemented yet                                                                 |
-| API contract     | Finalized in `docs/api-contract.md`                                                 |
-| Backend target   | NestJS + Prisma + PostgreSQL, to be implemented later by Tuan                       |
-| Auth             | Frontend auth shell exists; mock auth enabled by default until backend exists       |
-| Data             | `mockData.ts` reduced to MVP fallback catalog + my-plants data only                 |
-| Marketplace      | Simple display/contact model only; no cart/order/payment                            |
+| Area           | Current state                                                      |
+| -------------- | ------------------------------------------------------------------ |
+| Frontend       | React 19, Vite 6, React Router DOM v7                              |
+| Routes         | User MVP routes active; admin/AI Chat routes not implemented yet   |
+| Backend        | Not implemented yet                                                |
+| Backend target | ASP.NET Core Web API + PostgreSQL                                  |
+| Auth           | Frontend auth shell exists; mock auth enabled until backend exists |
+| Roles          | Simple `USER` / `ADMIN` only                                       |
+| API contract   | Updated in `docs/api-contract.md`                                  |
+| Marketplace    | Display price + Zalo/Facebook contact only                         |
 
 ---
 
@@ -25,55 +25,70 @@ DeskBoost is a small MVP for desk plant care. The current codebase is frontend-o
 
 DeskBoost helps users manage desk plants:
 
-- Browse a simple plant/product catalog.
-- Register/login to access protected app pages.
+- Browse a simple plant/product marketplace.
+- Register/login.
 - Add and manage personal plants.
-- View plant profiles.
-- Run AI plant diagnosis through the planned backend proxy.
-- Manage care reminders/settings.
+- Run AI plant diagnosis.
+- Use AI Chat for advice based on one selected existing plant.
+- Manage care reminders.
 - Submit feedback.
+- Admins manage core MVP records through a lightweight dashboard.
 
 ---
 
-## Current MVP Scope
+## Approved MVP Scope
 
-In scope:
+User-side:
 
 1. Landing
 2. Auth
 3. Add Plant
 4. My Plants
 5. AI Diagnosis
-6. Reminder
-7. Feedback
-8. Simple Marketplace
+6. AI Chat
+7. Reminder
+8. Feedback
+9. Simple Marketplace
 
-Out of scope:
+Admin-side lightweight MVP:
+
+1. User Management
+2. User Plant Management
+3. Plant Status Management
+4. Marketplace Plant Management
+5. AI Chat/Dialog History
+6. AI Config Status page
+
+---
+
+## Explicitly Out of Scope
 
 - Payment
 - Cart
 - Checkout
 - Orders
 - Shipping
-- Admin dashboard
+- Refund
 - QR/NFC
 - Workspace scanner
 - Advanced analytics
-- AI chat as a product feature
+- Enterprise admin dashboard
+- Raw API key editing in frontend/admin UI
+- General-purpose chatbot
+- Complex long-term conversation memory
 
-Note: `FE/services/aiApi.js` still exposes a backend `/ai/chat` helper for API-contract compatibility, but AI chat is not an MVP product surface to expand.
+Marketplace means users view plants/products, see price, then contact via Zalo/Facebook. No transaction workflow.
 
 ---
 
 ## Current Frontend Architecture
 
-Actual structure:
+Actual structure today:
 
 ```txt
 FE/
 ├── App.tsx
 ├── index.tsx
-├── package.json
 ├── routes/
 │   ├── AppRouter.tsx
 │   └── ProtectedRoute.jsx
@@ -102,8 +117,6 @@ FE/
 ├── context/
 │   ├── AuthContext.jsx
 │   └── CareContext.jsx
-├── hooks/
-│   └── useAuth.js
 ├── services/
 │   ├── api.js
 │   ├── authApi.js
@@ -112,17 +125,10 @@ FE/
 │   ├── reminderApi.js
 │   ├── aiApi.js
 │   └── feedbackApi.js
-├── utils/
-│   └── authStorage.js
-└── data/
-    └── mockData.ts
+└── data/mockData.ts
 ```
 
----
-
-## Current Routes
-
-Public routes:
+Current active routes:
 
 ```txt
 /                -> Home
@@ -131,11 +137,6 @@ Public routes:
 /login           -> Login
 /register        -> Register
 /forgot-password -> ForgotPassword
-```
-
-Protected routes:
-
-```txt
 /app/dashboard              -> Dashboard
 /app/my-plants              -> MyPlants
 /app/my-plants/:id/profile  -> PlantProfile
@@ -145,86 +146,43 @@ Protected routes:
 /app/settings               -> RemindersSettings
 ```
 
-Fallback:
-
-```txt
-* -> /
-```
+Current navigation has no active admin route and no dedicated AI Chat route yet.
 
 ---
 
-## Current Navigation
+## Required Frontend Direction
 
-Active public navigation in `Navbar.jsx`:
+- Add user AI Chat route/page using existing plants as selectable context.
+- Add lightweight admin dashboard routes/pages behind simple `ADMIN` role guard.
+- Keep user/admin nav simple.
+- Do not restore old large admin dashboard.
+- Do not add ecommerce routes.
+- Keep frontend AI calls through backend services only.
 
-- `/` Trang chủ
-- `/plants` Cây cảnh
-- `/login` when unauthenticated
-- `/app/profile` and logout when authenticated
-- care notification bell only when authenticated
-
-Active app sidebar navigation in `UserSidebar.jsx`:
-
-- `/app/dashboard`
-- `/app/my-plants`
-- `/app/ai-analysis`
-- `/app/profile`
-- `/app/settings`
-
-No active cart, checkout, order, payment, shipping, or admin navigation exists.
+See `docs/frontend-adjustment-plan.md` for implementation planning.
 
 ---
 
-## Current Technical Decisions
+## Backend Direction
 
-- React 19 + Vite 6 frontend.
-- React Router DOM v7 with `HashRouter`.
-- `/app/*` pages protected by `ProtectedRoute`.
-- Auth state centralized in `AuthContext.jsx`.
-- Access token and user profile persisted in `localStorage` through `authStorage.js`.
-- Central API client in `FE/services/api.js`.
-- Service modules mirror the finalized API contract.
-- Backend base URL defaults to `http://localhost:8080/api/v1`.
-- Auth service uses mock auth unless `VITE_USE_MOCK_AUTH=false`.
-- Backend will own AI provider calls and secrets.
-- Marketplace remains display/contact-only.
+Backend target changed to:
 
----
-
-## Backend Status
-
-Backend is not implemented in the current repository.
-
-Planned backend:
-
-- NestJS
-- Prisma
+- ASP.NET Core Web API
 - PostgreSQL
 - JWT Bearer auth
 - REST JSON API under `/api/v1`
-- Gemini/AI provider called from backend only
-- Owner: Tuan
+- AI provider calls proxied by backend only
+- API keys stored in backend `.env` only
 
-The backend should implement only endpoints documented in `docs/api-contract.md`.
-
----
-
-## Next Priorities
-
-1. Keep documentation aligned with actual code before implementation work.
-2. Backend implementation by Tuan using `docs/api-contract.md`.
-3. Set `VITE_USE_MOCK_AUTH=false` after backend auth works.
-4. Connect pages to existing service modules where not already connected.
-5. Replace MVP fallback data only after API endpoints are available.
-6. Preserve lean MVP scope; do not reintroduce commerce/admin systems.
+Backend should implement only endpoints documented in `docs/api-contract.md`.
 
 ---
 
 ## Known Limitations
 
-- No backend/database yet.
-- Mock auth is enabled by default.
-- Some UI flows still rely on local fallback data until APIs exist.
-- `CareContext.jsx` remains frontend/local-state based.
-- `ChatbotWidget.jsx` exists as a component file, but AI chat is out of MVP product scope.
-- No payment/cart/order/shipping/admin behavior should be added for MVP.
+- Backend/database not implemented.
+- Mock auth enabled by default.
+- Role-aware admin routing not implemented yet.
+- AI Chat page not implemented yet.
+- Admin pages/services not implemented yet.
+- Some UI flows still rely on local fallback data.
