@@ -1,5 +1,26 @@
 # Changelog
 
+## [Backend Planning Docs Update] – 2026-05-15
+
+### Changed – Backend roadmap
+
+- Updated `plans/backend-plan.md` as the high-level backend roadmap aligned with `docs/api-contract.md`.
+- Reconfirmed backend stack: ASP.NET Core Web API + PostgreSQL.
+- Marked forgot password as optional/future.
+- Reordered backend implementation around frontend priority: AI Chat + Admin integration before lower-priority/future items.
+- Reconfirmed guardrails: AI key stays in backend `.env`, admin remains lightweight, marketplace remains contact-only, no cart/checkout/payment/orders/shipping.
+
+### Added – Backend checklist for Tuan
+
+- Added `docs/backend-api-checklist-for-tuan.md` in Vietnamese.
+- Included backend stack, implementation priority, auth/role assumptions, endpoints grouped by module, request/response examples, FE status fields, AI Diagnosis, AI Chat, Admin MVP, Marketplace, out-of-scope items, and frontend mock flag notes for `VITE_USE_MOCK_AI` / `VITE_USE_MOCK_ADMIN`.
+
+### Guardrails
+
+- No backend code added.
+- No new product features added.
+- No API key editing UI/API added.
+
 ## [Phase 2 Backend Integration Prep] – 2026-05-15
 
 ### Changed – API contract

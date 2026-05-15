@@ -1,18 +1,20 @@
 # Kế hoạch Backend DeskBoost MVP
 
-> Cập nhật theo scope EXE201 mới. Backend chưa triển khai. Không tạo backend code trong bước này.
+> Backend roadmap cấp cao. Backend chưa triển khai. Không tạo backend code trong bước này. API source of truth: `docs/api-contract.md`.
 
 ---
 
 ## 1. Tổng quan
 
-Backend DeskBoost MVP dùng ASP.NET Core Web API + PostgreSQL, bám sát `docs/api-contract.md`.
+Backend DeskBoost MVP dùng ASP.NET Core Web API + PostgreSQL, phục vụ frontend React 19 + Vite.
 
 Mục tiêu:
 
 - Hỗ trợ user MVP hiện tại.
-- Hỗ trợ AI Diagnosis + AI Chat theo ngữ cảnh cây.
-- Hỗ trợ lightweight Admin Dashboard.
+- Hỗ trợ AI Diagnosis qua backend AI proxy.
+- Hỗ trợ AI Chat theo ngữ cảnh cây đã chọn.
+- Hỗ trợ lightweight Admin MVP.
+- Hỗ trợ marketplace dạng xem thông tin + liên hệ.
 - Không xây full ecommerce.
 - Không xây enterprise admin.
 
@@ -26,7 +28,9 @@ Mục tiêu:
 - Roles: `USER` / `ADMIN`
 - API style: REST + JSON
 - Base path: `/api/v1`
+- API contract: `docs/api-contract.md`
 - AI provider key: backend `.env` only
+- Frontend origin: Vite dev server, thường là `http://localhost:5173`
 
 Không dùng NestJS/Prisma cho scope mới.
 
@@ -34,15 +38,16 @@ Không dùng NestJS/Prisma cho scope mới.
 
 ## 3. Module/API area
 
-| Area      | Scope                                                |
-| --------- | ---------------------------------------------------- |
-| Auth      | register, login, forgot password                     |
-| Users     | current profile, admin user list/detail/status       |
-| Plants    | public marketplace catalog, user plants              |
-| Reminders | user care reminders                                  |
-| AI        | diagnosis, plant-specific chat, basic dialog history |
-| Feedback  | user/visitor feedback                                |
-| Admin     | lightweight management screens only                  |
+| Area        | Scope                                                                 |
+| ----------- | --------------------------------------------------------------------- |
+| Auth        | register, login; forgot password optional/future                      |
+| Users       | current profile, admin user list/detail/status                        |
+| Marketplace | public contact-only catalog, admin CRUD display records               |
+| My Plants   | user-owned plant CRUD                                                 |
+| Reminders   | user care reminders                                                   |
+| AI          | diagnosis, plant-specific chat, basic dialog history                  |
+| Feedback    | user/visitor feedback                                                 |
+| Admin       | lightweight management screens only; no enterprise/finance dashboards |
 
 ---
 
@@ -69,8 +74,8 @@ User owns UserPlant
 User owns Reminder
 User owns AiDialog
 UserPlant may have PlantStatus
-CatalogPlant powers simple marketplace
-AiDialog belongs to User and optionally UserPlant
+CatalogPlant powers contact-only marketplace
+AiDialog belongs to User and UserPlant
 Feedback optionally belongs to User
 ```
 
@@ -78,6 +83,19 @@ User fields must support simple role:
 
 ```txt
 role: USER | ADMIN
+status: active | inactive | banned
+```
+
+UserPlant/admin status should stay simple and FE-compatible:
+
+```txt
+status: healthy | needs-water | issue | archived | active | inactive
+```
+
+CatalogPlant/admin marketplace status:
+
+```txt
+status: active | inactive
 ```
 
 ---
@@ -87,7 +105,9 @@ role: USER | ADMIN
 Implement only endpoints in `docs/api-contract.md`:
 
 ```txt
-/auth/*
+/auth/register
+/auth/login
+/auth/forgot-password optional/future
 /users/me
 /plants
 /my-plants
@@ -101,29 +121,36 @@ Implement only endpoints in `docs/api-contract.md`:
 
 Admin routes require `ADMIN`.
 
+Forgot password is not Phase 2 blocker. Implement later if email/reset-token flow is ready.
+
 ---
 
 ## 6. AI scope
 
 AI Diagnosis:
 
-- Accept image base64 or image URL.
+- Endpoint: `POST /ai/diagnose`.
+- Accept image base64 or image URL per contract.
 - Use selected plant when `plantId` exists.
+- Return stable JSON diagnosis result.
 - Save basic diagnosis log if practical.
 
 AI Chat:
 
-- Require selected existing plant.
-- Build prompt from that plant's info.
+- Endpoint: `POST /ai/chat`.
+- Must use selected saved plant context: `plantId` + `plantContext`.
+- Build prompt from selected plant info only.
+- Keep replies plant-care-specific.
 - Save basic dialog/message history.
 - Do not create general-purpose chatbot.
 - Do not implement complex long-term memory.
 
 AI config:
 
-- Store keys server-side only.
-- Admin endpoint returns status only: provider/configured/last checked.
+- Store keys server-side only in backend `.env`.
+- Admin endpoint returns status only: `provider`, `configured`, `lastCheckedAt`.
 - Never return raw key.
+- No API key editing UI/API in MVP.
 
 ---
 
@@ -133,7 +160,7 @@ Included:
 
 - Public catalog list/detail.
 - Price text.
-- Zalo/Facebook contact URL.
+- Zalo/Facebook/contact URL.
 - Admin CRUD for display catalog records.
 
 Excluded:
@@ -144,6 +171,7 @@ Excluded:
 - Orders
 - Shipping
 - Refund
+- Inventory/reservation transaction flow
 
 ---
 
@@ -151,11 +179,11 @@ Excluded:
 
 Admin MVP endpoints support:
 
-- User management.
-- User plant management.
-- Plant status management.
-- Marketplace plant management.
-- AI dialog history.
+- Summary counts/status only.
+- User list/detail/status.
+- User plant list/detail/status.
+- Marketplace plant CRUD for display catalog records.
+- AI dialog history list/detail.
 - AI config status.
 
 Do not add:
@@ -164,25 +192,30 @@ Do not add:
 - Enterprise permission matrix.
 - Finance/order dashboards.
 - Raw API key editor.
+- Cart/order/payment/shipping management.
 
 ---
 
-## 9. Implementation order
+## 9. Implementation order based on frontend priority
 
 1. Create ASP.NET Core Web API project structure.
-2. Configure PostgreSQL connection and migrations.
-3. Implement auth with JWT + `USER` / `ADMIN` roles.
-4. Implement user profile endpoints.
-5. Implement public marketplace catalog endpoints.
-6. Implement user plants endpoints.
-7. Implement reminders endpoints.
-8. Implement AI diagnosis endpoint through backend provider proxy.
-9. Implement AI chat endpoint with plant context.
-10. Implement basic AI dialog history endpoints.
-11. Implement feedback endpoint.
-12. Implement lightweight admin endpoints.
-13. Verify API response/error shapes match `docs/api-contract.md`.
-14. Enable CORS for frontend origin.
+2. Configure PostgreSQL connection, migrations, seed minimal catalog/admin user.
+3. Configure CORS for React/Vite frontend origin.
+4. Implement auth with JWT + `USER` / `ADMIN` roles: `POST /auth/register`, `POST /auth/login`.
+5. Implement `/users/me` profile read/update.
+6. Implement public marketplace catalog: `GET /plants`, `GET /plants/:id`.
+7. Implement user plants CRUD: `/my-plants`.
+8. Implement reminders CRUD: `/reminders`.
+9. Implement highest FE priority AI Chat: `POST /ai/chat` with selected `plantId` + `plantContext`.
+10. Implement user AI dialog history: `GET /ai/dialogs`, `GET /ai/dialogs/:id`.
+11. Implement lightweight admin summary/users/user-plants endpoints.
+12. Implement admin marketplace display CRUD.
+13. Implement admin AI dialog endpoints + `GET /admin/ai-config/status`.
+14. Implement/verify `POST /ai/diagnose` if image diagnosis remains MVP.
+15. Implement feedback: `POST /feedback`.
+16. Optional/future: `POST /auth/forgot-password`.
+17. Verify API response/error shapes match `docs/api-contract.md`.
+18. Coordinate frontend mock flags: `VITE_USE_MOCK_AI=false`, `VITE_USE_MOCK_ADMIN=false` only after related backend endpoints are stable.
 
 ---
 
@@ -190,7 +223,12 @@ Do not add:
 
 - `docs/api-contract.md` is the API source of truth.
 - Keep MVP practical for EXE201.
+- Keep admin lightweight.
+- Keep marketplace contact-only.
 - Do not add ecommerce transaction workflows.
+- Do not build cart/checkout/payment/orders/shipping APIs.
 - Do not expose secrets.
-- Do not overbuild admin.
+- Keep AI provider keys in backend `.env` only.
+- Do not add API key editing UI/API.
 - Do not overbuild AI memory.
+- Do not add new features outside the current API contract.
