@@ -46,6 +46,12 @@ const Navbar = () => {
               </Link>
             ) : (
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                {String(user?.role || '').toUpperCase() === 'ADMIN' && (
+                  <Link to="/admin/overview" className="hidden lg:inline-flex items-center gap-1 rounded-lg bg-primary/10 px-3 py-2 text-xs font-black uppercase tracking-widest text-primary hover:bg-primary/20 transition-colors">
+                    <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                    Admin
+                  </Link>
+                )}
                 <Link to="/app/profile" className="hidden sm:block max-w-32 truncate text-sm font-semibold text-text-secondary dark:text-slate-400 hover:text-primary transition-colors">{user?.name || 'Hồ sơ'}</Link>
                 <button disabled={isLoading} onClick={handleLogout} className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors hidden sm:inline-flex items-center gap-1 disabled:opacity-60 disabled:cursor-not-allowed">
                   {isLoading && <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>}

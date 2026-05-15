@@ -12,6 +12,7 @@ const UserSidebar = () => {
     { name: 'Dashboard', icon: 'dashboard', path: '/app/dashboard' },
     { name: 'My Collection', icon: 'potted_plant', path: '/app/my-plants' },
     { name: 'AI Plant Analysis', icon: 'smart_toy', path: '/app/ai-analysis' },
+    { name: 'AI Chat', icon: 'forum', path: '/app/ai-chat' },
     { name: 'Profile', icon: 'person', path: '/app/profile' },
     { name: 'Reminders & Settings', icon: 'settings', path: '/app/settings' },
   ];

@@ -1,5 +1,20 @@
 # Changelog
 
+## [Frontend Phase 1 MVP Structure] – 2026-05-15
+
+### Added – AI Chat/Admin shell
+
+- Added `/app/ai-chat` protected route with plant selection, placeholder chat panel, basic input, and mock fallback only.
+- Added lightweight `/admin/*` route structure: overview, users, plants, marketplace, AI.
+- Added `AdminRoute` role guard using existing auth context and `USER` / `ADMIN` roles.
+- Added simple Forbidden page for non-admin access.
+- Added minimal AdminLayout navigation only: Overview, Users, Plants, Marketplace, AI.
+
+### Guardrails
+
+- No real backend integration, full AI Chat logic, full Admin logic, charts, analytics, API key UI, or ecommerce flow added.
+- Marketplace remains price + Zalo/Facebook contact only; cart/checkout/payment/orders/shipping/refund remain out of scope.
+
 ## [EXE201 Scope Update Docs] – 2026-05-15
 
 ### Changed – MVP scope

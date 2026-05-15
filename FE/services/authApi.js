@@ -11,6 +11,7 @@ const makeMockAuthResponse = ({ name, email }) => ({
     email,
     avatarUrl: null,
     phone: null,
+    role: email?.toLowerCase().includes("admin") ? "ADMIN" : "USER",
     createdAt: new Date().toISOString(),
   },
   accessToken: `mock-jwt-${Date.now()}`,

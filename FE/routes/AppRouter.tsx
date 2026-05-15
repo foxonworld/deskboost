@@ -12,12 +12,22 @@ import PlantProfile from "../pages/PlantProfile";
 import AddPlantUser from "../pages/AddPlantUser";
 import UserProfile from "../pages/UserProfile";
 import AIPlantAnalysis from "../pages/AIPlantAnalysis";
+import AIChat from "../pages/AIChat";
 import RemindersSettings from "../pages/RemindersSettings";
+import Forbidden from "../pages/Forbidden";
+import AdminOverview from "../pages/admin/AdminOverview";
+import AdminUsers from "../pages/admin/AdminUsers";
+import AdminPlants from "../pages/admin/AdminPlants";
+import AdminMarketplace from "../pages/admin/AdminMarketplace";
+import AdminAI from "../pages/admin/AdminAI";
 import ProtectedRoute from "./ProtectedRoute";
+import AdminRoute from "./AdminRoute";
 
 const protect = (element: React.ReactNode) => (
   <ProtectedRoute>{element}</ProtectedRoute>
 );
+
+const admin = (element: React.ReactNode) => <AdminRoute>{element}</AdminRoute>;
 
 const AppRouter: React.FC = () => {
   return (
@@ -30,6 +40,8 @@ const AppRouter: React.FC = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
+      <Route path="/forbidden" element={<Forbidden />} />
+
       {/* User Routes */}
       <Route path="/app/dashboard" element={protect(<Dashboard />)} />
       <Route path="/app/my-plants" element={protect(<MyPlants />)} />
@@ -40,7 +52,16 @@ const AppRouter: React.FC = () => {
       <Route path="/app/add-plant" element={protect(<AddPlantUser />)} />
       <Route path="/app/profile" element={protect(<UserProfile />)} />
       <Route path="/app/ai-analysis" element={protect(<AIPlantAnalysis />)} />
+      <Route path="/app/ai-chat" element={protect(<AIChat />)} />
       <Route path="/app/settings" element={protect(<RemindersSettings />)} />
+
+      {/* Lightweight Admin Routes */}
+      <Route path="/admin" element={admin(<AdminOverview />)} />
+      <Route path="/admin/overview" element={admin(<AdminOverview />)} />
+      <Route path="/admin/users" element={admin(<AdminUsers />)} />
+      <Route path="/admin/plants" element={admin(<AdminPlants />)} />
+      <Route path="/admin/marketplace" element={admin(<AdminMarketplace />)} />
+      <Route path="/admin/ai" element={admin(<AdminAI />)} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
