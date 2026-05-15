@@ -4,29 +4,40 @@ import { clearStoredAuth, getStoredToken, getStoredUser, saveAuth } from "../uti
 
 export const AuthContext = createContext(null);
 
-const initialState = () => {
+const getSession = () => {
   const token = getStoredToken();
   const user = getStoredUser();
-  return {
-    user,
-    token,
-    isAuthenticated: Boolean(token && user),
-    isLoading: false,
-    error: null,
-  };
+  const isAuthenticated = Boolean(token && user);
+
+  if (!isAuthenticated && (token || user)) clearStoredAuth();
+
+  return { token: isAuthenticated ? token : null, user: isAuthenticated ? user : null, isAuthenticated };
+};
+
+const initialState = () => ({
+  ...getSession(),
+  isBootstrapping: true,
+  isLoading: false,
+  error: null,
+});
+
+const getFriendlyError = (err) => {
+  const message = err?.message || "Something went wrong. Please try again.";
+  if (message.includes("Failed to fetch")) return "We could not reach DeskBoost right now. Please try again in a moment.";
+  if (message.toLowerCase().includes("network")) return "Network issue. Please check your connection and try again.";
+  if (message.toLowerCase().includes("unauthorized") || message.includes("401")) return "Email or password is incorrect.";
+  return message;
 };
 
 export const AuthProvider = ({ children }) => {
   const [state, setState] = useState(initialState);
 
   useEffect(() => {
-    const token = getStoredToken();
-    const user = getStoredUser();
+    const session = getSession();
     setState((current) => ({
       ...current,
-      token,
-      user,
-      isAuthenticated: Boolean(token && user),
+      ...session,
+      isBootstrapping: false,
       isLoading: false,
       error: null,
     }));
@@ -36,14 +47,18 @@ export const AuthProvider = ({ children }) => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
 
   const finishSuccess = (data) => {
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Sign-in response was incomplete. Please try again.");
+    }
+
     const next = { token: data.accessToken, user: data.user };
     saveAuth(data);
-    setState({ ...next, isAuthenticated: true, isLoading: false, error: null });
+    setState({ ...next, isAuthenticated: true, isBootstrapping: false, isLoading: false, error: null });
     return next;
   };
 
   const finishError = (err) => {
-    const message = err?.message || "Something went wrong. Please try again.";
+    const message = getFriendlyError(err);
     setState((current) => ({ ...current, isLoading: false, error: message }));
     throw new Error(message);
   };
@@ -69,7 +84,7 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
     clearStoredAuth();
-    setState({ user: null, token: null, isAuthenticated: false, isLoading: false, error: null });
+    setState({ user: null, token: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null });
   }, []);
 
   const clearError = useCallback(() => {

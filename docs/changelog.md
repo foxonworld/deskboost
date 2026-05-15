@@ -1,5 +1,20 @@
 # Changelog
 
+## [Frontend Auth UX Stabilization] – 2026-05-15
+
+### Changed – MVP auth UX polish
+
+- Improved `FE/pages/Login.jsx` and `FE/pages/Register.jsx` with client-side friendly validation, accessible error alerts, disabled fields/buttons during loading, and consistent loading indicators.
+- Stabilized post-auth redirect behavior so protected route intents restore after login/register while auth pages redirect authenticated users back to `/app/dashboard` safely.
+- Improved `FE/context/AuthContext.jsx` session restore UX with `isBootstrapping`, incomplete-session cleanup, and friendlier auth/network error messages.
+- Improved `FE/routes/ProtectedRoute.jsx` with a branded session-restoring state before redirecting unauthenticated users.
+- Improved `FE/components/Navbar.jsx` auth rendering with a session skeleton, responsive truncation, logout loading indicator, and stable logout redirect.
+- Improved `FE/components/UserSidebar.jsx` logout/profile rendering with stable logout redirect, loading indicator, and persisted user email display.
+
+### Notes
+
+- No backend implementation, refresh token, OAuth, role system, new feature, or major UI redesign added.
+
 ## [Frontend Auth Shell] – 2026-05-14
 
 ### Added – MVP auth flow
