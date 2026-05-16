@@ -95,7 +95,7 @@ Ask before:
 - Destructive commands.
 - Config changes with project-wide impact.
 
-Do not add modes, skills, scripts, MCP config, backend/mobile lanes, community packs, orchestration frameworks, or swarm systems unless explicitly requested.
+Do not add more modes, skills, scripts, MCP config, backend lanes, extra mobile specialists, community packs, orchestration frameworks, or swarm systems unless explicitly requested.
 
 ## 7. Project Onboarding
 
