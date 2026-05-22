@@ -6,9 +6,10 @@ Keep concise. Store stable conventions only.
 
 ## Project Summary
 
-- Purpose: DeskBoost MVP for desk plant marketplace, user plant care, AI diagnosis/chat, reminders, and lightweight admin.
+- Purpose: DeskBoost EXE201 startup MVP for desk plant care, contact-only marketplace, manually verified customer feedback, AI diagnosis/chat, reminders, and lightweight admin.
 - Primary stack: React 19 + Vite 6 + TypeScript config with mixed `.tsx` / `.jsx` source.
 - App type: Frontend-first SPA; backend not implemented yet.
+- Product direction: feedback-first validation, not ecommerce infrastructure, not ownership ecosystem, not Shopee clone.
 - Main entry points: `FE/index.tsx`, `FE/App.tsx`, `FE/routes/AppRouter.tsx`.
 
 ## Key Folders
@@ -60,9 +61,12 @@ Project-specific guardrails:
 
 - Do not rebuild old enterprise admin dashboard; keep admin lightweight.
 - Do not add cart, checkout, payment, orders, shipping, refunds, or enterprise commerce flows.
+- Do not add QR scanner, NFC, anti-fraud architecture, Zalo/Facebook API integration, AI billing/subscription, or enterprise governance/process.
 - Do not expose or edit raw AI/API keys in frontend/admin UI.
 - Keep AI Chat plant-context only, not a general-purpose chatbot.
-- Keep marketplace display/contact-only unless scope changes.
+- Keep AI usable without claimed plants; no hard AI gating, quota, real rate-limit, or billing system in current MVP.
+- Keep marketplace display/contact-only unless scope changes; purchases happen through Zalo/Facebook/manual conversation.
+- Keep My Plants free-add; claimed plants are a future verified subset only.
 - Keep role model simple: `USER` / `ADMIN`.
 - Confirm before changing Vite/Tailwind/router/auth architecture or adding dependencies.
 
@@ -81,6 +85,17 @@ If checks are skipped, record reason and residual risk.
 Use ADRs for larger decisions. Keep short notes here for small stable conventions.
 
 - Frontend remains the active MVP implementation; backend is planned but absent.
+- Current validation loop: user views plant -> contacts seller via Zalo/Facebook -> manual/social purchase happens -> admin records manually verified feedback -> public verified feedback cards appear -> mentor sees believable customer validation.
+- Phase 1: FE-first manually verified feedback MVP with public feedback cards, mock verified feedback, lightweight admin add-feedback UI, `feedbackApi` mock fallback, manually verified wording, private `evidenceNote` only.
+- Phase 1 intentionally excludes screenshot upload, `evidenceUrl`, moderation workflow, ownership code, AI gating, payment/order/shipping.
+- Phase 2: backend integration only for feedback endpoints: `POST /admin/feedback`, `GET /feedback/verified`, optional `GET /admin/feedback`; no scope expansion.
+- Future/Phase 3 only: Plant Code / Claim / QR / AI Context, including admin plant codes, user claim by code, optional QR claim link, claimed plant badge, enhanced AI context for claimed plants.
+- Feedback-first MVP: customer validation is priority; ownership ecosystem and ecommerce infrastructure are postponed.
+- Manual-first philosophy: manual/social purchase and admin manual feedback verification are acceptable for MVP maturity.
+- Marketplace philosophy: contact-only marketplace; emphasize care support + customer stories; avoid cart/payment/shipping UX and Shopee/ecommerce feel.
+- AI philosophy: AI remains usable without claimed plants; claimed plants may improve AI context later, but no hard gating, quota, billing, or real rate-limit system now.
+- My Plants philosophy: users can freely add plants; do not convert My Plants into claimed-only system.
+- Implementation status: Phase 1 FE implemented/planned and validated; Phase 2 BE waits for backend readiness; Future/Phase 3 is planning only with no FE/BE implementation yet.
 - Backend-owned concerns: auth/role checks, persistence, AI provider calls, API keys.
 - Reminder MVP external path is Google Calendar / `.ics`; browser notifications are secondary only.
 

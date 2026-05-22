@@ -46,7 +46,7 @@ Không dùng NestJS/Prisma cho scope mới.
 | My Plants   | user-owned plant CRUD                                                 |
 | Reminders   | user care reminders, mark-done, Google Calendar / `.ics` export       |
 | AI          | diagnosis, plant-specific chat, basic dialog history                  |
-| Feedback    | user/visitor feedback                                                 |
+| Feedback    | Phase 2 manually verified feedback MVP; FE uses mock fallback first   |
 | Admin       | lightweight management screens only; no enterprise/finance dashboards |
 
 ---
@@ -231,7 +231,184 @@ Do not add:
 
 ---
 
-## 10. Implementation order based on frontend priority
+## 10. Verified Feedback MVP Backend Requirements
+
+Goal:
+
+Backend only needs to support the manually verified feedback MVP after Phase 1 FE/mock is working. Do not build a review platform, order verification system, screenshot storage, or ownership ecosystem.
+
+Phase split:
+
+| Phase                       | Backend expectation                                                  |
+| --------------------------- | -------------------------------------------------------------------- |
+| Phase 1 FE-first mock-ready | no backend blocker; FE uses mock/fallback                            |
+| Phase 2 BE integration      | implement minimal feedback endpoints below                           |
+| Future                      | ownership code, claimed plant, enhanced AI only after MVP validation |
+
+Required endpoints for Phase 2:
+
+| Method | Endpoint             | Auth    | Purpose                                  |
+| ------ | -------------------- | ------- | ---------------------------------------- |
+| `POST` | `/admin/feedback`    | `ADMIN` | admin creates manually verified feedback |
+| `GET`  | `/feedback/verified` | public  | public feedback cards                    |
+
+Optional endpoint:
+
+| Method | Endpoint          | Auth    | Purpose                                          |
+| ------ | ----------------- | ------- | ------------------------------------------------ |
+| `GET`  | `/admin/feedback` | `ADMIN` | admin list if FE needs review of created entries |
+
+Minimal schema:
+
+```txt
+Feedback {
+  id
+  customerAlias
+  rating
+  comment
+  catalogPlantId?
+  purchaseChannel
+  evidenceNote
+  createdByAdminId?
+  createdAt
+  updatedAt
+}
+```
+
+Optional only if BE needs hide/show:
+
+```txt
+published: boolean
+```
+
+Privacy rule:
+
+- `evidenceNote` is private admin-only.
+- `GET /feedback/verified` must not return `evidenceNote`.
+- Public response should only include card fields: `id`, `customerAlias`, `rating`, `comment`, `catalogPlantId?`, `purchaseChannel`, `createdAt`.
+
+Explicitly out of scope:
+
+- order/payment/shipping.
+- screenshot upload/storage.
+- `evidenceUrl`.
+- plant ownership code.
+- claim plant.
+- AI quota/rate-limit.
+- Zalo/Facebook API.
+- `orderId`, `userPlantId`, `ownershipCodeId` on feedback.
+- moderation lifecycle beyond optional `published` boolean.
+
+FE integration note:
+
+- FE will use mock fallback until endpoints are ready.
+- Response shape should match FE service contract.
+- Keep endpoint behavior stable so FE only switches from mock to API.
+
+---
+
+## 11. Future Backend Requirements — Plant Code / Claim / QR / AI Context
+
+Status:
+
+- Not required for Phase 2 feedback integration.
+- Future only.
+- Do not block current feedback MVP.
+- Phase 2 remains limited to `POST /admin/feedback`, `GET /feedback/verified`, optional `GET /admin/feedback`.
+
+### Backend Future Entities
+
+#### PlantCode
+
+Minimum fields:
+
+- `id`
+- `code`
+- `catalogPlantId` nullable
+- `plantNameSnapshot` nullable
+- `status`: `active` / `claimed` / `disabled`
+- `createdByAdminId`
+- `claimedByUserId` nullable
+- `claimedUserPlantId` nullable
+- `createdAt`
+- `claimedAt` nullable
+- `disabledAt` nullable
+
+#### UserPlant additions
+
+Optional fields:
+
+- `source`: `manual` / `claimed_code`
+- `isClaimVerified` boolean
+- `plantCodeId` nullable
+- `catalogPlantId` nullable
+
+### Future Endpoints
+
+Admin:
+
+| Method | Endpoint                         | Auth    | Purpose            |
+| ------ | -------------------------------- | ------- | ------------------ |
+| `POST` | `/admin/plant-codes`             | `ADMIN` | create plant code  |
+| `GET`  | `/admin/plant-codes`             | `ADMIN` | list plant codes   |
+| `PUT`  | `/admin/plant-codes/:id/disable` | `ADMIN` | disable plant code |
+
+User:
+
+| Method | Endpoint                | Auth   | Purpose             |
+| ------ | ----------------------- | ------ | ------------------- |
+| `POST` | `/my-plants/claim-code` | `USER` | claim plant by code |
+
+Optional:
+
+| Method | Endpoint                             | Auth          | Purpose                         |
+| ------ | ------------------------------------ | ------------- | ------------------------------- |
+| `GET`  | `/my-plants/claim-preview?code=XXXX` | `USER`        | preview code before claim       |
+| `GET`  | `/claim-link/:code`                  | public/router | optional redirect/frontend-only |
+
+AI:
+
+- No new endpoint required initially.
+- Existing AI endpoints can later receive claimed `userPlantId`/context.
+
+### Validation Rules
+
+- Code must be unique.
+- Code must be active.
+- Code can be claimed once only.
+- Claim requires logged-in user.
+- Disabled code cannot be claimed.
+- Claimed code cannot be reused.
+
+When claimed:
+
+- Create `UserPlant`.
+- Set `source=claimed_code`.
+- Set `isClaimVerified=true`.
+- Mark `PlantCode` as claimed.
+
+### Privacy/Security
+
+- Code is not payment proof.
+- Code is manual ownership signal only.
+- Do not store Zalo/Facebook private conversation.
+- Do not expose admin notes publicly.
+- QR/link must not leak customer personal data.
+
+### Explicit Out of Scope
+
+- Payment/order/shipping.
+- QR scanner/camera.
+- NFC.
+- Zalo/Facebook API.
+- Strict anti-fraud.
+- AI quota/billing.
+- Subscription.
+- Delivery tracking.
+
+---
+
+## 12. Implementation order based on frontend priority
 
 1. Create ASP.NET Core Web API project structure.
 2. Configure PostgreSQL connection, migrations, seed minimal catalog/admin user.
@@ -247,15 +424,16 @@ Do not add:
 12. Implement admin marketplace display CRUD.
 13. Implement admin AI dialog endpoints + `GET /admin/ai-config/status`.
 14. Implement/verify `POST /ai/diagnose` if image diagnosis remains MVP.
-15. Implement feedback: `POST /feedback`.
-16. Optional/future: email reminder delivery if backend scheduler/email setup is ready.
-17. Optional/future: `POST /auth/forgot-password`.
-18. Verify API response/error shapes match `docs/api-contract.md`.
-19. Coordinate frontend mock flags: `VITE_USE_MOCK_AI=false`, `VITE_USE_MOCK_ADMIN=false` only after related backend endpoints are stable.
+15. Implement Phase 2 verified feedback: `POST /admin/feedback`, `GET /feedback/verified`, optional `GET /admin/feedback`.
+16. Keep legacy/general `POST /feedback` lower priority unless still needed by FE.
+17. Optional/future: email reminder delivery if backend scheduler/email setup is ready.
+18. Optional/future: `POST /auth/forgot-password`.
+19. Verify API response/error shapes match `docs/api-contract.md` and FE service contract.
+20. Coordinate frontend mock flags: `VITE_USE_MOCK_AI=false`, `VITE_USE_MOCK_ADMIN=false` only after related backend endpoints are stable.
 
 ---
 
-## 11. Scope guardrails
+## 13. Scope guardrails
 
 - `docs/api-contract.md` is the API source of truth.
 - Keep MVP practical for EXE201.
@@ -270,3 +448,5 @@ Do not add:
 - Do not add new features outside the current API contract.
 - Reminder MVP external channel is Google Calendar / `.ics`, not browser notification dependency.
 - Do not add SMS, Zalo bot, Messenger bot, mobile push, or complex web push notification systems.
+- For verified feedback Phase 2, do not add screenshot upload, `evidenceUrl`, order linkage, ownership-code linkage, claim plant, or AI quota/rate-limit.
+- Public feedback API must not expose `evidenceNote`.

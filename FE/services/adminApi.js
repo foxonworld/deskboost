@@ -1,4 +1,5 @@
 import { del, get, post, put } from "./api";
+import { VERIFIED_FEEDBACK } from "../data/mockData";
 
 const USE_MOCK_ADMIN = import.meta.env.VITE_USE_MOCK_ADMIN !== "false";
 
@@ -84,6 +85,12 @@ const mockAiDialogs = [
     createdAt: now(),
   },
 ];
+
+const mockAdminFeedback = VERIFIED_FEEDBACK.map((feedback) => ({
+  ...feedback,
+  evidenceNote:
+    "Private admin note: manually checked social chat before publishing.",
+}));
 
 const wrapItems = (items) => ({
   items,
@@ -185,6 +192,23 @@ export const deleteAdminMarketplacePlant = (id) =>
   requestWithFallback(
     () => del(`/admin/marketplace-plants/${id}`),
     () => ({ id, deleted: true, source: "mock-fallback" }),
+  );
+
+export const createAdminFeedback = (payload) =>
+  requestWithFallback(
+    () => post("/admin/feedback", payload),
+    () => ({
+      id: `fb_mock_${Date.now()}`,
+      ...payload,
+      createdAt: now(),
+      source: "mock-fallback",
+    }),
+  );
+
+export const getAdminFeedback = (params) =>
+  requestWithFallback(
+    () => get("/admin/feedback", params),
+    () => wrapItems(mockAdminFeedback),
   );
 
 export const getAdminAiDialogs = (params) =>

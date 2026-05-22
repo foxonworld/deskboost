@@ -1,14 +1,37 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PRODUCTS, formatVND, getProductById } from '../data/mockData';
+import { getVerifiedFeedback } from '../services/feedbackApi';
 
 const PlantDetail = () => {
   const { plantId } = useParams();
   const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
   const [selectedRelated, setSelectedRelated] = useState(plant.relatedProductIds || []);
+  const [feedbackItems, setFeedbackItems] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  const [feedbackError, setFeedbackError] = useState('');
 
   const relatedProducts = (plant.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
+
+  useEffect(() => {
+    let active = true;
+    const loadFeedback = async () => {
+      setFeedbackLoading(true);
+      setFeedbackError('');
+      try {
+        const data = await getVerifiedFeedback({ catalogPlantId: plant.id });
+        if (active) setFeedbackItems(data?.items || []);
+      } catch (err) {
+        if (active) setFeedbackError(err?.message || 'Could not load manually verified feedback.');
+      } finally {
+        if (active) setFeedbackLoading(false);
+      }
+    };
+
+    loadFeedback();
+    return () => { active = false; };
+  }, [plant.id]);
 
   const calculateCombo = () => {
     const basePrice = plant.price;
@@ -202,6 +225,41 @@ const PlantDetail = () => {
                 )}
               </div>
             )}
+
+            <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-surface-dark" aria-labelledby="verified-feedback-heading">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">Manually verified feedback</p>
+                  <h2 id="verified-feedback-heading" className="mt-1 text-lg font-black text-text-main dark:text-white">Customer stories</h2>
+                </div>
+                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">Verified manually</span>
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary">Simple notes from customers who contacted DeskBoost outside the app.</p>
+
+              <div className="mt-4 space-y-3">
+                {feedbackLoading ? (
+                  <p className="rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-400 dark:bg-white/5">Loading manually verified feedback...</p>
+                ) : feedbackError ? (
+                  <p className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>
+                ) : feedbackItems.length === 0 ? (
+                  <p className="rounded-xl border border-dashed border-slate-200 p-3 text-xs font-bold text-slate-400 dark:border-slate-700">No manually verified feedback for this plant yet.</p>
+                ) : (
+                  feedbackItems.map((feedback) => (
+                    <article key={feedback.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-white/5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-black text-text-main dark:text-white">{feedback.customerAlias || 'Customer from HCMC'}</p>
+                        <p className="text-xs font-black text-yellow-500" aria-label={`${feedback.rating} out of 5 stars`}>{'★'.repeat(feedback.rating || 5)}</p>
+                      </div>
+                      <p className="mt-2 text-sm font-semibold leading-6 text-text-secondary">“{feedback.comment}”</p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">Bought via Zalo</span>
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:bg-slate-800 dark:text-slate-300">Verified manually</span>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
 
             <div className="flex flex-col gap-3">
               <button

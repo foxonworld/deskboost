@@ -1,12 +1,48 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { getAdminMarketplacePlants } from '../../services/adminApi';
+import { createAdminFeedback, getAdminMarketplacePlants } from '../../services/adminApi';
 
 const AdminMarketplace = () => {
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [source, setSource] = useState('');
+  const [feedbackForm, setFeedbackForm] = useState({
+    customerAlias: 'Customer from HCMC',
+    rating: '5',
+    comment: '',
+    catalogPlantId: '',
+    purchaseChannel: 'zalo',
+    evidenceNote: '',
+  });
+  const [feedbackStatus, setFeedbackStatus] = useState('');
+  const [feedbackError, setFeedbackError] = useState('');
+  const [feedbackSaving, setFeedbackSaving] = useState(false);
+
+  const updateFeedbackField = (event) => {
+    const { name, value } = event.target;
+    setFeedbackForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleCreateFeedback = async (event) => {
+    event.preventDefault();
+    setFeedbackStatus('');
+    setFeedbackError('');
+    setFeedbackSaving(true);
+    try {
+      await createAdminFeedback({
+        ...feedbackForm,
+        rating: Number(feedbackForm.rating),
+        catalogPlantId: feedbackForm.catalogPlantId || undefined,
+      });
+      setFeedbackStatus('Feedback saved as manually verified mock-ready data.');
+      setFeedbackForm((current) => ({ ...current, comment: '', evidenceNote: '' }));
+    } catch (err) {
+      setFeedbackError(err?.message || 'Could not save manually verified feedback.');
+    } finally {
+      setFeedbackSaving(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -60,6 +96,59 @@ const AdminMarketplace = () => {
             ))
           )}
         </div>
+      </section>
+
+      <section className="mt-6 rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Manually verified feedback</p>
+        <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">Add feedback from social/manual sale</h2>
+        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
+          Lightweight Phase 1 workflow. Evidence note stays private in admin form data only; public cards show customer alias, quote, rating, channel, and Verified manually.
+        </p>
+        {feedbackStatus && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{feedbackStatus}</p>}
+        {feedbackError && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>}
+
+        <form onSubmit={handleCreateFeedback} className="mt-6 grid gap-4 md:grid-cols-2">
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+            Customer alias
+            <input name="customerAlias" value={feedbackForm.customerAlias} onChange={updateFeedbackField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+            Plant
+            <select name="catalogPlantId" value={feedbackForm.catalogPlantId} onChange={updateFeedbackField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+              <option value="">No plant selected</option>
+              {plants.map((plant) => <option key={plant.id} value={plant.id}>{plant.name}</option>)}
+            </select>
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+            Rating
+            <select name="rating" value={feedbackForm.rating} onChange={updateFeedbackField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+              {[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating}</option>)}
+            </select>
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+            Channel
+            <select name="purchaseChannel" value={feedbackForm.purchaseChannel} onChange={updateFeedbackField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+              <option value="zalo">Bought via Zalo</option>
+              <option value="facebook">Facebook</option>
+              <option value="manual">Manual</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+            Public comment
+            <textarea name="comment" value={feedbackForm.comment} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Short real customer quote" />
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+            Private evidence note
+            <textarea name="evidenceNote" value={feedbackForm.evidenceNote} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Private note, e.g. Bought via Zalo chat on May 14" />
+          </label>
+          <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+            <button type="submit" disabled={feedbackSaving} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
+              {feedbackSaving ? 'Saving...' : 'Add verified manually'}
+            </button>
+            <span className="rounded-full bg-[#4CAF50]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4CAF50]">Verified manually</span>
+          </div>
+        </form>
       </section>
     </AdminLayout>
   );

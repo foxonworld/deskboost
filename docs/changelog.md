@@ -1,5 +1,24 @@
 # Changelog
 
+## [Verified Feedback Phase 1 FE Mock] – 2026-05-22
+
+### Added – manually verified feedback
+
+- Added tiny `VERIFIED_FEEDBACK` fallback data in `FE/data/mockData.ts`.
+- Added `getVerifiedFeedback()` in `FE/services/feedbackApi.js` with mock fallback for public feedback cards.
+- Added `createAdminFeedback()` and admin feedback fallback helpers in `FE/services/adminApi.js`.
+- Added simple “Manually verified feedback” cards on `FE/pages/PlantDetail.jsx` without exposing private `evidenceNote`.
+- Added lightweight add-feedback form inside `FE/pages/admin/AdminMarketplace.jsx` with private evidence note kept in admin form data only.
+
+### Guardrails
+
+- No plant ownership code, claim plant flow, AI gating/quota, screenshot upload, `evidenceUrl`, edit/delete/moderation workflow, Zalo/Facebook API, backend implementation, or payment/order/shipping flow added.
+- My Plants, Add Plant, AI Chat, and AI Diagnosis unchanged.
+
+### Validation
+
+- `npm run build && npm run lint` was requested but not executed because the command was denied in the terminal approval flow.
+
 ## [Care Reminder Calendar Export UX] – 2026-05-15
 
 ### Added – global calendar actions
