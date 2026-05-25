@@ -1,0 +1,6 @@
+@DeskBoost.API_HostAddress = http://localhost:5272
+
+GET {{DeskBoost.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
