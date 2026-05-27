@@ -3,8 +3,8 @@ import React from 'react';
 const toneStyles = {
   error: 'border-red-100 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300',
   warning: 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-300',
-  success: 'border-[#A5D6A7] bg-[#F0FDF4] text-[#2E7D32] dark:border-[#2E7D32]/40 dark:bg-[#2E7D32]/20 dark:text-[#A5D6A7]',
-  info: 'border-slate-100 bg-slate-50 text-slate-600 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-300',
+  success: 'border-primary/20 bg-primary/10 text-[#2E7D32] dark:border-primary/30 dark:bg-primary/15 dark:text-green-200',
+  info: 'border-[#E4EEE6] bg-surface-light text-text-secondary dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300',
 };
 
 export const Spinner = ({ className = 'text-base' }) => (
@@ -12,13 +12,13 @@ export const Spinner = ({ className = 'text-base' }) => (
 );
 
 export const StateNotice = ({ children, tone = 'info', className = '', role }) => (
-  <div role={role || (tone === 'error' ? 'alert' : 'status')} className={`rounded-2xl border px-5 py-4 text-sm font-bold ${toneStyles[tone] || toneStyles.info} ${className}`}>
+  <div role={role || (tone === 'error' ? 'alert' : 'status')} className={`rounded-2xl border px-5 py-4 text-sm font-semibold leading-6 ${toneStyles[tone] || toneStyles.info} ${className}`}>
     {children}
   </div>
 );
 
-export const LoadingState = ({ message = 'Loading...' }) => (
-  <div role="status" className="rounded-[28px] border border-slate-100 bg-white p-10 text-center text-sm font-black text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+export const LoadingState = ({ message = 'Đang tải dữ liệu...' }) => (
+  <div role="status" className="rounded-3xl border border-[#E4EEE6] bg-surface-light p-8 text-center text-sm font-semibold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
     <span className="inline-flex items-center justify-center gap-2">
       <Spinner />
       {message}
@@ -26,15 +26,15 @@ export const LoadingState = ({ message = 'Loading...' }) => (
   </div>
 );
 
-export const EmptyState = ({ icon = 'potted_plant', title = 'No data found', description, action }) => (
-  <div className="rounded-[28px] border border-dashed border-slate-200 p-10 text-center dark:border-slate-700">
-    <span className="material-symbols-outlined text-5xl text-slate-300" aria-hidden="true">{icon}</span>
-    <p className="mt-3 text-lg font-black text-slate-700 dark:text-slate-100">{title}</p>
-    {description && <p className="mx-auto mt-2 max-w-sm text-sm font-semibold leading-6 text-slate-400">{description}</p>}
+export const EmptyState = ({ icon = 'potted_plant', title = 'Chưa có dữ liệu', description, action }) => (
+  <div className="rounded-3xl border border-dashed border-[#E4EEE6] p-8 text-center dark:border-[#2A4532]">
+    <span className="material-symbols-outlined text-5xl text-text-secondary/50 dark:text-slate-500" aria-hidden="true">{icon}</span>
+    <p className="mt-3 text-lg font-bold text-text-main dark:text-slate-100">{title}</p>
+    {description && <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-6 text-text-secondary dark:text-slate-400">{description}</p>}
     {action && <div className="mt-5">{action}</div>}
   </div>
 );
 
-export const formControlClass = 'w-full rounded-xl border-gray-200 px-4 text-sm font-medium focus:border-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-white';
+export const formControlClass = 'w-full rounded-xl border-[#E4EEE6] px-4 text-sm font-medium text-text-main focus:border-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#2A4532] dark:bg-surface-dark dark:text-white';
 
-export const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-primary font-bold text-white transition-all shadow-md shadow-primary/20 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60';
+export const primaryButtonClass = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary font-bold text-white shadow-sm transition-colors hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60';

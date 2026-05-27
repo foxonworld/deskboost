@@ -15,7 +15,8 @@
             "fileRegex": "\\.(md|mdx|txt)$",
             "description": "Documentation-only edits"
           }
-        ]
+        ],
+        "mcp"
       ]
     },
     {
@@ -34,7 +35,8 @@
             "description": "Frontend, config, and docs files"
           }
         ],
-        "command"
+        "command",
+        "mcp"
       ]
     },
     {
@@ -46,7 +48,8 @@
       "customInstructions": "Review only. Do not edit files. Output Critical, Important, Nice-to-improve, then propose minimal fixes. Prefer evidence from existing code and tests.",
       "groups": [
         "read",
-        "command"
+        "command",
+        "mcp"
       ]
     },
     {
@@ -65,7 +68,8 @@
             "description": "Debuggable app and docs files"
           }
         ],
-        "command"
+        "command",
+        "mcp"
       ]
     }
   ]
