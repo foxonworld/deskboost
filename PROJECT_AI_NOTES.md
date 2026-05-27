@@ -14,6 +14,8 @@ Keep concise. Store stable conventions only.
 
 ## Source of Truth
 
+Active source-of-truth order. Archived docs are historical/reference only and must not override active docs.
+
 Read docs in this order:
 
 1. `docs/README.md` for active docs navigation.
@@ -190,10 +192,12 @@ Use ADRs for larger decisions. Keep short notes here for small stable convention
 
 ## Docs Cleanup Summary
 
-- Active docs are consolidated around `docs/README.md`, `docs/project-overview.md`, `docs/api-contract.md`, `docs/backend-api-checklist-for-tuan.md`, `docs/backend-qr-claim-requirements-vi.md`, `docs/frontend-architecture.md`, redesign/token/motion docs, `docs/qr-claim-future-plan-vi.md`, and `plans/backend-plan.md`.
-- Historical docs moved/targeted for archive: `docs/archive/changelog.md`, `docs/archive/exe201-scope-adjustment.md`, `docs/archive/frontend-adjustment-plan.md`, `docs/archive/frontend-redesign-implementation-roadmap-vi.md`, `docs/archive/mvp-scope.md`, `plans/archive/frontend-completion-audit.md`, `plans/archive/future-fb-code.md`.
-- Merged still-valid decisions into active docs: MVP guardrails, verified feedback first, contact-only marketplace, AI not gated by QR/Claim, My Plants free-add, lightweight admin, QR/Claim future-only.
+- Docs/plans cleanup source of truth: `docs/README.md` and `plans/README.md` define active vs archived docs.
+- Active docs consolidated around `docs/project-overview.md`, `docs/api-contract.md`, `docs/backend-api-checklist-for-tuan.md`, `docs/backend-qr-claim-requirements-vi.md`, `docs/frontend-architecture.md`, `docs/ui-redesign-plan-vi.md`, `docs/design-tokens-vi.md`, `docs/motion-system-plan-vi.md`, `docs/qr-claim-future-plan-vi.md`, and `plans/backend-plan.md`.
+- Archived docs retained as historical/reference only: `docs/archive/changelog.md`, `docs/archive/exe201-scope-adjustment.md`, `docs/archive/frontend-adjustment-plan.md`, `docs/archive/frontend-redesign-implementation-roadmap-vi.md`, `docs/archive/mvp-scope.md`, `plans/archive/frontend-completion-audit.md`, `plans/archive/future-fb-code.md`.
+- Merged still-valid decisions into active docs: MVP guardrails, verified-feedback-first direction, contact-only marketplace, AI not gated by QR/Claim, My Plants free-add, lightweight admin, QR/Claim future-only.
 - Rule: do not revive archived roadmap/audit docs as active source of truth without explicitly updating `docs/README.md` or `plans/README.md`.
+- Cleanup preserved backend handoff docs for Tuấn, QR/Claim future planning, redesign/design token/motion docs, and `PROJECT_AI_NOTES.md` history.
 
 ## Memory Hygiene
 

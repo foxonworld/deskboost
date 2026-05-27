@@ -1,6 +1,6 @@
 # DeskBoost – Project Overview
 
-> Active product/source-of-truth summary for DeskBoost EXE201 MVP.
+> Active product/source-of-truth summary for DeskBoost EXE201 MVP. Use with [`README.md`](README.md) as the primary docs entry point.
 
 ## Current Status
 
@@ -85,6 +85,17 @@ Plant Code / QR / Claim is preserved as future planning:
 
 See [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) and [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md).
 
+## Source of Truth
+
+- Docs entry point: [`README.md`](README.md)
+- Product scope/current status: this file
+- API contract: [`api-contract.md`](api-contract.md)
+- Backend handoff: [`backend-api-checklist-for-tuan.md`](backend-api-checklist-for-tuan.md) and [`../plans/backend-plan.md`](../plans/backend-plan.md)
+- Frontend architecture: [`frontend-architecture.md`](frontend-architecture.md)
+- Future QR/Claim: [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) and [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md)
+
+Archived docs under [`archive/`](archive/) are historical/reference only.
+
 ## Architecture Docs
 
 - Frontend architecture: [`frontend-architecture.md`](frontend-architecture.md)
@@ -97,3 +108,4 @@ See [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) and [`backend-qr-
 - Backend integration still requires coordination with Tuấn.
 - Some frontend routes may still use mock/fallback data while backend catches up.
 - Automated tests are limited; use lint/build/manual smoke checks.
+- Historical archive docs may mention older priorities; active docs above override them.

@@ -1,5 +1,7 @@
 # Changelog
 
+> Historical/reference only. Active source of truth: [`../README.md`](../README.md).
+
 ## [Verified Feedback Phase 1 FE Mock] – 2026-05-22
 
 ### Added – manually verified feedback

@@ -1,5 +1,7 @@
 # DeskBoost MVP – Frontend Completion Audit
 
+> Historical/reference only. Active planning source of truth: [`../README.md`](../README.md).
+
 Status: audit only. No implementation. No backend contract changes. MVP-first.
 
 ## Source reviewed

@@ -1,6 +1,6 @@
 # DeskBoost – Frontend Architecture
 
-> Active frontend source of truth. Keep concise; avoid duplicating product scope from [`project-overview.md`](project-overview.md).
+> Active frontend source of truth. Keep concise; avoid duplicating product scope from [`project-overview.md`](project-overview.md). Docs entry point: [`README.md`](README.md).
 
 ## Stack
 
@@ -125,6 +125,14 @@ Implementation rules:
 - Respect `prefers-reduced-motion`.
 - Animate only `opacity` and `transform`.
 - Avoid ScrollTrigger, global selectors, layout-property animation, infinite glow/pulse, or replaying full chat history.
+
+## Source-of-Truth Boundaries
+
+- Product scope/guardrails live in [`project-overview.md`](project-overview.md).
+- API contract lives in [`api-contract.md`](api-contract.md).
+- Redesign/token/motion direction lives in [`ui-redesign-plan-vi.md`](ui-redesign-plan-vi.md), [`design-tokens-vi.md`](design-tokens-vi.md), and [`motion-system-plan-vi.md`](motion-system-plan-vi.md).
+- Future QR/Claim planning lives in [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) and [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md).
+- Archived docs under [`archive/`](archive/) are historical/reference only.
 
 ## Product Guardrails Affecting FE
 

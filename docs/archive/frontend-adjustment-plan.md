@@ -1,6 +1,6 @@
 # DeskBoost – Frontend Adjustment Plan
 
-> Planning only. Do not implement FE changes until approved.
+> Historical/reference only. Active frontend source of truth: [`../frontend-architecture.md`](../frontend-architecture.md) and [`../README.md`](../README.md).
 
 ---
 
