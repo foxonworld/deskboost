@@ -19,8 +19,13 @@ type I18nContextValue = {
   language: Language;
   setLanguage: (language: Language) => void;
   toggleLanguage: () => void;
-  t: (key: TranslationKey, params?: TranslationParams) => string;
+  t: (key: string, params?: TranslationParams) => string;
 };
+
+const localeTable = locales as Record<
+  Language,
+  Partial<Record<TranslationKey, string>>
+>;
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
@@ -69,8 +74,16 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({
       language,
       setLanguage,
       toggleLanguage,
-      t: (key: TranslationKey, params?: TranslationParams) =>
-        interpolate(locales[language][key] || locales.vi[key] || key, params),
+      t: (key: string, params?: TranslationParams) => {
+        const translationKey = key as TranslationKey;
+
+        return interpolate(
+          localeTable[language][translationKey] ||
+            localeTable.vi[translationKey] ||
+            key,
+          params,
+        );
+      },
     }),
     [language],
   );
