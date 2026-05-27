@@ -12,6 +12,20 @@ Keep concise. Store stable conventions only.
 - Product direction: feedback-first validation, not ecommerce infrastructure, not ownership ecosystem, not Shopee clone.
 - Main entry points: `FE/index.tsx`, `FE/App.tsx`, `FE/routes/AppRouter.tsx`.
 
+## Source of Truth
+
+Read docs in this order:
+
+1. `docs/README.md` for active docs navigation.
+2. `docs/project-overview.md` for product scope, MVP guardrails, and current status.
+3. `docs/api-contract.md` for API contract.
+4. `docs/backend-api-checklist-for-tuan.md` and `plans/backend-plan.md` for Tuấn/backend handoff.
+5. `docs/frontend-architecture.md` for frontend routes/services/layout.
+6. `docs/ui-redesign-plan-vi.md`, `docs/design-tokens-vi.md`, and `docs/motion-system-plan-vi.md` for redesign/motion work.
+7. `docs/qr-claim-future-plan-vi.md` and `docs/backend-qr-claim-requirements-vi.md` for future QR/Claim only.
+
+Historical docs are archived under `docs/archive/` and `plans/archive/`; use them only for decision history.
+
 ## Key Folders
 
 - `FE/`: active frontend app root.
@@ -21,8 +35,10 @@ Keep concise. Store stable conventions only.
 - `FE/routes/`: router and route guards.
 - `FE/services/`: service/API boundary with mock fallbacks while backend is absent.
 - `FE/utils/`: small utility helpers, including auth storage.
-- `docs/`: architecture, scope, API contract, and planning source documents.
-- `plans/`: planning/audit notes.
+- `docs/`: active architecture, API, backend handoff, redesign, and future QR/Claim source documents.
+- `docs/archive/`: historical docs retained for context only.
+- `plans/`: active planning index and backend roadmap.
+- `plans/archive/`: historical audits/brainstorms retained for context only.
 
 ## Commands
 
@@ -150,6 +166,13 @@ Use ADRs for larger decisions. Keep short notes here for small stable convention
 - QR/Claim frontend/backend split: frontend owns claim-by-code UI, QR/link display UI, claimed badge, plant identity card, optional copy, loading/error/invalid/used states, mobile UX, and later reduced-motion-safe success polish; backend owns code/token generation, persistence, lifecycle/status, auth/role checks, public safe validate, atomic claim, admin list/deactivate, and AI context metadata.
 - QR/Claim planned phases: Phase A docs/contracts only; Phase B backend API; Phase C frontend claim UI mock/fallback; Phase D admin QR generation; Phase E AI context enhancement; Phase F motion polish.
 - QR/Claim follow-up tasks: decide backend plant model relationship (`PlantCode` links existing `Plant` vs `UserClaimedPlant` join), finalize hash-router claim URL, confirm token hashing approach, then implement backend before real frontend integration.
+
+## Docs Cleanup Summary
+
+- Active docs are consolidated around `docs/README.md`, `docs/project-overview.md`, `docs/api-contract.md`, `docs/backend-api-checklist-for-tuan.md`, `docs/backend-qr-claim-requirements-vi.md`, `docs/frontend-architecture.md`, redesign/token/motion docs, `docs/qr-claim-future-plan-vi.md`, and `plans/backend-plan.md`.
+- Historical docs moved/targeted for archive: `docs/archive/changelog.md`, `docs/archive/exe201-scope-adjustment.md`, `docs/archive/frontend-adjustment-plan.md`, `docs/archive/frontend-redesign-implementation-roadmap-vi.md`, `docs/archive/mvp-scope.md`, `plans/archive/frontend-completion-audit.md`, `plans/archive/future-fb-code.md`.
+- Merged still-valid decisions into active docs: MVP guardrails, verified feedback first, contact-only marketplace, AI not gated by QR/Claim, My Plants free-add, lightweight admin, QR/Claim future-only.
+- Rule: do not revive archived roadmap/audit docs as active source of truth without explicitly updating `docs/README.md` or `plans/README.md`.
 
 ## Memory Hygiene
 

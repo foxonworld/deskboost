@@ -63,7 +63,7 @@
 ### Changed – reminder scope/API docs
 
 - Finalized Care Reminder MVP as in-app reminders plus Google Calendar / `.ics` export.
-- Updated `docs/mvp-scope.md`, `docs/project-overview.md`, `docs/frontend-architecture.md`, `docs/api-contract.md`, `plans/backend-plan.md`, and `docs/backend-api-checklist-for-tuan.md`.
+- Updated `docs/archive/mvp-scope.md`, `docs/project-overview.md`, `docs/frontend-architecture.md`, `docs/api-contract.md`, `plans/backend-plan.md`, and `docs/backend-api-checklist-for-tuan.md`.
 - Added reminder endpoint expectations: list, create, update, mark done, calendar export/event data.
 - Marked email reminder as optional backend enhancement if scheduler/email infrastructure is ready.
 - Clarified browser notifications are not the main strategy because users may close the web app or deny permissions.
@@ -263,7 +263,7 @@
 - Added simple `USER` / `ADMIN` role expectation.
 - Added admin API contract endpoints under `/admin/*`.
 - Added AI dialog history endpoints.
-- Added `docs/frontend-adjustment-plan.md`.
+- Added `docs/archive/frontend-adjustment-plan.md`.
 
 ### Guardrails
 

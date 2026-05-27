@@ -38,7 +38,7 @@ Không làm payment/order/shipping/Zalo API/anti-fraud phức tạp.
 | App            | React 19 + Vite 6 SPA                        | `FE/package.json`                                          |
 | Router         | React Router DOM v7 + HashRouter             | `docs/frontend-architecture.md`, `FE/routes/AppRouter.tsx` |
 | Source style   | mixed `.jsx` pages + `.tsx` entry/router     | `PROJECT_AI_NOTES.md`                                      |
-| Backend        | chưa implement xong                          | `docs/mvp-scope.md`, `plans/backend-plan.md`               |
+| Backend        | chưa implement xong                          | `docs/archive/mvp-scope.md`, `plans/backend-plan.md`               |
 | Backend target | ASP.NET Core Web API + PostgreSQL            | `docs/api-contract.md`, `plans/backend-plan.md`            |
 | Auth           | frontend shell + mock auth, JWT planned      | `PROJECT_AI_NOTES.md`                                      |
 | Roles          | simple `USER` / `ADMIN`                      | `docs/api-contract.md`                                     |
@@ -233,11 +233,11 @@ Future: ownership code only after feedback MVP is proven.
 | Doc                             | Needed update after implementation                                   |
 | ------------------------------- | -------------------------------------------------------------------- |
 | `docs/api-contract.md`          | verified feedback endpoints first; ownership code as future/optional |
-| `docs/mvp-scope.md`             | feedback validation becomes core MVP; My Plants remains free-add     |
+| `docs/archive/mvp-scope.md`             | feedback validation becomes core MVP; My Plants remains free-add     |
 | `docs/frontend-architecture.md` | public feedback/admin feedback flow                                  |
 | `docs/project-overview.md`      | marketplace validation story                                         |
 | `plans/backend-plan.md`         | feedback endpoints priority                                          |
-| `docs/changelog.md`             | implementation milestone                                             |
+| `docs/archive/changelog.md`             | implementation milestone                                             |
 
 Lower priority: `PROJECT_AI_NOTES.md` only after durable decision is implemented. `AGENTS.md` not needed.
 
@@ -938,10 +938,10 @@ Keep documentation updates small and practical. For this planning step, only upd
 | ------------------------------- | -------------------------------------------------------- | -------- |
 | `docs/api-contract.md`          | add verified feedback endpoints/fields                   | P0       |
 | `plans/backend-plan.md`         | reprioritize feedback endpoints before ownership code    | P0       |
-| `docs/mvp-scope.md`             | feedback-first validation; ownership code optional later | P0       |
+| `docs/archive/mvp-scope.md`             | feedback-first validation; ownership code optional later | P0       |
 | `docs/project-overview.md`      | add manual verified feedback as validation loop          | P1       |
 | `docs/frontend-architecture.md` | note admin/public feedback surfaces                      | P1       |
-| `docs/changelog.md`             | add milestone entry after implementation                 | P1       |
+| `docs/archive/changelog.md`             | add milestone entry after implementation                 | P1       |
 
 Lower priority:
 
@@ -956,9 +956,9 @@ Recommended order:
 
 1. `docs/api-contract.md`.
 2. `plans/backend-plan.md`.
-3. `docs/mvp-scope.md`.
+3. `docs/archive/mvp-scope.md`.
 4. `docs/project-overview.md`.
-5. `docs/changelog.md` after implementation.
+5. `docs/archive/changelog.md` after implementation.
 
 ---
 

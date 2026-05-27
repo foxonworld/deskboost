@@ -1,31 +1,24 @@
 # DeskBoost – Frontend Architecture
 
-> Current frontend source of truth · React 19 + Vite 6 · updated for AI Chat + lightweight Admin MVP readiness
+> Active frontend source of truth. Keep concise; avoid duplicating product scope from [`project-overview.md`](project-overview.md).
 
----
+## Stack
 
-## Current Status
+- React 19 + Vite 6.
+- Mixed `.tsx` / `.jsx` source.
+- React Router DOM v7 with `HashRouter`.
+- Tailwind CDN config in [`../FE/index.html`](../FE/index.html).
+- Dark mode via root `.dark` class controlled by [`../FE/components/ThemeToggle.tsx`](../FE/components/ThemeToggle.tsx).
+- GSAP motion is allowed only as scoped/reduced-motion-safe polish.
 
-- Frontend is implemented with React 19 + Vite 6.
-- Routing uses React Router DOM v7 with `HashRouter`.
-- User MVP routes exist.
-- AI Diagnosis exists and uses the AI service boundary with mock fallback.
-- AI Chat route/page exists and uses plant-context service helpers.
-- Lightweight Admin dashboard/routes exist and use admin service helpers with mock fallback.
-- Backend is not implemented yet.
-- Backend direction is ASP.NET Core Web API + PostgreSQL.
-
----
-
-## Current App Shell
-
-`App.tsx` wraps:
+## App Shell
 
 ```txt
-HashRouter
-└── AuthProvider
-    └── CareProvider
-        └── AppRouter
+FE/App.tsx
+└── HashRouter
+    └── AuthProvider
+        └── CareProvider
+            └── AppRouter
 ```
 
 Global helpers:
@@ -33,9 +26,7 @@ Global helpers:
 - `FloatingHomeButton`
 - `ThemeToggle`
 
----
-
-## Current Routes
+## Routes
 
 Public:
 
@@ -57,17 +48,8 @@ Protected user:
 /app/add-plant              -> AddPlantUser
 /app/profile                -> UserProfile
 /app/ai-analysis            -> AIPlantAnalysis
+/app/ai-chat                -> AIChat
 /app/settings               -> RemindersSettings
-```
-
----
-
-## Implemented Route Additions
-
-User:
-
-```txt
-/app/ai-chat -> AIChat
 ```
 
 Admin:
@@ -80,162 +62,83 @@ Admin:
 /admin/ai          -> AdminAI
 ```
 
-Admin routes are guarded by authentication + `ADMIN` role. Role logic stays simple for MVP.
+Admin routes require authentication + simple `ADMIN` role via `AdminRoute`.
 
----
+## Key Folders
 
-## Current Navigation
-
-`Navbar.jsx`:
-
-- `/`
-- `/plants`
-- `/login` when logged out
-- `/app/profile` when logged in
-- logout when logged in
-- care notification bell when logged in
-
-`UserSidebar.jsx`:
-
-- `/app/dashboard`
-- `/app/my-plants`
-- `/app/ai-analysis`
-- `/app/profile`
-- `/app/settings`
-
-Current nav readiness:
-
-- `/app/ai-chat` is in user dashboard navigation.
-- Admin entry is visible only for `ADMIN` users.
-- Lightweight admin sidebar/layout is implemented.
-- Ecommerce nav remains out of scope.
-
----
-
-## Auth Architecture
-
-Current files:
-
-- `FE/context/AuthContext.jsx`
-- `FE/hooks/useAuth.js`
-- `FE/routes/ProtectedRoute.jsx`
-- `FE/utils/authStorage.js`
-- `FE/services/authApi.js`
-
-Current behavior:
-
-- Token + user stored in `localStorage`.
-- Mock auth enabled by default.
-- Protected route redirects unauthenticated users.
-
-Needed:
-
-- User object should include simple `role: "USER" | "ADMIN"` after backend integration.
-- Add `AdminRoute` or extend guard for `ADMIN` routes.
-- Keep no refresh-token/session-complexity for MVP unless backend already requires it.
-
----
+| Folder                                 | Role                                           |
+| -------------------------------------- | ---------------------------------------------- |
+| [`../FE/pages`](../FE/pages)           | Route-level UI pages                           |
+| [`../FE/components`](../FE/components) | Shared layout/UI primitives                    |
+| [`../FE/context`](../FE/context)       | Auth/care providers                            |
+| [`../FE/routes`](../FE/routes)         | Router + guards                                |
+| [`../FE/services`](../FE/services)     | API/service boundary + mock fallback           |
+| [`../FE/data`](../FE/data)             | MVP fallback data                              |
+| [`../FE/utils`](../FE/utils)           | Small utilities, including motion/auth helpers |
 
 ## Services Layer
 
-Current services:
+| File             | Responsibility                               |
+| ---------------- | -------------------------------------------- |
+| `api.js`         | Base fetch, auth header, JSON/error handling |
+| `authApi.js`     | register/login/forgot password               |
+| `userApi.js`     | current user profile                         |
+| `plantApi.js`    | public catalog + my-plants CRUD              |
+| `reminderApi.js` | reminders + calendar export helpers          |
+| `aiApi.js`       | AI diagnosis/chat/dialog/config helpers      |
+| `feedbackApi.js` | feedback submit + public verified feedback   |
+| `adminApi.js`    | lightweight admin endpoints + mock fallback  |
 
-| File             | Current responsibility                                   |
-| ---------------- | -------------------------------------------------------- |
-| `api.js`         | Base fetch, auth header, JSON/error handling             |
-| `authApi.js`     | register/login/forgot password                           |
-| `userApi.js`     | current user profile                                     |
-| `plantApi.js`    | public catalog + my-plants CRUD                          |
-| `reminderApi.js` | reminder CRUD + mark-done + calendar export/service data |
-| `aiApi.js`       | AI diagnose/chat helpers                                 |
-| `feedbackApi.js` | feedback submission                                      |
+Rules:
 
-Readiness notes:
+- Pages should call feature services, not raw `fetch`.
+- Backend API keys/secrets never enter frontend.
+- Mock fallback is acceptable while backend is incomplete, but UI should show calm fallback/sample-data copy when relevant.
 
-| File          | Current readiness                                               |
-| ------------- | --------------------------------------------------------------- |
-| `api.js`      | Hardened JSON/non-JSON/error response parsing                   |
-| `aiApi.js`    | Diagnose, plant-context chat, dialog helpers with mock fallback |
-| `adminApi.js` | Lightweight admin endpoints grouped by MVP admin pages          |
-| `authApi.js`  | Login/register/forgot-password mock-ready service boundary      |
+## UI System Direction
 
----
+Active frontend redesign/design docs:
 
-## AI Chat Frontend Plan
+- [`ui-redesign-plan-vi.md`](ui-redesign-plan-vi.md)
+- [`design-tokens-vi.md`](design-tokens-vi.md)
+- [`motion-system-plan-vi.md`](motion-system-plan-vi.md)
 
-MVP page behavior:
+Current shared primitives:
 
-1. Load user's existing plants via `getMyPlants()`.
-2. Show plant selector.
-3. Require one selected plant.
-4. Send `{ plantId, message, history? }` through backend `/ai/chat`.
-5. Display assistant reply and disclaimer.
-6. Show basic local/session history; persist through backend when endpoint exists.
-7. Keep context plant-specific, not general chatbot.
+- `Button`
+- `Card`
+- `Badge` / `Chip`
+- `UiState` helpers
 
-Reusable UI candidates:
+Implementation rules:
 
-- Plant selector card/list.
-- Chat message list.
-- Chat input box.
-- Empty state when user has no plants.
+- Reuse primitives when touching CTA/card/badge/state UI.
+- Do not create abstractions without real consumers.
+- Keep admin compact and utilitarian.
+- Keep marketplace and plant detail contact-first.
+- Keep AI calm, plant-contextual, not general-purpose.
 
----
+## Motion Rules
 
-## Care Reminder Frontend Plan
+- Use GSAP only after layout/state is stable.
+- Scope animations with refs / `useGSAP`.
+- Respect `prefers-reduced-motion`.
+- Animate only `opacity` and `transform`.
+- Avoid ScrollTrigger, global selectors, layout-property animation, infinite glow/pulse, or replaying full chat history.
 
-MVP behavior:
+## Product Guardrails Affecting FE
 
-1. Show in-app reminder list/settings for user plants.
-2. Support create/update reminder with plant, care type, due date/time, repeat metadata if simple.
-3. Support mark reminder as done without forcing delete.
-4. Add UI action for Google Calendar / `.ics` export once backend provides `.ics` or event data.
-5. Keep browser notifications secondary only; they are unreliable when users close the web app or deny permission.
-6. Treat email reminders as backend-optional; frontend can show capability only when backend exposes/supports it.
+- Marketplace remains contact-only; no cart/checkout/payment/order/shipping UX.
+- Verified feedback is manual/trust-first; no fake ecommerce review ecosystem.
+- AI is not gated by QR/Claim or ownership code.
+- My Plants remains free-add; claimed plants are future optional subset.
+- QR/Claim UI remains future until backend/API approval.
+- Admin remains lightweight.
 
-Do not add:
+## Verification
 
-- SMS/Zalo/Messenger bot flows.
-- Mobile push.
-- Complex web push/service-worker notification system.
-- Realtime notification infra.
+Smallest useful checks after FE changes:
 
----
-
-## Admin MVP Frontend Plan
-
-Admin UI principles:
-
-- Lightweight table/list screens.
-- Simple detail/edit forms only where needed.
-- No charts-heavy dashboard.
-- No enterprise permissions matrix.
-- No API key editor.
-
-Admin pages:
-
-- `AdminDashboard`: quick links + simple counts if API provides them.
-- `AdminUsers`: basic user list/status/role display.
-- `AdminUserPlants`: user plant records.
-- `AdminPlantStatus`: simple status management.
-- `AdminMarketplacePlants`: marketplace plant CRUD for display catalog.
-- `AdminAiDialogs`: basic AI dialog history table/detail.
-- `AdminAiConfigStatus`: provider configured/status info only.
-
----
-
-## Data/API Constraints
-
-- Frontend must not call AI provider directly.
-- Frontend must not store AI API keys.
-- Admin must only show AI config/status.
-- Marketplace remains contact-oriented through Zalo/Facebook URLs.
-- No cart/checkout/order/payment/shipping code.
-- Care Reminder external path is Google Calendar / `.ics`, not complex browser/web push.
-- Email reminders are optional backend enhancement, not required frontend blocker.
-
----
-
-## Implementation Boundary
-
-This document is planning/documentation only. No frontend refactor or backend code should be generated from this update alone.
+1. `cd FE && npm run lint`
+2. `cd FE && npm run build`
+3. Manual smoke affected routes, including light/dark and mobile where UI changed.

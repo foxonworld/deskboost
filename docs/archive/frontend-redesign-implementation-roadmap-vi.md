@@ -1,6 +1,6 @@
 # DeskBoost Frontend Redesign Implementation Roadmap
 
-> Roadmap triển khai redesign frontend an toàn, tăng dần, tối ưu cho React + Vite + Tailwind + GSAP và workflow Roo/Codex. Tài liệu này bám theo [docs/ui-redesign-plan-vi.md](ui-redesign-plan-vi.md), [docs/motion-system-plan-vi.md](motion-system-plan-vi.md), [docs/design-tokens-vi.md](design-tokens-vi.md), [docs/frontend-architecture.md](frontend-architecture.md), [PROJECT_AI_NOTES.md](../PROJECT_AI_NOTES.md).
+> Roadmap triển khai redesign frontend an toàn, tăng dần, tối ưu cho React + Vite + Tailwind + GSAP và workflow Roo/Codex. Tài liệu này bám theo [docs/ui-redesign-plan-vi.md](../ui-redesign-plan-vi.md), [docs/motion-system-plan-vi.md](../motion-system-plan-vi.md), [docs/design-tokens-vi.md](../design-tokens-vi.md), [docs/frontend-architecture.md](../frontend-architecture.md), [PROJECT_AI_NOTES.md](../../PROJECT_AI_NOTES.md).
 
 ## Nguyên tắc phạm vi
 
