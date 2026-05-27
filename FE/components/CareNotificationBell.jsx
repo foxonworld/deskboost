@@ -1,14 +1,16 @@
 import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCare } from '../context/CareContext';
+import { useI18n } from '../i18n';
 
 const urgencyConfig = {
-  overdue: { color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20', dot: 'bg-red-500', label: 'Trễ hạn' },
-  today: { color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', dot: 'bg-amber-500', label: 'Hôm nay' },
-  upcoming: { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', dot: 'bg-blue-400', label: 'Sắp tới' },
+  overdue: { color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-900/20', dot: 'bg-red-500', labelKey: 'careBell.urgency.overdue' },
+  today: { color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', dot: 'bg-amber-500', labelKey: 'careBell.urgency.today' },
+  upcoming: { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', dot: 'bg-blue-400', labelKey: 'careBell.urgency.upcoming' },
 };
 
 const CareNotificationBell = () => {
+  const { t } = useI18n();
   const { pendingTasks, doneTasks, urgentCount, notificationOpen, setNotificationOpen, markDone, undoDone } = useCare();
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
@@ -41,7 +43,7 @@ const CareNotificationBell = () => {
             ? 'bg-[#4CAF50]/10 border-[#4CAF50]/30 text-[#4CAF50]'
             : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-[#4CAF50]/40 hover:text-[#4CAF50] hover:bg-[#4CAF50]/5'
         }`}
-        title="Lịch chăm sóc cây"
+        title={t('careBell.title')}
       >
         <span className={`material-symbols-outlined text-lg transition-all ${urgentCount > 0 ? 'animate-[wiggle_2s_ease-in-out_infinite]' : ''}`}>
           {urgentCount > 0 ? 'notifications_active' : 'notifications'}
@@ -63,9 +65,9 @@ const CareNotificationBell = () => {
           {/* Panel Header */}
           <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <div>
-              <h3 className="font-black text-slate-900 dark:text-white text-sm">Lịch chăm sóc cây</h3>
+              <h3 className="font-black text-slate-900 dark:text-white text-sm">{t('careBell.title')}</h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                {totalPending > 0 ? `${totalPending} tác vụ chờ xử lý` : 'Tất cả đã hoàn thành! 🎉'}
+                {totalPending > 0 ? t('careBell.pending', { count: totalPending }) : t('careBell.allDone')}
               </p>
             </div>
             <Link
@@ -73,7 +75,7 @@ const CareNotificationBell = () => {
               onClick={() => setNotificationOpen(false)}
               className="text-xs font-bold text-[#4CAF50] hover:underline"
             >
-              Xem tất cả
+              {t('careBell.viewAll')}
             </Link>
           </div>
 
@@ -82,7 +84,7 @@ const CareNotificationBell = () => {
             {totalPending === 0 && doneTasks.length === 0 && (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">🌿</div>
-                <p className="text-sm font-bold text-slate-600 dark:text-slate-400">Không có tác vụ nào</p>
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{t('careBell.empty')}</p>
               </div>
             )}
 
@@ -112,7 +114,7 @@ const CareNotificationBell = () => {
                         </div>
                         <div className="flex items-center gap-1 mt-1">
                           <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
-                          <span className={`text-[10px] font-bold ${cfg.color}`}>{cfg.label}</span>
+                          <span className={`text-[10px] font-bold ${cfg.color}`}>{t(cfg.labelKey)}</span>
                         </div>
                       </div>
 
@@ -122,20 +124,20 @@ const CareNotificationBell = () => {
                         <button
                           onClick={() => markDone(task.id)}
                           className="flex items-center gap-1 px-2.5 py-1.5 bg-[#4CAF50] text-white text-[11px] font-bold rounded-xl hover:scale-105 active:scale-95 transition-all shadow-sm shadow-[#4CAF50]/30"
-                          title="Xác nhận đã hoàn thành"
+                          title={t('careBell.confirmDone')}
                         >
                           <span className="material-symbols-outlined text-xs" style={{ fontSize: '13px' }}>check</span>
-                          Xong
+                          {t('careBell.doneButton')}
                         </button>
                         {/* Go to profile */}
                         <Link
                           to={task.plantPath}
                           onClick={() => setNotificationOpen(false)}
                           className="flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold rounded-xl hover:border-[#4CAF50]/40 hover:text-[#4CAF50] transition-all"
-                          title="Xem hồ sơ cây"
+                          title={t('careBell.viewProfile')}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>open_in_new</span>
-                          Hồ sơ
+                          {t('careBell.profile')}
                         </Link>
                       </div>
                     </div>
@@ -150,7 +152,7 @@ const CareNotificationBell = () => {
                 {pendingTasks.length > 0 && (
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Đã xong</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.doneSection')}</span>
                     <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
                   </div>
                 )}
@@ -162,7 +164,7 @@ const CareNotificationBell = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 line-through truncate">{task.plantName}</p>
-                        <p className="text-[10px] text-slate-400">{task.taskLabel} · {task.doneAt ? `Đã xong ${task.doneAt}` : 'Hoàn thành'}</p>
+                        <p className="text-[10px] text-slate-400">{task.taskLabel} · {task.doneAt ? t('careBell.doneAt', { time: task.doneAt }) : t('careBell.completed')}</p>
                       </div>
                       <span className="size-5 bg-[#4CAF50] rounded-full flex items-center justify-center flex-shrink-0">
                         <span className="material-symbols-outlined text-white" style={{ fontSize: '12px' }}>check</span>
@@ -170,7 +172,7 @@ const CareNotificationBell = () => {
                       <button
                         onClick={() => undoDone(task.id)}
                         className="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0"
-                        title="Hoàn tác"
+                        title={t('careBell.undo')}
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>undo</span>
                       </button>
@@ -184,7 +186,7 @@ const CareNotificationBell = () => {
           {/* Footer */}
           <div className="px-5 py-3 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-[10px] text-slate-400 font-medium">
-              ✅ {doneTasks.length}/{doneTasks.length + pendingTasks.length} hoàn thành hôm nay
+              {t('careBell.footer', { done: doneTasks.length, total: doneTasks.length + pendingTasks.length })}
             </p>
             <Link
               to="/app/settings"
@@ -192,7 +194,7 @@ const CareNotificationBell = () => {
               className="text-[11px] font-bold text-[#4CAF50] flex items-center gap-1 hover:underline"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>settings</span>
-              Quản lý lịch
+              {t('careBell.manage')}
             </Link>
           </div>
         </div>

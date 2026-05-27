@@ -12,6 +12,22 @@ Keep concise. Store stable conventions only.
 - Product direction: feedback-first validation, not ecommerce infrastructure, not ownership ecosystem, not Shopee clone.
 - Main entry points: `FE/index.tsx`, `FE/App.tsx`, `FE/routes/AppRouter.tsx`.
 
+## Source of Truth
+
+Active source-of-truth order. Archived docs are historical/reference only and must not override active docs.
+
+Read docs in this order:
+
+1. `docs/README.md` for active docs navigation.
+2. `docs/project-overview.md` for product scope, MVP guardrails, and current status.
+3. `docs/api-contract.md` for API contract.
+4. `docs/backend-api-checklist-for-tuan.md` and `plans/backend-plan.md` for Tuấn/backend handoff.
+5. `docs/frontend-architecture.md` for frontend routes/services/layout.
+6. `docs/ui-redesign-plan-vi.md`, `docs/design-tokens-vi.md`, and `docs/motion-system-plan-vi.md` for redesign/motion work.
+7. `docs/qr-claim-future-plan-vi.md` and `docs/backend-qr-claim-requirements-vi.md` for future QR/Claim only.
+
+Historical docs are archived under `docs/archive/` and `plans/archive/`; use them only for decision history.
+
 ## Key Folders
 
 - `FE/`: active frontend app root.
@@ -21,8 +37,10 @@ Keep concise. Store stable conventions only.
 - `FE/routes/`: router and route guards.
 - `FE/services/`: service/API boundary with mock fallbacks while backend is absent.
 - `FE/utils/`: small utility helpers, including auth storage.
-- `docs/`: architecture, scope, API contract, and planning source documents.
-- `plans/`: planning/audit notes.
+- `docs/`: active architecture, API, backend handoff, redesign, and future QR/Claim source documents.
+- `docs/archive/`: historical docs retained for context only.
+- `plans/`: active planning index and backend roadmap.
+- `plans/archive/`: historical audits/brainstorms retained for context only.
 
 ## Commands
 
@@ -150,6 +168,41 @@ Use ADRs for larger decisions. Keep short notes here for small stable convention
 - QR/Claim frontend/backend split: frontend owns claim-by-code UI, QR/link display UI, claimed badge, plant identity card, optional copy, loading/error/invalid/used states, mobile UX, and later reduced-motion-safe success polish; backend owns code/token generation, persistence, lifecycle/status, auth/role checks, public safe validate, atomic claim, admin list/deactivate, and AI context metadata.
 - QR/Claim planned phases: Phase A docs/contracts only; Phase B backend API; Phase C frontend claim UI mock/fallback; Phase D admin QR generation; Phase E AI context enhancement; Phase F motion polish.
 - QR/Claim follow-up tasks: decide backend plant model relationship (`PlantCode` links existing `Plant` vs `UserClaimedPlant` join), finalize hash-router claim URL, confirm token hashing approach, then implement backend before real frontend integration.
+
+- i18n Phase 1 Foundation + Pilot Migration completed. Files changed: `FE/i18n/I18nContext.tsx`, `FE/i18n/index.ts`, `FE/i18n/locales.ts`, `FE/components/LanguageToggle.tsx`, `FE/App.tsx`, `FE/components/Navbar.jsx`, `FE/components/UiState.jsx`, `PROJECT_AI_NOTES.md`.
+- i18n Phase 1 architecture decisions: use a lightweight in-app React context instead of i18next/external dependencies; supported languages are `vi`/`en`; default language is Vietnamese; translation helper is `t(key, params?)` with fallback `active lang -> vi -> key`; provider syncs `document.documentElement.lang`.
+- i18n persistence rules: selected language is stored in `localStorage` key `deskboost.language`; invalid/missing stored values fall back to `vi`; language toggle must not affect route/auth/API/backend behavior.
+- i18n Phase 1 migrated only shared pilot surfaces: public/auth Navbar labels and shared `UiState` default loading/empty copy. Home, Marketplace, PlantDetail, AI pages, Admin pages, Dashboard pages, AI prompts, backend payloads, archive docs, and full app copy remain intentionally untranslated/postponed.
+- i18n Phase 2 follow-up: migrate route pages incrementally by area, starting with auth/common form actions and high-traffic public pages; keep AI prompt/backend payload text separate from UI translations; avoid broad copy sweeps.
+
+- i18n Phase 2 Public Pages Migration completed. Files changed: `FE/i18n/locales.ts`, `FE/pages/Home.jsx`, `FE/pages/PlantList.jsx`, `FE/pages/PlantDetail.jsx`, `PROJECT_AI_NOTES.md`.
+- i18n Phase 2 migrated sections: Home hero/problem/AI workflow/contact-only marketplace/trust/final CTA/footer; Marketplace hero/trust/process/filter labels/sort labels/search labels/result labels/cards/loading/empty/fallback/transparency CTA; PlantDetail breadcrumbs/badges/contact panel/care metrics/workspace fit/care notes/support suggestions/verified feedback/mobile contact CTA.
+- i18n Phase 2 intentionally untranslated/postponed: raw plant/product names, descriptions, tags, categories, species, statuses from mock/backend data; internal filter values and sort values used by logic; route paths; API/auth/backend behavior; AI prompt payloads; AI/Auth/Admin/App page copy reserved for Phase 3.
+- i18n Phase 2 constraints preserved: Vietnamese remains default/source of truth; language stored in `localStorage` key `deskboost.language`; no dependencies; no redesign; no GSAP/motion behavior changes; no search/filter/sort logic changes; no contact URL/handler behavior changes; marketplace remains contact-only with no cart/checkout/payment wording expansion.
+- i18n Phase 3 AI Pages Migration completed. Files changed: `FE/i18n/locales.ts`, `FE/pages/AIChat.jsx`, `FE/pages/AIPlantAnalysis.jsx`, `PROJECT_AI_NOTES.md`.
+- i18n Phase 3 migrated AI UI-only copy: AIChat headers/context labels/suggested prompt buttons/empty/loading/error/fallback/input/button labels and AIPlantAnalysis headers/upload/dropzone/preview/remove/analyze/loading/result/recommendation/tips copy.
+- i18n Phase 3 intentionally preserved: user chat messages, backend AI responses, AI API request payload structure, plant data values used by logic, file names, internal status values, chat send/loading/error behavior, upload/preview/analyze/result behavior, QR/Claim-free AI access, GSAP behavior, dependencies, and layout structure.
+- i18n next follow-up: migrate Auth pages, Admin pages, Dashboard/App user pages, ChatbotWidget, and any remaining shared user-facing copy while keeping AI prompt/backend payload text separate from UI translations.
+- i18n Phase 3.5 Stabilization Fixes completed. Files changed: `FE/pages/PlantList.jsx`, `FE/pages/AIChat.jsx`, `FE/components/ThemeToggle.tsx`, `FE/pages/Login.jsx`, `FE/i18n/locales.ts`, `PROJECT_AI_NOTES.md`.
+- Phase 3.5 logic stabilization: Marketplace filter/sort UI no longer uses translated display text as state; `PlantList` now uses stable internal values (`all`, `Pot`, `Soil`, `Fertilizer`, `Accessory`, `popular`, `priceAsc`, `priceDesc`) while visible labels come from `t()`.
+- Phase 3.5 display-only localization: Marketplace keeps raw mock/backend product data and existing filtering behavior, but current mock catalog names/descriptions/tags/category display labels are mapped through i18n for English demo polish; AIChat maps visible health/status/light/water values without mutating plant data or AI payload context.
+- Phase 3.5 constraints preserved: no dependencies, no route/API/auth/backend changes, no marketplace/contact-only behavior changes, no full-page migration/redesign, no Theme localStorage key rename, no AI prompt/payload translation, and `AIPlantAnalysis` API prompt behavior unchanged.
+- Remaining i18n limitations after Phase 3.5: backend/catalog data is not broadly localized, PlantDetail still uses raw product data in some places from earlier scope, Register/ForgotPassword/Admin/Dashboard/App user pages are not fully migrated, backend error mapping and missing-key tests are still deferred.
+- i18n Phase 4 Auth + User App Migration completed. Files changed: `FE/i18n/locales.ts`, `FE/i18n/I18nContext.tsx`, `FE/pages/Register.jsx`, `FE/pages/ForgotPassword.jsx`, `FE/pages/Forbidden.jsx`, `FE/pages/Dashboard.jsx`, `FE/pages/MyPlants.jsx`, `FE/pages/AddPlantUser.jsx`, `FE/pages/PlantProfile.jsx`, `FE/pages/UserProfile.jsx`, `FE/pages/RemindersSettings.jsx`, `FE/components/UserSidebar.jsx`, `FE/components/CareNotificationBell.jsx`, `PROJECT_AI_NOTES.md`.
+- i18n Phase 4 migrated Auth + authenticated user UI-only copy: register/forgot/forbidden, user dashboard, My Plants, Add Plant, Plant Profile, User Profile, reminders settings, user sidebar, and care notification bell. Existing `useI18n()/t()` and `vi`/`en` locales remain the only i18n mechanism.
+- i18n Phase 4 intentionally preserved: route paths, auth/API calls, validation rules, backend/user/plant data values, reminder type/frequency/filter values, calendar export behavior, AI prompt/payload text, GSAP/motion behavior, and admin pages.
+- i18n Phase 4 foundation adjustment: `t()` accepts string keys while still falling back active language -> Vietnamese -> key, enabling safe dynamic UI keys from JSX files without adding dependencies.
+- Remaining i18n limitations after Phase 4: admin pages and ChatbotWidget/shared leftovers are still not fully migrated; backend error mapping, missing-key tests, and broad backend/catalog data localization remain deferred.
+- Next i18n phases: migrate lightweight admin pages and any remaining shared user-facing copy incrementally; then optional missing-key coverage and backend-safe error display mapping.
+
+## Docs Cleanup Summary
+
+- Docs/plans cleanup source of truth: `docs/README.md` and `plans/README.md` define active vs archived docs.
+- Active docs consolidated around `docs/project-overview.md`, `docs/api-contract.md`, `docs/backend-api-checklist-for-tuan.md`, `docs/backend-qr-claim-requirements-vi.md`, `docs/frontend-architecture.md`, `docs/ui-redesign-plan-vi.md`, `docs/design-tokens-vi.md`, `docs/motion-system-plan-vi.md`, `docs/qr-claim-future-plan-vi.md`, and `plans/backend-plan.md`.
+- Archived docs retained as historical/reference only: `docs/archive/changelog.md`, `docs/archive/exe201-scope-adjustment.md`, `docs/archive/frontend-adjustment-plan.md`, `docs/archive/frontend-redesign-implementation-roadmap-vi.md`, `docs/archive/mvp-scope.md`, `plans/archive/frontend-completion-audit.md`, `plans/archive/future-fb-code.md`.
+- Merged still-valid decisions into active docs: MVP guardrails, verified-feedback-first direction, contact-only marketplace, AI not gated by QR/Claim, My Plants free-add, lightweight admin, QR/Claim future-only.
+- Rule: do not revive archived roadmap/audit docs as active source of truth without explicitly updating `docs/README.md` or `plans/README.md`.
+- Cleanup preserved backend handoff docs for Tuấn, QR/Claim future planning, redesign/design token/motion docs, and `PROJECT_AI_NOTES.md` history.
 
 ## Memory Hygiene
 

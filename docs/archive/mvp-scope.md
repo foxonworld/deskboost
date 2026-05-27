@@ -1,6 +1,6 @@
 # DeskBoost – MVP Scope
 
-> Source of truth: current codebase + latest EXE201 scope change. Keep practical; avoid overengineering.
+> Historical/reference only. Active MVP source of truth: [`../project-overview.md`](../project-overview.md) and [`../README.md`](../README.md).
 
 ---
 
