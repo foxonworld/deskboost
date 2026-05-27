@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 
+import { useI18n } from "../i18n";
+
 const getSystemPrefersDark = () =>
   window.matchMedia("(prefers-color-scheme: dark)").matches;
 
@@ -17,6 +19,7 @@ const applyTheme = (isDark: boolean) => {
 };
 
 const ThemeToggle: React.FC = () => {
+  const { t } = useI18n();
   const [isDark, setIsDark] = useState(getInitialTheme);
 
   useEffect(() => {
@@ -38,7 +41,8 @@ const ThemeToggle: React.FC = () => {
     <button
       onClick={() => setIsDark(!isDark)}
       className="fixed bottom-24 right-6 z-50 rounded-full border border-[#E4EEE6] bg-surface-light p-3 text-text-main shadow-lg transition-colors hover:border-primary/40 hover:text-primary active:scale-95 dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-200"
-      aria-label="Toggle Dark Mode"
+      aria-label={t("theme.toggleLabel")}
+      title={t("theme.toggleLabel")}
     >
       <span className="material-symbols-outlined">
         {isDark ? "light_mode" : "dark_mode"}

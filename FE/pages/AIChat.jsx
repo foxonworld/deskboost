@@ -20,6 +20,19 @@ const promptSuggestionKeys = [
   'aiChat.prompt.schedule',
 ];
 
+const plantDisplayValueKeys = {
+  thriving: 'aiChat.status.thriving',
+  'needs-water': 'aiChat.status.needsWater',
+  recovering: 'aiChat.status.recovering',
+  critical: 'aiChat.status.critical',
+  'Ánh sáng thấp': 'aiChat.value.lowLight',
+  'Ánh sáng gián tiếp': 'aiChat.value.indirectLight',
+  'Bóng mát một phần': 'aiChat.value.partialShade',
+  'Mỗi 1–2 tuần': 'aiChat.value.everyOneTwoWeeks',
+  'Mỗi 3–4 tuần': 'aiChat.value.everyThreeFourWeeks',
+  'Hàng tuần': 'aiChat.value.weekly',
+};
+
 const normalizePlantContext = (plant) => ({
   id: plant.id,
   nickname: plant.nickname,
@@ -53,6 +66,12 @@ const AIChat = () => {
   const [fallbackNote, setFallbackNote] = useState('');
   const rootRef = useRef(null);
   const reducedMotion = usePrefersReducedMotion();
+
+  const getPlantDisplayValue = (value) => {
+    if (!value) return '';
+    const key = plantDisplayValueKeys[value];
+    return key ? t(key) : value;
+  };
 
   useGSAP(() => {
     const items = gsap.utils.toArray('[data-motion="ai-chat-entry"]');
@@ -202,7 +221,7 @@ const AIChat = () => {
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-extrabold text-text-main dark:text-white">{plant.nickname}</span>
                         <span className="block truncate text-xs font-bold text-text-secondary dark:text-slate-400">{plant.species}</span>
-                        <span className="mt-1 block truncate text-[11px] font-semibold text-primary">{plant.status}</span>
+                        <span className="mt-1 block truncate text-[11px] font-semibold text-primary">{getPlantDisplayValue(plant.status)}</span>
                       </span>
                       {active && <span className="material-symbols-outlined text-lg text-primary" aria-hidden="true">check_circle</span>}
                     </button>
@@ -219,13 +238,13 @@ const AIChat = () => {
                   <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.consultingFor')}</p>
                   <h2 className="mt-1 truncate text-xl font-extrabold text-text-main dark:text-white">{selectedPlant?.nickname || t('aiChat.choosePlant')}</h2>
                   <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                    {selectedPlant ? t('aiChat.selectedPlantContext', { species: selectedPlant.species, status: selectedPlant.status }) : t('aiChat.choosePlantPrompt')}
+                    {selectedPlant ? t('aiChat.selectedPlantContext', { species: selectedPlant.species, status: getPlantDisplayValue(selectedPlant.status) }) : t('aiChat.choosePlantPrompt')}
                   </p>
                 </div>
                 {selectedPlant && (
                   <div className="grid grid-cols-2 gap-2 text-xs sm:min-w-64">
-                    <span className="rounded-2xl bg-primary/10 px-3 py-2 font-bold text-primary">{t('aiChat.lightLabel')}: {selectedPlant.light}</span>
-                    <span className="rounded-2xl bg-primary/10 px-3 py-2 font-bold text-primary">{t('aiChat.waterLabel')}: {selectedPlant.water}</span>
+                    <span className="rounded-2xl bg-primary/10 px-3 py-2 font-bold text-primary">{t('aiChat.lightLabel')}: {getPlantDisplayValue(selectedPlant.light)}</span>
+                    <span className="rounded-2xl bg-primary/10 px-3 py-2 font-bold text-primary">{t('aiChat.waterLabel')}: {getPlantDisplayValue(selectedPlant.water)}</span>
                   </div>
                 )}
               </div>

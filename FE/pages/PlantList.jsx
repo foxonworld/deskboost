@@ -13,12 +13,37 @@ import { useI18n } from '../i18n';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
 
+const getProductTranslationKey = (plant, field) => `market.product.${plant.id}.${field}`;
+
+const displayValueKeys = {
+  'Trong nhà': 'market.value.indoor',
+  'Dễ chăm': 'market.value.easyCare',
+  'Ánh sáng vừa': 'market.value.mediumLight',
+  'Ánh sáng thấp': 'market.value.lowLight',
+  'Lọc không khí': 'market.value.airPurifying',
+  'Mọc nhanh': 'market.value.fastGrowing',
+  'Gốm': 'market.value.ceramic',
+  'Thoát nước tốt': 'market.value.wellDraining',
+  'Dinh dưỡng': 'market.value.nutritious',
+  'Ánh sáng gián tiếp': 'market.value.indirectLight',
+  'Bóng mát một phần': 'market.value.partialShade',
+  'Mỗi 1–2 tuần': 'market.value.everyOneTwoWeeks',
+  'Mỗi 3–4 tuần': 'market.value.everyThreeFourWeeks',
+  'Hàng tuần': 'market.value.weekly',
+  'Sơ cấp': 'market.value.beginner',
+  Pot: 'market.filter.pot',
+  Soil: 'market.filter.soil',
+  Fertilizer: 'market.filter.fertilizer',
+  Accessory: 'market.filter.accessory',
+  'N/A': 'market.value.notApplicable',
+};
+
 const PlantList = () => {
   const pageRef = useRef(null);
   const gridRevealedRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('Tất cả');
-  const [sortBy, setSortBy] = useState('Phổ biến');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('popular');
   const [plants, setPlants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,23 +100,35 @@ const PlantList = () => {
   }, { scope: pageRef, dependencies: [isLoading, reducedMotion] });
 
   const filters = [
-    { name: 'Tất cả', icon: 'filter_list', labelKey: 'market.filter.all' },
-    { name: 'Pot', icon: 'nest_eco_leaf', labelKey: 'market.filter.pot' },
-    { name: 'Soil', icon: 'grass', labelKey: 'market.filter.soil' },
-    { name: 'Fertilizer', icon: 'spa', labelKey: 'market.filter.fertilizer' },
-    { name: 'Accessory', icon: 'handyman', labelKey: 'market.filter.accessory' },
+    { value: 'all', icon: 'filter_list', labelKey: 'market.filter.all' },
+    { value: 'Pot', icon: 'nest_eco_leaf', labelKey: 'market.filter.pot' },
+    { value: 'Soil', icon: 'grass', labelKey: 'market.filter.soil' },
+    { value: 'Fertilizer', icon: 'spa', labelKey: 'market.filter.fertilizer' },
+    { value: 'Accessory', icon: 'handyman', labelKey: 'market.filter.accessory' },
   ];
+
+  const getDisplayValue = (value) => {
+    if (!value) return '';
+    const key = displayValueKeys[value];
+    return key ? t(key) : value;
+  };
+
+  const getProductDisplay = (plant, field) => {
+    const key = getProductTranslationKey(plant, field);
+    const translated = t(key);
+    return translated === key ? plant[field] : translated;
+  };
 
   const sortedAndFilteredPlants = useMemo(() => plants
     .filter(p => p.status === 'Active' || p.status === 'Out of Stock')
     .filter(plant => {
       const matchesSearch = (plant.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = activeFilter === 'Tất cả' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
+      const matchesFilter = activeFilter === 'all' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
-      if (sortBy === 'Giá: Thấp đến Cao') return a.price - b.price;
-      if (sortBy === 'Giá: Cao đến Thấp') return b.price - a.price;
+      if (sortBy === 'priceAsc') return a.price - b.price;
+      if (sortBy === 'priceDesc') return b.price - a.price;
       return 0;
     }), [plants, searchTerm, activeFilter, sortBy]);
 
@@ -144,7 +181,7 @@ const PlantList = () => {
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:pb-0">
               {filters.map(filter => (
-                <Chip key={filter.name} active={activeFilter === filter.name} icon={filter.icon} onClick={() => setActiveFilter(filter.name)}>
+                <Chip key={filter.value} active={activeFilter === filter.value} icon={filter.icon} onClick={() => setActiveFilter(filter.value)}>
                   {t(filter.labelKey)}
                 </Chip>
               ))}
@@ -164,15 +201,15 @@ const PlantList = () => {
                 <span className="material-symbols-outlined text-base" aria-hidden="true">sort</span>
                 <span className="sr-only">{t('market.sortLabel')}</span>
                 <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-transparent font-bold text-[#111813] outline-none dark:text-white">
-                  <option value="Phổ biến">{t('market.sort.popular')}</option>
-                  <option value="Giá: Thấp đến Cao">{t('market.sort.priceAsc')}</option>
-                  <option value="Giá: Cao đến Thấp">{t('market.sort.priceDesc')}</option>
+                  <option value="popular">{t('market.sort.popular')}</option>
+                  <option value="priceAsc">{t('market.sort.priceAsc')}</option>
+                  <option value="priceDesc">{t('market.sort.priceDesc')}</option>
                 </select>
               </label>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-text-secondary dark:text-slate-400">
-            <span>{resultLabel} · {activeFilter === 'Tất cả' ? t('market.result.allCategories') : t(filters.find((filter) => filter.name === activeFilter)?.labelKey || 'market.result.allCategories')}</span>
+            <span>{resultLabel} · {activeFilter === 'all' ? t('market.result.allCategories') : t(filters.find((filter) => filter.value === activeFilter)?.labelKey || 'market.result.allCategories')}</span>
             <span>{t('market.result.contactOnly')}</span>
           </div>
         </section>
@@ -188,22 +225,22 @@ const PlantList = () => {
                     <Badge tone="overlay" icon="forum">{t('market.badge.contact')}</Badge>
                   </div>
                   {(plant.status === 'Out of Stock') && <Badge tone="warning" className="absolute right-3 top-3 z-10">{t('market.badge.outOfStock')}</Badge>}
-                  <img src={plant.image || plant.imageUrl} alt={plant.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <img src={plant.image || plant.imageUrl} alt={getProductDisplay(plant, 'name')} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                 </div>
                 <div className="flex flex-grow flex-col p-4">
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{plant.category || plant.tags?.[0] || t('market.card.fallbackCategory')}</p>
-                      <h2 className="mt-1 line-clamp-1 text-lg font-extrabold tracking-tight text-[#111813] dark:text-white">{plant.name}</h2>
+                      <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{getDisplayValue(plant.category || plant.tags?.[0]) || t('market.card.fallbackCategory')}</p>
+                      <h2 className="mt-1 line-clamp-1 text-lg font-extrabold tracking-tight text-[#111813] dark:text-white">{getProductDisplay(plant, 'name')}</h2>
                     </div>
                     <div className="shrink-0 text-right">
                       <span className="block text-lg font-extrabold text-primary">{formatVND(plant.price || 0)}</span>
                       {plant.originalPrice && plant.originalPrice > plant.price && <span className="text-xs font-bold text-slate-400 line-through">{formatVND(plant.originalPrice)}</span>}
                     </div>
                   </div>
-                  <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{plant.description}</p>
+                  <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{getProductDisplay(plant, 'description')}</p>
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {plant.tags?.slice(0, 3).map(tag => <Badge key={tag} tone="neutral">{tag}</Badge>)}
+                    {plant.tags?.slice(0, 3).map(tag => <Badge key={tag} tone="neutral">{getDisplayValue(tag)}</Badge>)}
                   </div>
                   <div className="mt-auto rounded-2xl border border-primary/15 bg-primary/5 p-3 dark:border-primary/20 dark:bg-primary/10">
                     <p className="text-xs font-bold leading-5 text-primary dark:text-green-200">{t('market.card.contactOnly')}</p>
@@ -220,7 +257,7 @@ const PlantList = () => {
           <EmptyState
             title={t('market.empty.title')}
             description={t('market.empty.description')}
-            action={<Button variant="secondary" size="sm" onClick={() => { setSearchTerm(''); setActiveFilter('Tất cả'); }}>{t('market.empty.clear')}</Button>}
+            action={<Button variant="secondary" size="sm" onClick={() => { setSearchTerm(''); setActiveFilter('all'); }}>{t('market.empty.clear')}</Button>}
           />
         )}
 
