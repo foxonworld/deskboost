@@ -1,4 +1,5 @@
 import React from 'react';
+import { useI18n } from '../i18n';
 
 const toneStyles = {
   error: 'border-red-100 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300',
@@ -17,23 +18,33 @@ export const StateNotice = ({ children, tone = 'info', className = '', role }) =
   </div>
 );
 
-export const LoadingState = ({ message = 'Đang tải dữ liệu...' }) => (
-  <div role="status" className="rounded-3xl border border-[#E4EEE6] bg-surface-light p-8 text-center text-sm font-semibold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
-    <span className="inline-flex items-center justify-center gap-2">
-      <Spinner />
-      {message}
-    </span>
-  </div>
-);
+export const LoadingState = ({ message }) => {
+  const { t } = useI18n();
+  const shownMessage = message || t('common.loading');
 
-export const EmptyState = ({ icon = 'potted_plant', title = 'Chưa có dữ liệu', description, action }) => (
-  <div className="rounded-3xl border border-dashed border-[#E4EEE6] p-8 text-center dark:border-[#2A4532]">
-    <span className="material-symbols-outlined text-5xl text-text-secondary/50 dark:text-slate-500" aria-hidden="true">{icon}</span>
-    <p className="mt-3 text-lg font-bold text-text-main dark:text-slate-100">{title}</p>
-    {description && <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-6 text-text-secondary dark:text-slate-400">{description}</p>}
-    {action && <div className="mt-5">{action}</div>}
-  </div>
-);
+  return (
+    <div role="status" className="rounded-3xl border border-[#E4EEE6] bg-surface-light p-8 text-center text-sm font-semibold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
+      <span className="inline-flex items-center justify-center gap-2">
+        <Spinner />
+        {shownMessage}
+      </span>
+    </div>
+  );
+};
+
+export const EmptyState = ({ icon = 'potted_plant', title, description, action }) => {
+  const { t } = useI18n();
+  const shownTitle = title || t('common.emptyTitle');
+
+  return (
+    <div className="rounded-3xl border border-dashed border-[#E4EEE6] p-8 text-center dark:border-[#2A4532]">
+      <span className="material-symbols-outlined text-5xl text-text-secondary/50 dark:text-slate-500" aria-hidden="true">{icon}</span>
+      <p className="mt-3 text-lg font-bold text-text-main dark:text-slate-100">{shownTitle}</p>
+      {description && <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-6 text-text-secondary dark:text-slate-400">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
+    </div>
+  );
+};
 
 export const formControlClass = 'w-full rounded-xl border-[#E4EEE6] px-4 text-sm font-medium text-text-main focus:border-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#2A4532] dark:bg-surface-dark dark:text-white';
 

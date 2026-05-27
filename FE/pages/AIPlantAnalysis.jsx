@@ -8,18 +8,17 @@ import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
+import { useI18n } from '../i18n';
 
 gsap.registerPlugin(useGSAP);
 
-const captureTips = [
-  'Chụp rõ vùng lá/thân có dấu hiệu bất thường.',
-  'Ưu tiên ánh sáng tự nhiên, tránh ảnh quá tối hoặc lóa.',
-  'Nếu có thể, chụp thêm nền đất/chậu để AI hiểu ngữ cảnh chăm sóc.',
-];
-
-const defaultRecommendations = ['Kiểm tra độ ẩm đất trước khi tưới.', 'Đặt cây ở nơi sáng gián tiếp.', 'Theo dõi mặt dưới lá trong 3–5 ngày.'];
+const captureTipKeys = ['aiAnalysis.tip.clear', 'aiAnalysis.tip.light', 'aiAnalysis.tip.soil'];
+const defaultRecommendationKeys = ['aiAnalysis.defaultRec.moisture', 'aiAnalysis.defaultRec.light', 'aiAnalysis.defaultRec.leaves'];
 
 const AIPlantAnalysis = () => {
+  const { t } = useI18n();
+  const captureTips = captureTipKeys.map((key) => t(key));
+  const defaultRecommendations = defaultRecommendationKeys.map((key) => t(key));
   const [dragActive, setDragActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -54,16 +53,16 @@ const AIPlantAnalysis = () => {
     setError('');
     setResult(null);
     if (!file?.type?.startsWith('image/')) {
-      setError('Vui lòng chọn đúng định dạng ảnh cây.');
+      setError(t('aiAnalysis.errorInvalidFile'));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setError('Ảnh cần nhỏ hơn hoặc bằng 5MB để phân tích ổn định.');
+      setError(t('aiAnalysis.errorFileSize'));
       return;
     }
     const reader = new FileReader();
     reader.onload = (ev) => setSelectedImage(ev.target.result);
-    reader.onerror = () => setError('Chưa đọc được ảnh. Hãy thử chọn ảnh khác.');
+    reader.onerror = () => setError(t('aiAnalysis.errorReadFile'));
     reader.readAsDataURL(file);
   };
 
@@ -76,7 +75,7 @@ const AIPlantAnalysis = () => {
 
   const handleAnalyze = async () => {
     if (!selectedImage) {
-      setError('Hãy tải ảnh cây trước khi phân tích.');
+      setError(t('aiAnalysis.errorNoImage'));
       return;
     }
     setIsAnalyzing(true);
@@ -88,7 +87,7 @@ const AIPlantAnalysis = () => {
       });
       setResult(diagnosis);
     } catch (err) {
-      setError(err?.message || 'Chưa phân tích được ảnh. Hãy thử lại với ảnh rõ hơn.');
+      setError(err?.message || t('aiAnalysis.errorAnalyze'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -106,17 +105,17 @@ const AIPlantAnalysis = () => {
         <Card data-motion="ai-analysis-page" radius="hero" padding="feature" className="overflow-hidden bg-gradient-to-br from-white via-[#F7FBF5] to-[#EEF7EC] dark:from-surface-dark dark:via-[#102116] dark:to-[#0B1510]">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
-              <Badge tone="primary" icon="health_and_safety">AI chẩn đoán cây</Badge>
+              <Badge tone="primary" icon="health_and_safety">{t('aiAnalysis.badge')}</Badge>
               <h1 className="mt-4 text-3xl font-extrabold leading-tight text-text-main dark:text-white sm:text-4xl">
-                Gửi ảnh cây để nhận nhận định chăm sóc rõ ràng, bình tĩnh.
+                {t('aiAnalysis.title')}
               </h1>
               <p className="mt-3 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300 sm:text-base">
-                DeskBoost AI phân tích ảnh trong phạm vi chăm cây: dấu hiệu lá/thân/đất, nguyên nhân khả dĩ và bước chăm sóc tiếp theo. Không thay đổi contract backend/API.
+                {t('aiAnalysis.description')}
               </p>
             </div>
             <div className="grid gap-2 text-xs font-bold text-text-secondary dark:text-slate-300 sm:min-w-72">
-              <span className="rounded-2xl border border-primary/15 bg-white/70 px-4 py-3 dark:bg-white/5">Ảnh image · tối đa 5MB</span>
-              <span className="rounded-2xl border border-primary/15 bg-white/70 px-4 py-3 dark:bg-white/5">Plant-care only · không tư vấn ngoài phạm vi</span>
+              <span className="rounded-2xl border border-primary/15 bg-white/70 px-4 py-3 dark:bg-white/5">{t('aiAnalysis.signal.file')}</span>
+              <span className="rounded-2xl border border-primary/15 bg-white/70 px-4 py-3 dark:bg-white/5">{t('aiAnalysis.signal.scope')}</span>
             </div>
           </div>
         </Card>
@@ -136,10 +135,10 @@ const AIPlantAnalysis = () => {
                 {selectedImage ? (
                   <div className="grid h-full min-h-[330px] gap-4 lg:grid-cols-[1fr_260px]">
                     <div className="relative overflow-hidden rounded-3xl bg-[#0B1510]">
-                      <img src={selectedImage} alt="Ảnh cây đã chọn để AI phân tích" className="h-full min-h-[330px] w-full object-cover" />
+                      <img src={selectedImage} alt={t('aiAnalysis.selectedImageAlt')} className="h-full min-h-[330px] w-full object-cover" />
                       <button
                         type="button"
-                        aria-label="Xóa ảnh đã chọn"
+                        aria-label={t('aiAnalysis.removeImageAria')}
                         onClick={handleRemoveImage}
                         className="absolute right-4 top-4 inline-flex size-11 items-center justify-center rounded-full bg-red-500 text-white shadow-lg transition hover:bg-red-600 focus:outline-none focus:ring-4 focus:ring-red-200"
                       >
@@ -148,14 +147,14 @@ const AIPlantAnalysis = () => {
                     </div>
                     <div className="flex flex-col justify-between rounded-3xl border border-[#E4EEE6] bg-[#FAFCF8] p-5 text-left dark:border-[#2A4532] dark:bg-white/5">
                       <div>
-                        <Badge tone="success" icon="image">Preview ready</Badge>
-                        <h2 className="mt-4 text-xl font-extrabold text-text-main dark:text-white">Ảnh đã sẵn sàng</h2>
+                        <Badge tone="success" icon="image">{t('aiAnalysis.previewBadge')}</Badge>
+                        <h2 className="mt-4 text-xl font-extrabold text-text-main dark:text-white">{t('aiAnalysis.previewTitle')}</h2>
                         <p className="mt-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                          Kiểm tra ảnh có đủ rõ phần cần chẩn đoán trước khi gửi. Kết quả sẽ hiện bên dưới vùng upload.
+                          {t('aiAnalysis.previewDescription')}
                         </p>
                       </div>
                       <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing} loading={isAnalyzing} className="mt-5 w-full">
-                        {isAnalyzing ? 'Đang phân tích' : 'Phân tích ảnh cây'}
+                        {isAnalyzing ? t('aiAnalysis.analyzingButton') : t('aiAnalysis.analyzeButton')}
                       </Button>
                     </div>
                   </div>
@@ -164,15 +163,15 @@ const AIPlantAnalysis = () => {
                     <div className="flex size-20 items-center justify-center rounded-full bg-primary/10 text-primary">
                       <span className="material-symbols-outlined text-4xl" aria-hidden="true">add_photo_alternate</span>
                     </div>
-                    <h3 className="mt-5 text-2xl font-extrabold text-text-main dark:text-white">Tải ảnh cây lên</h3>
+                    <h3 className="mt-5 text-2xl font-extrabold text-text-main dark:text-white">{t('aiAnalysis.uploadTitle')}</h3>
                     <p className="mt-3 max-w-md text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                      Kéo thả ảnh vào đây hoặc chọn từ thiết bị. Ảnh rõ giúp AI đưa ra gợi ý chăm sóc đáng tin hơn.
+                      {t('aiAnalysis.uploadDescription')}
                     </p>
                     <label className="mt-6 inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-bold text-white shadow-sm transition hover:bg-primary-dark focus-within:ring-4 focus-within:ring-primary/25">
-                      Chọn ảnh cây
+                      {t('aiAnalysis.chooseImage')}
                       <input type="file" className="sr-only" onChange={(e) => loadImageFile(e.target.files?.[0])} accept="image/*" />
                     </label>
-                    <p className="mt-4 text-xs font-bold text-text-secondary dark:text-slate-400">Hỗ trợ image file · tối đa 5MB</p>
+                    <p className="mt-4 text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiAnalysis.fileHint')}</p>
                   </div>
                 )}
               </div>
@@ -180,7 +179,7 @@ const AIPlantAnalysis = () => {
 
             {selectedImage && !isAnalyzing && !result && (
               <StateNotice tone="info" className="text-sm">
-                Ảnh đã được tải lên. Nhấn “Phân tích ảnh cây” để gửi qua AI diagnosis service.
+                {t('aiAnalysis.readyNotice')}
               </StateNotice>
             )}
 
@@ -191,9 +190,9 @@ const AIPlantAnalysis = () => {
                     <Spinner />
                   </div>
                   <div>
-                    <h2 className="text-lg font-extrabold text-text-main dark:text-white">AI đang đọc dấu hiệu trên ảnh...</h2>
+                    <h2 className="text-lg font-extrabold text-text-main dark:text-white">{t('aiAnalysis.analyzingTitle')}</h2>
                     <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                      Đang kiểm tra vùng lá/thân/đất và chuẩn bị gợi ý chăm sóc theo hướng an toàn, không gây hoang mang.
+                      {t('aiAnalysis.analyzingDescription')}
                     </p>
                   </div>
                 </div>
@@ -204,18 +203,18 @@ const AIPlantAnalysis = () => {
               <Card data-motion="ai-analysis-state" radius="hero" padding="feature" className="space-y-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <Badge tone="success" icon="check_circle">Đã có nhận định</Badge>
-                    <h2 className="mt-3 text-2xl font-extrabold text-text-main dark:text-white">Tóm tắt tình trạng cây</h2>
+                    <Badge tone="success" icon="check_circle">{t('aiAnalysis.resultBadge')}</Badge>
+                    <h2 className="mt-3 text-2xl font-extrabold text-text-main dark:text-white">{t('aiAnalysis.resultTitle')}</h2>
                   </div>
                   {result.source && <Badge tone="warning">Source: {result.source}</Badge>}
                 </div>
                 <p className="text-base font-medium leading-7 text-text-secondary dark:text-slate-300">
-                  {result.summary || 'AI diagnosis fallback đang hoạt động. Dùng các khuyến nghị dưới đây như checklist chăm sóc ban đầu.'}
+                  {result.summary || t('aiAnalysis.summaryFallback')}
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(result.recommendations || defaultRecommendations).map((item, idx) => (
                     <div key={item} className="rounded-2xl border border-[#E4EEE6] bg-[#FAFCF8] p-4 dark:border-[#2A4532] dark:bg-white/5">
-                      <p className="text-xs font-extrabold text-primary">Bước {idx + 1}</p>
+                      <p className="text-xs font-extrabold text-primary">{t('aiAnalysis.stepLabel', { step: idx + 1 })}</p>
                       <p className="mt-2 text-sm font-bold leading-6 text-text-main dark:text-white">{item}</p>
                     </div>
                   ))}
@@ -228,7 +227,7 @@ const AIPlantAnalysis = () => {
             <Card radius="hero" padding="feature">
               <div className="flex items-center gap-3">
                 <span className="material-symbols-outlined text-primary" aria-hidden="true">verified</span>
-                <h3 className="text-lg font-extrabold text-text-main dark:text-white">Ảnh tốt giúp kết quả tốt hơn</h3>
+                <h3 className="text-lg font-extrabold text-text-main dark:text-white">{t('aiAnalysis.tipsTitle')}</h3>
               </div>
               <div className="mt-5 space-y-4">
                 {captureTips.map((desc, index) => (
@@ -243,10 +242,10 @@ const AIPlantAnalysis = () => {
             <Card radius="hero" padding="feature" className="bg-gradient-to-br from-[#F0FDF4] to-[#E8F5E9] dark:from-primary/10 dark:to-[#2E7D32]/10">
               <div className="flex items-center gap-2 text-primary">
                 <span className="material-symbols-outlined text-base" aria-hidden="true">lightbulb</span>
-                <span className="text-sm font-extrabold">Gợi ý đọc kết quả</span>
+                <span className="text-sm font-extrabold">{t('aiAnalysis.readingHintTitle')}</span>
               </div>
               <p className="mt-3 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                Kết quả AI là hỗ trợ chăm sóc ban đầu. Nếu cây tiếp tục xấu đi, hãy chụp lại sau vài ngày hoặc hỏi AI Chat với ngữ cảnh cây cụ thể.
+                {t('aiAnalysis.readingHint')}
               </p>
             </Card>
           </div>

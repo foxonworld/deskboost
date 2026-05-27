@@ -1,0 +1,666 @@
+export type Language = "vi" | "en";
+
+export const DEFAULT_LANGUAGE: Language = "vi";
+export const LANGUAGE_STORAGE_KEY = "deskboost.language";
+export const SUPPORTED_LANGUAGES: Language[] = ["vi", "en"];
+
+type TranslationValue = string;
+export type TranslationParams = Record<string, string | number>;
+export type TranslationKey = keyof typeof vi;
+
+const vi = {
+  "common.loading": "Đang tải dữ liệu...",
+  "common.emptyTitle": "Chưa có dữ liệu",
+  "common.submit": "Gửi",
+  "common.retry": "Thử lại",
+  "common.cancel": "Hủy",
+  "common.save": "Lưu",
+  "common.close": "Đóng",
+  "common.menu": "Menu",
+  "common.profile": "Hồ sơ",
+  "common.admin": "Admin",
+  "navbar.home": "Trang chủ",
+  "navbar.plants": "Cây cảnh",
+  "navbar.dashboard": "Dashboard",
+  "navbar.login": "Đăng nhập",
+  "navbar.logout": "Đăng xuất",
+  "navbar.loggingOut": "Đang xuất...",
+  "navbar.authLoading": "Đang tải phiên đăng nhập",
+  "navbar.openProfile": "Mở hồ sơ",
+  "navbar.openMobileNav": "Mở điều hướng di động",
+  "navbar.closeMobileNav": "Đóng điều hướng di động",
+  "language.toggleLabel": "Đổi ngôn ngữ",
+  "language.current": "Ngôn ngữ hiện tại: {language}",
+  "home.badge": "AI-assisted desk plant care",
+  "home.hero.title": "Chăm cây bàn làm việc bằng AI, không cần phức tạp.",
+  "home.hero.description":
+    "DeskBoost giúp bạn chọn cây phù hợp, nhận nhắc chăm sóc đúng lúc và hỏi AI khi cây có dấu hiệu bất thường — trong một trải nghiệm bình tĩnh, rõ ràng, đáng tin.",
+  "home.cta.marketplace": "Khám phá marketplace",
+  "home.cta.aiCare": "Thử AI chăm cây",
+  "home.heroImageAlt": "Bàn làm việc có cây xanh và ánh sáng tự nhiên",
+  "home.defaultTask.plantName": "Cây bàn làm việc",
+  "home.defaultTask.taskLabel": "Quan sát độ ẩm và ánh sáng",
+  "home.defaultTask.dueTime": "Hôm nay",
+  "home.urgency.overdue": "Cần xử lý",
+  "home.urgency.today": "Hôm nay",
+  "home.urgency.upcoming": "Sắp tới",
+  "home.trust.contact.value": "Contact-only",
+  "home.trust.contact.label": "Xem cây, hỏi tư vấn, chốt qua kênh liên hệ",
+  "home.trust.ai.value": "AI hỗ trợ",
+  "home.trust.ai.label":
+    "Không thay chuyên gia, nhưng giúp bạn biết bước tiếp theo",
+  "home.trust.manual.value": "Xác minh tay",
+  "home.trust.manual.label":
+    "Feedback được ghi nhận thủ công, tránh cảm giác review ảo",
+  "home.problem.badge": "Vấn đề → giải pháp",
+  "home.problem.title":
+    "Cây không chết vì bạn bận. Cây chết vì thiếu tín hiệu đúng lúc.",
+  "home.problem.description":
+    "DeskBoost chuyển việc chăm cây từ đoán mò sang một vòng lặp rõ ràng: chọn đúng cây, quan sát đúng dấu hiệu, hỏi AI khi cần và nhắc chăm sóc theo lịch.",
+  "home.feature.environment.title": "Chọn theo môi trường",
+  "home.feature.environment.text":
+    "Ánh sáng, diện tích bàn, thói quen tưới và mức kinh nghiệm.",
+  "home.feature.state.title": "Chăm theo trạng thái",
+  "home.feature.state.text":
+    "Tập trung vào dấu hiệu cây thật thay vì mẹo chăm sóc chung chung.",
+  "home.feature.contact.title": "Liên hệ trước khi mua",
+  "home.feature.contact.text":
+    "Marketplace giữ vai trò tư vấn và kết nối, không biến thành checkout.",
+  "home.feature.feedback.title": "Tin cậy qua phản hồi",
+  "home.feature.feedback.text":
+    "Feedback xác minh thủ công giúp câu chuyện chăm cây thực tế hơn.",
+  "home.workflow.badge": "AI care workflow",
+  "home.workflow.title": "Một luồng chăm cây đủ nhẹ cho bàn làm việc.",
+  "home.workflow.description":
+    "AI xuất hiện như trợ lý chăm cây có ngữ cảnh — không phô diễn, không thay bạn, chỉ giúp quyết định bước tiếp theo nhanh hơn.",
+  "home.workflow.signal.title": "Gửi tín hiệu từ cây",
+  "home.workflow.signal.text":
+    "Chụp ảnh lá, đất hoặc ghi chú triệu chứng để AI có ngữ cảnh chăm sóc rõ hơn.",
+  "home.workflow.ai.title": "AI đọc vấn đề",
+  "home.workflow.ai.text":
+    "DeskBoost gợi ý nguyên nhân thường gặp: thiếu sáng, thừa nước, sâu bệnh hoặc stress môi trường.",
+  "home.workflow.schedule.title": "Biến thành lịch chăm",
+  "home.workflow.schedule.text":
+    "Nhắc tưới, quan sát và theo dõi theo từng cây thay vì chăm theo cảm tính.",
+  "home.market.badge": "Contact-only marketplace",
+  "home.market.title": "Xem cây như một catalog tư vấn, không phải giỏ hàng.",
+  "home.market.description":
+    "Bạn xem cây phù hợp bàn làm việc, kiểm tra mức chăm sóc và liên hệ để được tư vấn. DeskBoost không xử lý thanh toán trong app.",
+  "home.market.cta": "Xem tất cả cây",
+  "home.market.cardDescription":
+    "Phù hợp bàn làm việc, dễ hỏi tư vấn trước khi chọn.",
+  "home.market.easyCare": "Dễ chăm",
+  "home.market.contactAdvice": "Liên hệ tư vấn",
+  "home.market.detailCta": "Xem chi tiết liên hệ",
+  "home.trust.badge": "Trust-first care",
+  "home.trust.title":
+    "Sự tin cậy đến từ hỗ trợ thật, không phải hiệu ứng bán hàng.",
+  "home.trust.description":
+    "DeskBoost ưu tiên tư vấn trước mua, chăm sóc sau mua và phản hồi đã xác minh. Trải nghiệm được thiết kế để mentor và người dùng thấy rõ một MVP có kỷ luật.",
+  "home.trust.prebuy.title": "Tư vấn trước mua",
+  "home.trust.prebuy.text": "Chọn cây theo điều kiện bàn làm việc.",
+  "home.trust.feedback.title": "Feedback xác minh",
+  "home.trust.feedback.text": "Ưu tiên phản hồi có ngữ cảnh thật.",
+  "home.trust.support.title": "Care support",
+  "home.trust.support.text": "AI và nhắc lịch hỗ trợ sau khi chọn cây.",
+  "home.final.badge": "Bắt đầu nhẹ nhàng",
+  "home.final.title":
+    "Chọn một cây. Hỏi một câu. Xây một thói quen chăm cây tốt hơn.",
+  "home.final.description":
+    "DeskBoost giữ marketplace đơn giản và dồn trọng tâm vào care experience — nơi AI, nhắc lịch và hỗ trợ liên hệ cùng làm việc cho cây của bạn.",
+  "home.final.aiCta": "Thử AI care",
+  "home.footer.description":
+    "Premium AI-assisted desk plant care. Marketplace contact-only, care support first.",
+  "home.footer.marketplace": "Marketplace",
+  "home.footer.aiCare": "AI care",
+  "market.badge": "Marketplace contact-only",
+  "market.hero.title":
+    "Chọn cây bàn làm việc đẹp, dễ chăm, liên hệ trực tiếp người bán.",
+  "market.hero.description":
+    "DeskBoost giúp bạn duyệt cây, xem mức giá tham khảo và kiểm tra độ phù hợp chăm sóc. Không giỏ hàng, không checkout, không thanh toán trong app.",
+  "market.signal.contact.title": "Liên hệ thủ công",
+  "market.signal.contact.desc": "Trao đổi qua kênh người bán",
+  "market.signal.fit.title": "Phù hợp bàn làm việc",
+  "market.signal.fit.desc": "Ưu tiên cây nhỏ gọn, dễ chăm",
+  "market.signal.mvp.title": "MVP minh bạch",
+  "market.signal.mvp.desc": "Xem giá trước, quyết định sau",
+  "market.process.title": "Quy trình mua hiện tại",
+  "market.process.step1": "Chọn cây phù hợp góc làm việc.",
+  "market.process.step2": "Mở chi tiết để xem mô tả và giá.",
+  "market.process.step3": "Liên hệ người bán để tư vấn/chốt đơn ngoài app.",
+  "market.fallbackNotice":
+    "Đang hiển thị dữ liệu mẫu vì chưa kết nối được máy chủ.",
+  "market.filter.all": "Tất cả",
+  "market.filter.pot": "Chậu cây",
+  "market.filter.soil": "Đất trồng",
+  "market.filter.fertilizer": "Phân bón",
+  "market.filter.accessory": "Phụ kiện",
+  "market.searchLabel": "Tìm kiếm sản phẩm",
+  "market.searchPlaceholder": "Tìm cây, chậu, phụ kiện...",
+  "market.sortLabel": "Sắp xếp",
+  "market.sort.popular": "Phổ biến",
+  "market.sort.priceAsc": "Giá: Thấp đến Cao",
+  "market.sort.priceDesc": "Giá: Cao đến Thấp",
+  "market.result.loading": "Đang tải",
+  "market.result.count": "{count} lựa chọn",
+  "market.result.allCategories": "Tất cả danh mục",
+  "market.result.contactOnly":
+    "Liên hệ người bán để tư vấn, không thanh toán trong DeskBoost.",
+  "market.loading": "Đang tải marketplace contact-only...",
+  "market.listAria": "Danh sách sản phẩm marketplace",
+  "market.badge.contact": "Liên hệ",
+  "market.badge.outOfStock": "Tạm hết",
+  "market.card.fallbackCategory": "Desk plant",
+  "market.card.contactOnly":
+    "Contact-only · Xem chi tiết trước, liên hệ người bán sau.",
+  "market.card.detail": "Xem chi tiết",
+  "market.card.contactSeller": "Liên hệ người bán",
+  "market.empty.title": "Không tìm thấy cây phù hợp",
+  "market.empty.description":
+    "Thử đổi từ khóa hoặc danh mục. Marketplace vẫn đang ở mô hình xem giá và liên hệ trực tiếp người bán.",
+  "market.empty.clear": "Xóa bộ lọc",
+  "market.transparency.badge": "Minh bạch MVP",
+  "market.transparency.title":
+    "DeskBoost không xử lý thanh toán trong marketplace.",
+  "market.transparency.description":
+    "Trang này tập trung giúp bạn duyệt cây nhanh, hiểu mức giá, sau đó liên hệ người bán để tư vấn thủ công qua kênh phù hợp.",
+  "market.transparency.cta": "Tìm hiểu DeskBoost",
+  "detail.breadcrumbAria": "Điều hướng chi tiết cây",
+  "detail.breadcrumb.home": "Trang chủ",
+  "detail.breadcrumb.marketplace": "Marketplace",
+  "detail.careFit": "Care-fit",
+  "detail.canContact": "Có thể liên hệ",
+  "detail.outOfStock": "Tạm hết",
+  "detail.careSummaryAria": "Tóm tắt chăm sóc cây",
+  "detail.care.light": "Ánh sáng",
+  "detail.care.water": "Tưới nước",
+  "detail.care.difficulty": "Độ chăm",
+  "detail.care.lightFallback": "Tư vấn theo vị trí đặt",
+  "detail.care.waterFallback": "Theo tình trạng cây",
+  "detail.care.difficultyFallback": "Hỏi người bán",
+  "detail.contactFirst": "Contact-first",
+  "detail.fallbackCategory": "Desk plant",
+  "detail.referencePrice": "Giá tham khảo",
+  "detail.priceNote":
+    "DeskBoost hiển thị giá để bạn cân nhắc trước; tư vấn và chốt mua diễn ra qua kênh người bán.",
+  "detail.zalo": "Nhắn Zalo",
+  "detail.messenger": "Nhắn Messenger",
+  "detail.contactThis": "Liên hệ tư vấn cây này",
+  "detail.noCheckout":
+    "Không giỏ hàng · Không checkout · Không thanh toán trong DeskBoost",
+  "detail.trust.feedback": "Phản hồi xác minh",
+  "detail.trust.records": "{count} ghi nhận",
+  "detail.trust.preClose": "Tư vấn trước khi chốt",
+  "detail.trust.channels": "Zalo/Messenger",
+  "detail.trust.noPayment": "Không thanh toán trong app",
+  "detail.trust.contactOnly": "Contact-only MVP",
+  "detail.workspace.badge": "Phù hợp workspace",
+  "detail.workspace.title": "Có hợp góc làm việc của bạn không?",
+  "detail.workspace.position": "Vị trí đặt",
+  "detail.workspace.positionPlant":
+    "Bàn làm việc, kệ sáng gián tiếp, góc học tập.",
+  "detail.workspace.positionAccessory":
+    "Phụ kiện hỗ trợ setup cây bàn làm việc gọn hơn.",
+  "detail.workspace.careLevel": "Mức chăm",
+  "detail.workspace.careLevelFallback": "Hỏi người bán để chọn đúng routine.",
+  "detail.workspace.askSeller": "Khi nên hỏi người bán",
+  "detail.workspace.askSellerDesc":
+    "Nếu phòng thiếu sáng, có điều hòa mạnh, hoặc cần cây ít rụng lá.",
+  "detail.notes.badge": "Plant care notes",
+  "detail.notes.title": "Ghi chú chăm sóc trước khi liên hệ",
+  "detail.notes.description":
+    "Mang theo vài thông tin khi nhắn người bán: vị trí đặt cây, mức sáng trong ngày, tần suất bạn có thể tưới và kích thước bàn/kệ. Người bán sẽ tư vấn lựa chọn phù hợp hơn thay vì app tự tạo checkout.",
+  "detail.support.badge": "Gợi ý hỗ trợ chăm sóc",
+  "detail.support.title": "Có thể hỏi thêm khi nhắn người bán",
+  "detail.support.description":
+    "Các mục liên quan chỉ là gợi ý để cuộc tư vấn đầy đủ hơn. Không có chọn combo, không tổng tiền, không checkout trong app.",
+  "detail.support.price": "Giá tham khảo: {price}",
+  "detail.feedback.badge": "Verified feedback",
+  "detail.feedback.title": "Phản hồi đã xác minh thủ công",
+  "detail.feedback.description":
+    "Ghi nhận từ khách đã liên hệ/mua ngoài app qua Zalo, Messenger hoặc trao đổi thủ công. Dùng để tăng độ tin cậy, không thay thế tư vấn trực tiếp.",
+  "detail.feedback.manualTrust": "Manual trust",
+  "detail.feedback.loading": "Đang tải phản hồi xác minh...",
+  "detail.feedback.error": "Không thể tải phản hồi đã xác minh thủ công.",
+  "detail.feedback.empty": "Chưa có phản hồi xác minh cho cây này.",
+  "detail.feedback.customerFallback": "Khách hàng DeskBoost",
+  "detail.feedback.ratingAria": "{rating} trên 5 sao",
+  "detail.feedback.offApp": "Liên hệ ngoài app",
+  "detail.feedback.manualVerified": "Xác minh thủ công",
+  "detail.mobileContact": "Liên hệ tư vấn",
+  "detail.alert.facebook": "Đang chuyển hướng tới Facebook để nhắn tin...",
+  "detail.alert.zalo": "Đang chuyển hướng tới Zalo để nhắn tin...",
+  "aiChat.badge": "AI chăm cây theo ngữ cảnh",
+  "aiChat.title":
+    "Hỏi DeskBoost AI như một trợ lý chăm cây riêng cho bàn làm việc.",
+  "aiChat.description":
+    "AI chỉ trả lời trong phạm vi chăm cây: nước, ánh sáng, đất, lá, thói quen chăm sóc và ghi chú của cây đang chọn.",
+  "aiChat.signal.noClaim": "Không cần QR/Claim để dùng AI",
+  "aiChat.signal.notGeneral": "Không phải chatbot tổng quát",
+  "aiChat.historyFallback":
+    "Đang dùng lịch sử AI mẫu trong khi backend chưa sẵn sàng.",
+  "aiChat.historyError":
+    "Chưa tải được lịch sử AI. Bạn vẫn có thể thử gửi câu hỏi mới.",
+  "aiChat.replyFallback":
+    "Chưa có phản hồi mẫu khả dụng. Hãy thử lại với câu hỏi chăm cây cụ thể hơn.",
+  "aiChat.replyFallbackNote":
+    "Đang dùng phản hồi AI mẫu trong khi backend /ai/chat chưa sẵn sàng.",
+  "aiChat.sendError": "Tin nhắn chưa gửi được. Kiểm tra kết nối rồi thử lại.",
+  "aiChat.assistantError":
+    "Mình chưa đọc được ngữ cảnh lúc này. Bạn có thể thử lại sau ít phút hoặc hỏi ngắn hơn về nước, sáng, lá hay đất.",
+  "aiChat.contextEyebrow": "Ngữ cảnh cây",
+  "aiChat.contextTitle": "Chọn cây để AI đọc đúng bối cảnh",
+  "aiChat.contextBadge": "Context",
+  "aiChat.contextDescription":
+    "Việc chọn cây chỉ giúp câu trả lời cụ thể hơn; AI vẫn là tính năng chăm cây mở, không khóa bằng claim.",
+  "aiChat.noPlantsTitle": "Chưa có cây để chọn",
+  "aiChat.noPlantsDescription":
+    "Bạn có thể thêm cây sau; AI không yêu cầu QR/Claim trong MVP.",
+  "aiChat.consultingFor": "Đang tư vấn cho",
+  "aiChat.choosePlant": "Chọn một cây",
+  "aiChat.selectedPlantContext":
+    "{species} · {status}. AI dùng hồ sơ cây, ánh sáng, nước và ghi chú hiện có.",
+  "aiChat.choosePlantPrompt": "Chọn cây để gửi câu hỏi chăm sóc.",
+  "aiChat.lightLabel": "Ánh sáng",
+  "aiChat.waterLabel": "Nước",
+  "aiChat.historyLoading": "Đang đọc lịch sử chăm cây...",
+  "aiChat.emptyTitle": "Bắt đầu bằng một câu hỏi chăm cây",
+  "aiChat.emptyDescription":
+    "Hỏi về tưới nước, ánh sáng, lá vàng, đất hoặc lịch chăm sóc. AI sẽ trả lời theo cây đang chọn.",
+  "aiChat.assistantLabel": "DeskBoost AI · plant-care only",
+  "aiChat.thinking": "Đang đọc ngữ cảnh cây và soạn gợi ý...",
+  "aiChat.inputLabel": "Câu hỏi chăm cây",
+  "aiChat.placeholderWithPlant": "Hỏi về {plant}: nước, sáng, lá, đất...",
+  "aiChat.placeholderNoPlant": "Chọn cây trước khi gửi câu hỏi chăm sóc...",
+  "aiChat.sending": "Đang gửi",
+  "aiChat.sendButton": "Gửi câu hỏi",
+  "aiChat.prompt.water": "Hôm nay cây này có cần tưới không?",
+  "aiChat.prompt.yellowLeaves": "Lá hơi vàng thì nên kiểm tra gì trước?",
+  "aiChat.prompt.light": "Vị trí bàn làm việc này có đủ sáng không?",
+  "aiChat.prompt.schedule": "Lịch chăm sóc tuần này nên như thế nào?",
+  "aiAnalysis.badge": "AI chẩn đoán cây",
+  "aiAnalysis.title":
+    "Gửi ảnh cây để nhận nhận định chăm sóc rõ ràng, bình tĩnh.",
+  "aiAnalysis.description":
+    "DeskBoost AI phân tích ảnh trong phạm vi chăm cây: dấu hiệu lá/thân/đất, nguyên nhân khả dĩ và bước chăm sóc tiếp theo. Không thay đổi contract backend/API.",
+  "aiAnalysis.signal.file": "Ảnh image · tối đa 5MB",
+  "aiAnalysis.signal.scope": "Plant-care only · không tư vấn ngoài phạm vi",
+  "aiAnalysis.errorInvalidFile": "Vui lòng chọn đúng định dạng ảnh cây.",
+  "aiAnalysis.errorFileSize":
+    "Ảnh cần nhỏ hơn hoặc bằng 5MB để phân tích ổn định.",
+  "aiAnalysis.errorReadFile": "Chưa đọc được ảnh. Hãy thử chọn ảnh khác.",
+  "aiAnalysis.errorNoImage": "Hãy tải ảnh cây trước khi phân tích.",
+  "aiAnalysis.errorAnalyze":
+    "Chưa phân tích được ảnh. Hãy thử lại với ảnh rõ hơn.",
+  "aiAnalysis.selectedImageAlt": "Ảnh cây đã chọn để AI phân tích",
+  "aiAnalysis.removeImageAria": "Xóa ảnh đã chọn",
+  "aiAnalysis.previewBadge": "Preview ready",
+  "aiAnalysis.previewTitle": "Ảnh đã sẵn sàng",
+  "aiAnalysis.previewDescription":
+    "Kiểm tra ảnh có đủ rõ phần cần chẩn đoán trước khi gửi. Kết quả sẽ hiện bên dưới vùng upload.",
+  "aiAnalysis.analyzingButton": "Đang phân tích",
+  "aiAnalysis.analyzeButton": "Phân tích ảnh cây",
+  "aiAnalysis.uploadTitle": "Tải ảnh cây lên",
+  "aiAnalysis.uploadDescription":
+    "Kéo thả ảnh vào đây hoặc chọn từ thiết bị. Ảnh rõ giúp AI đưa ra gợi ý chăm sóc đáng tin hơn.",
+  "aiAnalysis.chooseImage": "Chọn ảnh cây",
+  "aiAnalysis.fileHint": "Hỗ trợ image file · tối đa 5MB",
+  "aiAnalysis.readyNotice":
+    "Ảnh đã được tải lên. Nhấn “Phân tích ảnh cây” để gửi qua AI diagnosis service.",
+  "aiAnalysis.analyzingTitle": "AI đang đọc dấu hiệu trên ảnh...",
+  "aiAnalysis.analyzingDescription":
+    "Đang kiểm tra vùng lá/thân/đất và chuẩn bị gợi ý chăm sóc theo hướng an toàn, không gây hoang mang.",
+  "aiAnalysis.resultBadge": "Đã có nhận định",
+  "aiAnalysis.resultTitle": "Tóm tắt tình trạng cây",
+  "aiAnalysis.summaryFallback":
+    "AI diagnosis fallback đang hoạt động. Dùng các khuyến nghị dưới đây như checklist chăm sóc ban đầu.",
+  "aiAnalysis.stepLabel": "Bước {step}",
+  "aiAnalysis.tipsTitle": "Ảnh tốt giúp kết quả tốt hơn",
+  "aiAnalysis.tip.clear": "Chụp rõ vùng lá/thân có dấu hiệu bất thường.",
+  "aiAnalysis.tip.light":
+    "Ưu tiên ánh sáng tự nhiên, tránh ảnh quá tối hoặc lóa.",
+  "aiAnalysis.tip.soil":
+    "Nếu có thể, chụp thêm nền đất/chậu để AI hiểu ngữ cảnh chăm sóc.",
+  "aiAnalysis.readingHintTitle": "Gợi ý đọc kết quả",
+  "aiAnalysis.readingHint":
+    "Kết quả AI là hỗ trợ chăm sóc ban đầu. Nếu cây tiếp tục xấu đi, hãy chụp lại sau vài ngày hoặc hỏi AI Chat với ngữ cảnh cây cụ thể.",
+  "aiAnalysis.defaultRec.moisture": "Kiểm tra độ ẩm đất trước khi tưới.",
+  "aiAnalysis.defaultRec.light": "Đặt cây ở nơi sáng gián tiếp.",
+  "aiAnalysis.defaultRec.leaves": "Theo dõi mặt dưới lá trong 3–5 ngày.",
+};
+
+const en: Partial<Record<TranslationKey, TranslationValue>> = {
+  "common.loading": "Loading data...",
+  "common.emptyTitle": "No data yet",
+  "common.submit": "Submit",
+  "common.retry": "Try again",
+  "common.cancel": "Cancel",
+  "common.save": "Save",
+  "common.close": "Close",
+  "common.menu": "Menu",
+  "common.profile": "Profile",
+  "common.admin": "Admin",
+  "navbar.home": "Home",
+  "navbar.plants": "Plants",
+  "navbar.dashboard": "Dashboard",
+  "navbar.login": "Log in",
+  "navbar.logout": "Log out",
+  "navbar.loggingOut": "Logging out...",
+  "navbar.authLoading": "Loading sign-in session",
+  "navbar.openProfile": "Open profile",
+  "navbar.openMobileNav": "Open mobile navigation",
+  "navbar.closeMobileNav": "Close mobile navigation",
+  "language.toggleLabel": "Switch language",
+  "language.current": "Current language: {language}",
+  "home.badge": "AI-assisted desk plant care",
+  "home.hero.title": "AI-assisted desk plant care, without the complexity.",
+  "home.hero.description":
+    "DeskBoost helps you choose suitable plants, get timely care reminders, and ask AI when a plant shows unusual signs — in a calm, clear, trustworthy experience.",
+  "home.cta.marketplace": "Explore marketplace",
+  "home.cta.aiCare": "Try AI plant care",
+  "home.heroImageAlt": "Desk with green plants and natural light",
+  "home.defaultTask.plantName": "Desk plant",
+  "home.defaultTask.taskLabel": "Check moisture and light",
+  "home.defaultTask.dueTime": "Today",
+  "home.urgency.overdue": "Needs attention",
+  "home.urgency.today": "Today",
+  "home.urgency.upcoming": "Upcoming",
+  "home.trust.contact.value": "Contact-only",
+  "home.trust.contact.label":
+    "Browse plants, ask for advice, finalize through contact channels",
+  "home.trust.ai.value": "AI support",
+  "home.trust.ai.label":
+    "Not a replacement for experts, but helps you know the next step",
+  "home.trust.manual.value": "Manual verification",
+  "home.trust.manual.label":
+    "Feedback is recorded manually to avoid fake-review feeling",
+  "home.problem.badge": "Problem → solution",
+  "home.problem.title":
+    "Plants do not die because you are busy. They die because signals arrive too late.",
+  "home.problem.description":
+    "DeskBoost turns plant care from guesswork into a clear loop: choose the right plant, watch the right signs, ask AI when needed, and follow scheduled reminders.",
+  "home.feature.environment.title": "Choose by environment",
+  "home.feature.environment.text":
+    "Light, desk area, watering habits, and experience level.",
+  "home.feature.state.title": "Care by condition",
+  "home.feature.state.text":
+    "Focus on real plant signals instead of generic care tips.",
+  "home.feature.contact.title": "Contact before choosing",
+  "home.feature.contact.text":
+    "The marketplace stays consultative and connecting, not a checkout flow.",
+  "home.feature.feedback.title": "Trust through feedback",
+  "home.feature.feedback.text":
+    "Manually verified feedback makes each plant-care story feel more real.",
+  "home.workflow.badge": "AI care workflow",
+  "home.workflow.title": "A plant-care flow light enough for your desk.",
+  "home.workflow.description":
+    "AI appears as a contextual plant-care assistant — not flashy, not replacing you, just helping you decide the next step faster.",
+  "home.workflow.signal.title": "Send plant signals",
+  "home.workflow.signal.text":
+    "Upload leaf/soil photos or symptom notes so AI has clearer care context.",
+  "home.workflow.ai.title": "AI reads the issue",
+  "home.workflow.ai.text":
+    "DeskBoost suggests common causes: low light, overwatering, pests, or environmental stress.",
+  "home.workflow.schedule.title": "Turn it into care rhythm",
+  "home.workflow.schedule.text":
+    "Water, observe, and track each plant instead of relying on guesswork.",
+  "home.market.badge": "Contact-only marketplace",
+  "home.market.title": "Browse plants like an advisory catalog, not a cart.",
+  "home.market.description":
+    "Review desk-friendly plants, check care fit, and contact the seller for advice. DeskBoost does not process payments in-app.",
+  "home.market.cta": "View all plants",
+  "home.market.cardDescription":
+    "Desk-friendly and easy to ask about before choosing.",
+  "home.market.easyCare": "Easy care",
+  "home.market.contactAdvice": "Contact for advice",
+  "home.market.detailCta": "View contact details",
+  "home.trust.badge": "Trust-first care",
+  "home.trust.title": "Trust comes from real support, not sales effects.",
+  "home.trust.description":
+    "DeskBoost prioritizes pre-choice advice, after-choice care, and verified feedback. The experience is designed so mentors and users see a disciplined MVP.",
+  "home.trust.prebuy.title": "Pre-choice advice",
+  "home.trust.prebuy.text": "Choose plants by real desk conditions.",
+  "home.trust.feedback.title": "Verified feedback",
+  "home.trust.feedback.text": "Prioritize feedback with real context.",
+  "home.trust.support.title": "Care support",
+  "home.trust.support.text":
+    "AI and reminders support after you choose a plant.",
+  "home.final.badge": "Start gently",
+  "home.final.title":
+    "Choose one plant. Ask one question. Build a better care habit.",
+  "home.final.description":
+    "DeskBoost keeps the marketplace simple and focuses on the care experience — where AI, reminders, and contact support work together for your plant.",
+  "home.final.aiCta": "Try AI care",
+  "home.footer.description":
+    "Premium AI-assisted desk plant care. Contact-only marketplace, care support first.",
+  "home.footer.marketplace": "Marketplace",
+  "home.footer.aiCare": "AI care",
+  "market.badge": "Contact-only marketplace",
+  "market.hero.title":
+    "Choose beautiful, easy-care desk plants and contact sellers directly.",
+  "market.hero.description":
+    "DeskBoost helps you browse plants, view reference prices, and check care fit. No cart, no checkout, no in-app payment.",
+  "market.signal.contact.title": "Manual contact",
+  "market.signal.contact.desc": "Discuss through the seller's channel",
+  "market.signal.fit.title": "Desk-friendly fit",
+  "market.signal.fit.desc": "Small, easy-care plants first",
+  "market.signal.mvp.title": "Transparent MVP",
+  "market.signal.mvp.desc": "See price first, decide later",
+  "market.process.title": "Current purchase flow",
+  "market.process.step1": "Choose a plant that fits your workspace.",
+  "market.process.step2": "Open details to view description and price.",
+  "market.process.step3":
+    "Contact the seller for advice/finalizing outside the app.",
+  "market.fallbackNotice":
+    "Showing sample data because the server is not connected yet.",
+  "market.filter.all": "All",
+  "market.filter.pot": "Pots",
+  "market.filter.soil": "Soil",
+  "market.filter.fertilizer": "Fertilizer",
+  "market.filter.accessory": "Accessories",
+  "market.searchLabel": "Search products",
+  "market.searchPlaceholder": "Search plants, pots, accessories...",
+  "market.sortLabel": "Sort",
+  "market.sort.popular": "Popular",
+  "market.sort.priceAsc": "Price: Low to High",
+  "market.sort.priceDesc": "Price: High to Low",
+  "market.result.loading": "Loading",
+  "market.result.count": "{count} options",
+  "market.result.allCategories": "All categories",
+  "market.result.contactOnly":
+    "Contact sellers for advice; DeskBoost does not process payments.",
+  "market.loading": "Loading contact-only marketplace...",
+  "market.listAria": "Marketplace product list",
+  "market.badge.contact": "Contact",
+  "market.badge.outOfStock": "Temporarily out",
+  "market.card.fallbackCategory": "Desk plant",
+  "market.card.contactOnly":
+    "Contact-only · View details first, contact seller later.",
+  "market.card.detail": "View details",
+  "market.card.contactSeller": "Contact seller",
+  "market.empty.title": "No matching plants found",
+  "market.empty.description":
+    "Try another keyword or category. The marketplace still uses a view-price and direct-contact model.",
+  "market.empty.clear": "Clear filters",
+  "market.transparency.badge": "Transparent MVP",
+  "market.transparency.title":
+    "DeskBoost does not process marketplace payments.",
+  "market.transparency.description":
+    "This page helps you browse plants quickly, understand reference pricing, then contact the seller for manual advice through the right channel.",
+  "market.transparency.cta": "Learn about DeskBoost",
+  "detail.breadcrumbAria": "Plant detail navigation",
+  "detail.breadcrumb.home": "Home",
+  "detail.breadcrumb.marketplace": "Marketplace",
+  "detail.careFit": "Care-fit",
+  "detail.canContact": "Contact available",
+  "detail.outOfStock": "Temporarily out",
+  "detail.careSummaryAria": "Plant care summary",
+  "detail.care.light": "Light",
+  "detail.care.water": "Watering",
+  "detail.care.difficulty": "Care level",
+  "detail.care.lightFallback": "Advice by placement",
+  "detail.care.waterFallback": "Based on plant condition",
+  "detail.care.difficultyFallback": "Ask seller",
+  "detail.contactFirst": "Contact-first",
+  "detail.fallbackCategory": "Desk plant",
+  "detail.referencePrice": "Reference price",
+  "detail.priceNote":
+    "DeskBoost shows price so you can consider first; advice and finalizing happen through the seller's channel.",
+  "detail.zalo": "Message Zalo",
+  "detail.messenger": "Message Messenger",
+  "detail.contactThis": "Ask about this plant",
+  "detail.noCheckout": "No cart · No checkout · No payment in DeskBoost",
+  "detail.trust.feedback": "Verified feedback",
+  "detail.trust.records": "{count} records",
+  "detail.trust.preClose": "Advice before finalizing",
+  "detail.trust.channels": "Zalo/Messenger",
+  "detail.trust.noPayment": "No in-app payment",
+  "detail.trust.contactOnly": "Contact-only MVP",
+  "detail.workspace.badge": "Workspace fit",
+  "detail.workspace.title": "Does it fit your workspace?",
+  "detail.workspace.position": "Placement",
+  "detail.workspace.positionPlant":
+    "Desk, indirect-light shelf, or study corner.",
+  "detail.workspace.positionAccessory":
+    "Accessory that helps keep desk-plant setup tidy.",
+  "detail.workspace.careLevel": "Care level",
+  "detail.workspace.careLevelFallback":
+    "Ask the seller to choose the right routine.",
+  "detail.workspace.askSeller": "When to ask the seller",
+  "detail.workspace.askSellerDesc":
+    "If the room has low light, strong AC, or you need a low-shedding plant.",
+  "detail.notes.badge": "Plant care notes",
+  "detail.notes.title": "Care notes before contacting",
+  "detail.notes.description":
+    "Bring a few details when messaging the seller: plant placement, daily light, how often you can water, and desk/shelf size. The seller can advise a better fit instead of the app creating checkout.",
+  "detail.support.badge": "Care support suggestions",
+  "detail.support.title": "Ask these when messaging the seller",
+  "detail.support.description":
+    "Related items are only suggestions for a fuller consultation. No combo selection, no total price, no in-app checkout.",
+  "detail.support.price": "Reference price: {price}",
+  "detail.feedback.badge": "Verified feedback",
+  "detail.feedback.title": "Manually verified feedback",
+  "detail.feedback.description":
+    "Recorded from customers who contacted/bought outside the app via Zalo, Messenger, or manual conversation. Used for trust, not as a replacement for direct advice.",
+  "detail.feedback.manualTrust": "Manual trust",
+  "detail.feedback.loading": "Loading verified feedback...",
+  "detail.feedback.error": "Could not load manually verified feedback.",
+  "detail.feedback.empty": "No verified feedback for this plant yet.",
+  "detail.feedback.customerFallback": "DeskBoost customer",
+  "detail.feedback.ratingAria": "{rating} out of 5 stars",
+  "detail.feedback.offApp": "Off-app contact",
+  "detail.feedback.manualVerified": "Manually verified",
+  "detail.mobileContact": "Ask for advice",
+  "detail.alert.facebook": "Redirecting to Facebook Messenger...",
+  "detail.alert.zalo": "Redirecting to Zalo...",
+  "aiChat.badge": "Context-aware plant AI",
+  "aiChat.title":
+    "Ask DeskBoost AI like a personal plant-care assistant for your desk.",
+  "aiChat.description":
+    "AI only answers within plant care: water, light, soil, leaves, care habits, and notes for the selected plant.",
+  "aiChat.signal.noClaim": "No QR/Claim required to use AI",
+  "aiChat.signal.notGeneral": "Not a general chatbot",
+  "aiChat.historyFallback":
+    "Using sample AI history while the backend is not ready.",
+  "aiChat.historyError":
+    "Could not load AI history. You can still try sending a new question.",
+  "aiChat.replyFallback":
+    "No sample reply is available yet. Try again with a more specific plant-care question.",
+  "aiChat.replyFallbackNote":
+    "Using sample AI replies while backend /ai/chat is not ready.",
+  "aiChat.sendError":
+    "Message could not be sent. Check your connection and try again.",
+  "aiChat.assistantError":
+    "I cannot read the context right now. Try again in a few minutes or ask a shorter question about water, light, leaves, or soil.",
+  "aiChat.contextEyebrow": "Plant context",
+  "aiChat.contextTitle": "Choose a plant so AI reads the right context",
+  "aiChat.contextBadge": "Context",
+  "aiChat.contextDescription":
+    "Choosing a plant only makes answers more specific; AI stays open for plant care and is not locked by claims.",
+  "aiChat.noPlantsTitle": "No plants to choose yet",
+  "aiChat.noPlantsDescription":
+    "You can add plants later; AI does not require QR/Claim in the MVP.",
+  "aiChat.consultingFor": "Consulting for",
+  "aiChat.choosePlant": "Choose a plant",
+  "aiChat.selectedPlantContext":
+    "{species} · {status}. AI uses the plant profile, light, water, and current notes.",
+  "aiChat.choosePlantPrompt": "Choose a plant to send a care question.",
+  "aiChat.lightLabel": "Light",
+  "aiChat.waterLabel": "Water",
+  "aiChat.historyLoading": "Reading plant-care history...",
+  "aiChat.emptyTitle": "Start with a plant-care question",
+  "aiChat.emptyDescription":
+    "Ask about watering, light, yellow leaves, soil, or care schedule. AI will answer based on the selected plant.",
+  "aiChat.assistantLabel": "DeskBoost AI · plant-care only",
+  "aiChat.thinking": "Reading plant context and drafting advice...",
+  "aiChat.inputLabel": "Plant-care question",
+  "aiChat.placeholderWithPlant":
+    "Ask about {plant}: water, light, leaves, soil...",
+  "aiChat.placeholderNoPlant":
+    "Choose a plant before sending a care question...",
+  "aiChat.sending": "Sending",
+  "aiChat.sendButton": "Send question",
+  "aiChat.prompt.water": "Does this plant need watering today?",
+  "aiChat.prompt.yellowLeaves":
+    "What should I check first if leaves are yellowing?",
+  "aiChat.prompt.light": "Is this desk position bright enough?",
+  "aiChat.prompt.schedule": "What should this week's care schedule look like?",
+  "aiAnalysis.badge": "AI plant diagnosis",
+  "aiAnalysis.title": "Upload a plant photo for clear, calm care guidance.",
+  "aiAnalysis.description":
+    "DeskBoost AI analyzes photos within plant care: leaf/stem/soil signs, likely causes, and next care steps. Backend/API contracts stay unchanged.",
+  "aiAnalysis.signal.file": "Image photo · up to 5MB",
+  "aiAnalysis.signal.scope": "Plant-care only · no out-of-scope advice",
+  "aiAnalysis.errorInvalidFile": "Please choose a valid plant image file.",
+  "aiAnalysis.errorFileSize":
+    "Image must be 5MB or smaller for stable analysis.",
+  "aiAnalysis.errorReadFile":
+    "Could not read the image. Try choosing another one.",
+  "aiAnalysis.errorNoImage": "Upload a plant image before analysis.",
+  "aiAnalysis.errorAnalyze":
+    "Could not analyze the image. Try again with a clearer photo.",
+  "aiAnalysis.selectedImageAlt": "Selected plant image for AI analysis",
+  "aiAnalysis.removeImageAria": "Remove selected image",
+  "aiAnalysis.previewBadge": "Preview ready",
+  "aiAnalysis.previewTitle": "Image is ready",
+  "aiAnalysis.previewDescription":
+    "Check that the diagnosis area is clear before sending. Results will appear below the upload area.",
+  "aiAnalysis.analyzingButton": "Analyzing",
+  "aiAnalysis.analyzeButton": "Analyze plant image",
+  "aiAnalysis.uploadTitle": "Upload a plant image",
+  "aiAnalysis.uploadDescription":
+    "Drag and drop an image here or choose from your device. A clear photo helps AI provide more reliable care suggestions.",
+  "aiAnalysis.chooseImage": "Choose plant image",
+  "aiAnalysis.fileHint": "Supports image files · up to 5MB",
+  "aiAnalysis.readyNotice":
+    "Image uploaded. Select “Analyze plant image” to send it through the AI diagnosis service.",
+  "aiAnalysis.analyzingTitle": "AI is reading signs in the photo...",
+  "aiAnalysis.analyzingDescription":
+    "Checking leaf/stem/soil areas and preparing safe, calm care guidance.",
+  "aiAnalysis.resultBadge": "Guidance ready",
+  "aiAnalysis.resultTitle": "Plant condition summary",
+  "aiAnalysis.summaryFallback":
+    "AI diagnosis fallback is active. Use the recommendations below as an initial care checklist.",
+  "aiAnalysis.stepLabel": "Step {step}",
+  "aiAnalysis.tipsTitle": "Better photos improve results",
+  "aiAnalysis.tip.clear":
+    "Capture the leaf/stem area with unusual signs clearly.",
+  "aiAnalysis.tip.light":
+    "Prefer natural light; avoid photos that are too dark or overexposed.",
+  "aiAnalysis.tip.soil":
+    "If possible, include the soil/pot so AI understands care context.",
+  "aiAnalysis.readingHintTitle": "How to read results",
+  "aiAnalysis.readingHint":
+    "AI results are initial care support. If the plant keeps declining, take another photo after a few days or ask AI Chat with specific plant context.",
+  "aiAnalysis.defaultRec.moisture": "Check soil moisture before watering.",
+  "aiAnalysis.defaultRec.light": "Place the plant in bright indirect light.",
+  "aiAnalysis.defaultRec.leaves": "Monitor leaf undersides for 3–5 days.",
+};
+
+export const locales: Record<
+  Language,
+  Partial<Record<TranslationKey, TranslationValue>>
+> = {
+  vi,
+  en,
+};
