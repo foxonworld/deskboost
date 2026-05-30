@@ -44,6 +44,34 @@ const normalizePlantContext = (plant) => ({
   notes: plant.notes,
 });
 
+const TypedText = ({ text, onComplete, speed = 15 }) => {
+  const reducedMotion = usePrefersReducedMotion();
+  const [displayText, setDisplayText] = useState(reducedMotion ? text : '');
+
+  useEffect(() => {
+    if (reducedMotion) {
+      if (onComplete) onComplete();
+      return;
+    }
+
+    let currentLength = 0;
+    const interval = setInterval(() => {
+      currentLength += 3;
+      if (currentLength >= text.length) {
+        setDisplayText(text);
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      } else {
+        setDisplayText(text.slice(0, currentLength));
+      }
+    }, speed);
+
+    return () => clearInterval(interval);
+  }, [text, speed, reducedMotion]);
+
+  return <span className="font-semibold">{displayText}</span>;
+};
+
 const AIChat = () => {
   const { t } = useI18n();
   const starterMessages = useMemo(() => [
@@ -60,11 +88,14 @@ const AIChat = () => {
   const [selectedPlantId, setSelectedPlantId] = useState(MY_PLANTS[0]?.id || '');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState(starterMessages);
+  const [typingMessageId, setTypingMessageId] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const [fallbackNote, setFallbackNote] = useState('');
   const rootRef = useRef(null);
+  const messageListRef = useRef(null);
+  const chatHeaderRef = useRef(null);
   const reducedMotion = usePrefersReducedMotion();
 
   const getPlantDisplayValue = (value) => {
@@ -80,6 +111,38 @@ const AIChat = () => {
     const vars = getRevealVars(reducedMotion, motionDistances.md);
     gsap.fromTo(items, vars.from, vars.to);
   }, { scope: rootRef, dependencies: [reducedMotion] });
+
+  useGSAP(() => {
+    if (!messageListRef.current) return;
+
+    messageListRef.current.scrollTo({
+      top: messageListRef.current.scrollHeight,
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+
+    const bubbles = messageListRef.current.querySelectorAll('.chat-bubble');
+    if (!bubbles.length) return;
+    const lastBubble = bubbles[bubbles.length - 1];
+
+    if (lastBubble.getAttribute('data-new') === 'true') {
+      lastBubble.removeAttribute('data-new');
+      if (!reducedMotion) {
+        gsap.fromTo(lastBubble,
+          { scale: 0.96, opacity: 0, y: 8 },
+          { scale: 1, opacity: 1, y: 0, duration: 0.3, ease: 'back.out(1.5)' }
+        );
+      }
+    }
+  }, { scope: messageListRef, dependencies: [messages.length, reducedMotion] });
+
+  useGSAP(() => {
+    if (!chatHeaderRef.current || reducedMotion) return;
+
+    gsap.fromTo(chatHeaderRef.current,
+      { opacity: 0, y: 6 },
+      { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+    );
+  }, { scope: chatHeaderRef, dependencies: [selectedPlantId, reducedMotion] });
 
   useEffect(() => {
     let active = true;
@@ -137,27 +200,26 @@ const AIChat = () => {
         plantContext: normalizePlantContext(selectedPlant),
       });
 
-      setMessages((current) => [
-        ...current,
-        {
-          id: result?.dialogId || `assistant-${Date.now()}`,
-          from: 'assistant',
-          text: result?.reply || t('aiChat.replyFallback'),
-        },
-      ]);
+      const assistantMessage = {
+        id: result?.dialogId || `assistant-${Date.now()}`,
+        from: 'assistant',
+        text: result?.reply || t('aiChat.replyFallback'),
+      };
+      setMessages((current) => [...current, assistantMessage]);
+      setTypingMessageId(assistantMessage.id);
+
       if (result?.source === 'mock-fallback') {
         setFallbackNote(t('aiChat.replyFallbackNote'));
       }
     } catch (err) {
       setError(err?.message || t('aiChat.sendError'));
-      setMessages((current) => [
-        ...current,
-        {
-          id: `assistant-error-${Date.now()}`,
-          from: 'assistant',
-          text: t('aiChat.assistantError'),
-        },
-      ]);
+      const assistantErrorMsg = {
+        id: `assistant-error-${Date.now()}`,
+        from: 'assistant',
+        text: t('aiChat.assistantError'),
+      };
+      setMessages((current) => [...current, assistantErrorMsg]);
+      setTypingMessageId(assistantErrorMsg.id);
     } finally {
       setIsSending(false);
     }
@@ -232,7 +294,7 @@ const AIChat = () => {
           </Card>
 
           <section data-motion="ai-chat-entry" className="flex min-h-[620px] flex-col overflow-hidden rounded-3xl border border-[#E4EEE6] bg-white shadow-sm dark:border-[#2A4532] dark:bg-surface-dark">
-            <div className="border-b border-[#E4EEE6] p-4 dark:border-[#2A4532] sm:p-5">
+            <div ref={chatHeaderRef} className="border-b border-[#E4EEE6] p-4 dark:border-[#2A4532] sm:p-5">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.consultingFor')}</p>
@@ -250,7 +312,7 @@ const AIChat = () => {
               </div>
             </div>
 
-            <div className="flex-1 space-y-4 overflow-y-auto bg-[#FAFCF8] p-4 dark:bg-[#09130D] sm:p-5">
+            <div ref={messageListRef} className="flex-1 space-y-4 overflow-y-auto bg-[#FAFCF8] p-4 dark:bg-[#09130D] sm:p-5">
               {isHistoryLoading && (
                 <div className="inline-flex items-center gap-3 rounded-3xl border border-[#E4EEE6] bg-white px-5 py-4 text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-300">
                   <Spinner />
@@ -276,18 +338,30 @@ const AIChat = () => {
                 </div>
               )}
 
-              {messages.map((message) => {
+              {messages.map((message, index) => {
                 const user = message.from === 'user';
+                const isTyping = message.id === typingMessageId;
+                const isNew = index > 0 && index === messages.length - 1;
+
                 return (
                   <div key={message.id} className={`flex ${user ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[94%] rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[78%] sm:px-5 ${
-                      user
-                        ? 'rounded-br-lg bg-primary text-white'
-                        : 'rounded-bl-lg border border-[#E4EEE6] bg-white text-text-main dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-100'
-                    }`}
+                    <div
+                      className={`chat-bubble max-w-[94%] rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[78%] sm:px-5 ${
+                        user
+                          ? 'rounded-br-lg bg-primary text-white'
+                          : 'rounded-bl-lg border border-[#E4EEE6] bg-white text-text-main dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-100'
+                      }`}
+                      data-new={isNew ? 'true' : 'false'}
                     >
                       {!user && <p className="mb-1 text-[11px] font-extrabold text-primary">{t('aiChat.assistantLabel')}</p>}
-                      <p className="font-semibold">{message.id === 'starter-1' ? t('aiChat.description') : message.text}</p>
+                      {isTyping ? (
+                        <TypedText
+                          text={message.id === 'starter-1' ? t('aiChat.description') : message.text}
+                          onComplete={() => setTypingMessageId(null)}
+                        />
+                      ) : (
+                        <p className="font-semibold">{message.id === 'starter-1' ? t('aiChat.description') : message.text}</p>
+                      )}
                     </div>
                   </div>
                 );
