@@ -1,5 +1,7 @@
 # Điều chỉnh phạm vi dự án DeskBoost từ EXE101 sang EXE201
 
+> Historical/reference only. Active source of truth: [`../project-overview.md`](../project-overview.md) and [`../README.md`](../README.md).
+
 ## 1. Tổng quan
 
 Tài liệu này trình bày việc điều chỉnh phạm vi dự án DeskBoost khi chuyển từ giai đoạn EXE101 sang EXE201.

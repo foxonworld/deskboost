@@ -1,5 +1,7 @@
 # DeskBoost MVP – Frontend Completion Audit
 
+> Historical/reference only. Active planning source of truth: [`../README.md`](../README.md).
+
 Status: audit only. No implementation. No backend contract changes. MVP-first.
 
 ## Source reviewed
@@ -30,7 +32,7 @@ Status: audit only. No implementation. No backend contract changes. MVP-first.
 - `FE/components/AdminLayout.jsx`
 - `docs/api-contract.md`
 - `docs/frontend-architecture.md`
-- `docs/changelog.md`
+- `docs/archive/changelog.md`
 
 ## Executive summary
 
@@ -66,7 +68,7 @@ Primary goal before BE integration: make existing user surfaces consume service 
 - [ ] Fix docs drift in frontend architecture.
   - Current docs say AI Chat dedicated route/admin dashboard not implemented, but they are implemented.
   - Risk: BE handoff confusion.
-  - Files: `docs/frontend-architecture.md`, `docs/changelog.md`, `docs/api-contract.md`.
+  - Files: `docs/frontend-architecture.md`, `docs/archive/changelog.md`, `docs/api-contract.md`.
 
 - [ ] Decide mock fallback visibility standard.
   - Current: AI/admin show fallback note; public marketplace/user plant pages do not.
@@ -217,7 +219,7 @@ Primary goal before BE integration: make existing user surfaces consume service 
 
 - `docs/api-contract.md` is mostly current and useful.
 - `docs/frontend-architecture.md` is stale: says AI Chat/admin planned/not implemented.
-- `docs/changelog.md` current and shows guardrails.
+- `docs/archive/changelog.md` current and shows guardrails.
 - Need a short BE handoff note: which FE pages are service-driven vs mock-only after fixes.
 
 ## Recommended next implementation phase
@@ -286,7 +288,7 @@ Docs:
 
 - `docs/api-contract.md`
 - `docs/frontend-architecture.md`
-- `docs/changelog.md`
+- `docs/archive/changelog.md`
 - `plans/backend-plan.md`
 - `docs/backend-api-checklist-for-tuan.md`
 

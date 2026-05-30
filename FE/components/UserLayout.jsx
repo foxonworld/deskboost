@@ -8,7 +8,7 @@ const UserLayout = ({ children }) => {
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         <UserSidebar />
-        <main className="flex-1 overflow-y-auto bg-[#F7F9F8] dark:bg-[#10221f]">
+        <main className="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark">
           {children}
         </main>
       </div>

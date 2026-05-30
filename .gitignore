@@ -1,17 +1,62 @@
-# Visual Studio cache/options directory
-.vs/
+# =========================================================================
+# DeskBoost — .gitignore tiêu chuẩn cho .NET & React
+# =========================================================================
 
-# .NET build output
-bin/
-obj/
+# 1. Các thư mục build và file tạm của .NET (C#)
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
 *.user
+*.userosscache
+*.sln.docstates
+
+# 2. Thư mục cấu hình của IDE
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
 *.lscache
 
+# 3. Node.js và React (Frontend)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-
-# Frontend build output
+# 4. Thư mục build của React/Next.js/Vite
 dist/
+.next/
+out/
 build/
+.eslintcache
+.parcel-cache
+.cache/
+
+# 5. Các file tạm của hệ điều hành
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# 6. Các thư mục tạm và file rác khác
+.agent/
+.roo/
+.idea/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Local app settings with real credentials (use appsettings.json as template)
+**/appsettings.Development.json
+**/appsettings.Local.json
+**/appsettings.Production.json

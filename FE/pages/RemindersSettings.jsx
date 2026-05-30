@@ -12,18 +12,19 @@ import {
   markReminderDone,
   updateReminder,
 } from '../services/reminderApi';
+import { useI18n } from '../i18n';
 
 const typeConfig = {
-  watering: { label: 'watering', icon: 'water_drop', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-  fertilizing: { label: 'fertilizing', icon: 'eco', color: 'text-[#2E7D32]', bg: 'bg-[#F0FDF4] dark:bg-[#4CAF50]/10' },
-  check_leaves: { label: 'check leaves', icon: 'psychiatry', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  watering: { labelKey: 'reminders.type.watering', icon: 'water_drop', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+  fertilizing: { labelKey: 'reminders.type.fertilizing', icon: 'eco', color: 'text-[#2E7D32]', bg: 'bg-[#F0FDF4] dark:bg-[#4CAF50]/10' },
+  check_leaves: { labelKey: 'reminders.type.check_leaves', icon: 'psychiatry', color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
 };
 
 const frequencyLabels = {
-  daily: 'Daily',
-  weekly: 'Weekly',
-  biweekly: 'Every 2 weeks',
-  monthly: 'Monthly',
+  daily: 'reminders.frequency.daily',
+  weekly: 'reminders.frequency.weekly',
+  biweekly: 'reminders.frequency.biweekly',
+  monthly: 'reminders.frequency.monthly',
 };
 
 const todayKey = new Date().toISOString().slice(0, 10);
@@ -69,6 +70,7 @@ const defaultForm = {
 };
 
 const RemindersSettings = () => {
+  const { t } = useI18n();
   const [reminders, setReminders] = useState([]);
   const [form, setForm] = useState(defaultForm);
   const [activeFilter, setActiveFilter] = useState('all');
@@ -83,7 +85,7 @@ const RemindersSettings = () => {
     try {
       setReminders(await getReminders());
     } catch (err) {
-      setError(err?.message || 'Không tải được nhắc nhở. Đang dùng dữ liệu dự phòng nếu có.');
+      setError(err?.message || t('reminders.error.load'));
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ const RemindersSettings = () => {
 
   useEffect(() => {
     loadReminders();
-  }, []);
+  }, [t]);
 
   const grouped = useMemo(() => ({
     today: reminders.filter((item) => getBucket(item) === 'today'),
@@ -106,14 +108,14 @@ const RemindersSettings = () => {
   const handleAddAllToCalendar = () => {
     if (!exportableCount) return;
     openCalendarUrls(calendarExport.googleCalendarUrls);
-    setNotice(`Opening ${exportableCount} enabled reminder${exportableCount > 1 ? 's' : ''} for one-time calendar add.`);
+    setNotice(t('reminders.notice.opening', { count: exportableCount }));
     setTimeout(() => setNotice(''), 2500);
   };
 
   const handleDownloadAllIcs = () => {
     if (!exportableCount) return;
     downloadIcsContent(calendarExport.ics, 'deskboost-enabled-reminders.ics');
-    setNotice(`Downloaded ${exportableCount} enabled reminder${exportableCount > 1 ? 's' : ''} as one .ics file.`);
+    setNotice(t('reminders.notice.downloaded', { count: exportableCount }));
     setTimeout(() => setNotice(''), 2500);
   };
 
@@ -125,10 +127,10 @@ const RemindersSettings = () => {
       const created = await createReminder(form);
       setReminders((prev) => [created, ...prev]);
       setForm(defaultForm);
-      setNotice('Đã thêm nhắc nhở trong app. Calendar chỉ là add/export thủ công.');
+      setNotice(t('reminders.notice.added'));
       setTimeout(() => setNotice(''), 2500);
     } catch (err) {
-      setError(err?.message || 'Không lưu được nhắc nhở.');
+      setError(err?.message || t('reminders.error.save'));
     } finally {
       setSaving(false);
     }
@@ -150,9 +152,9 @@ const RemindersSettings = () => {
   };
 
   const stats = [
-    { key: 'today', label: 'Today', value: grouped.today.length, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-    { key: 'upcoming', label: 'Upcoming', value: grouped.upcoming.length, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
-    { key: 'completed', label: 'Completed', value: grouped.completed.length, color: 'text-[#4CAF50]', bg: 'bg-[#4CAF50]/5' },
+    { key: 'today', label: t('reminders.stats.today'), value: grouped.today.length, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+    { key: 'upcoming', label: t('reminders.stats.upcoming'), value: grouped.upcoming.length, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+    { key: 'completed', label: t('reminders.stats.completed'), value: grouped.completed.length, color: 'text-[#4CAF50]', bg: 'bg-[#4CAF50]/5' },
   ];
 
   return (
@@ -160,13 +162,13 @@ const RemindersSettings = () => {
       <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 pb-16">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">Care Reminders</h1>
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">{t('reminders.title')}</h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium text-sm">
-              In-app reminders with one-time Add to Calendar / .ics export.
+              {t('reminders.description')}
             </p>
           </div>
           <span className="px-3 py-2 rounded-2xl bg-[#F0FDF4] text-[#2E7D32] border border-[#A5D6A7] text-xs font-black">
-            MVP calendar export
+            {t('reminders.mvpExport')}
           </span>
         </div>
 
@@ -175,18 +177,18 @@ const RemindersSettings = () => {
 
         <div className="rounded-3xl border border-[#A5D6A7] bg-[#F0FDF4] dark:bg-[#4CAF50]/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-[#2E7D32]">Calendar export</p>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white">Export enabled reminders</h2>
+            <p className="text-xs font-black uppercase tracking-wide text-[#2E7D32]">{t('reminders.exportEyebrow')}</p>
+            <h2 className="text-lg font-black text-slate-900 dark:text-white">{t('reminders.exportTitle')}</h2>
             <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
-              {exportableCount} enabled, incomplete reminder{exportableCount === 1 ? '' : 's'} ready. Completed or disabled reminders are skipped.
+              {t('reminders.exportReady', { count: exportableCount })}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
             <button onClick={handleAddAllToCalendar} disabled={!exportableCount} className="px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-50 disabled:cursor-not-allowed">
-              Add all to Google Calendar
+              {t('reminders.addAllGoogle')}
             </button>
             <button onClick={handleDownloadAllIcs} disabled={!exportableCount} className="px-4 py-3 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed">
-              Download all .ics
+              {t('reminders.downloadAll')}
             </button>
           </div>
         </div>
@@ -205,41 +207,41 @@ const RemindersSettings = () => {
             <div>
               <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#4CAF50]">notifications_active</span>
-                Reminder settings
+                {t('reminders.settingsTitle')}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">Configure plant, type, frequency, time, enabled state.</p>
+              <p className="text-xs text-slate-500 mt-1">{t('reminders.settingsDesc')}</p>
             </div>
-            <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">Show all</button>
+            <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">{t('reminders.showAll')}</button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-6 gap-3 border-b border-slate-50 dark:border-slate-800">
-            <input value={form.plantName} onChange={(e) => setForm((prev) => ({ ...prev, plantName: e.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder="Plant" required />
+            <input value={form.plantName} onChange={(e) => setForm((prev) => ({ ...prev, plantName: e.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.plantPlaceholder')} required />
             <select value={form.type} onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
-              <option value="watering">watering</option>
-              <option value="fertilizing">fertilizing</option>
-              <option value="check_leaves">check leaves</option>
+              <option value="watering">{t('reminders.type.watering')}</option>
+              <option value="fertilizing">{t('reminders.type.fertilizing')}</option>
+              <option value="check_leaves">{t('reminders.type.check_leaves')}</option>
             </select>
             <select value={form.frequency} onChange={(e) => setForm((prev) => ({ ...prev, frequency: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="biweekly">Every 2 weeks</option>
-              <option value="monthly">Monthly</option>
+              <option value="daily">{t('reminders.frequency.daily')}</option>
+              <option value="weekly">{t('reminders.frequency.weekly')}</option>
+              <option value="biweekly">{t('reminders.frequency.biweekly')}</option>
+              <option value="monthly">{t('reminders.frequency.monthly')}</option>
             </select>
             <input type="time" value={form.time} onChange={(e) => setForm((prev) => ({ ...prev, time: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
             <div className="flex gap-2">
               <button type="button" onClick={() => setForm((prev) => ({ ...prev, enabled: !prev.enabled }))} className={`px-4 py-3 rounded-xl text-xs font-black ${form.enabled ? 'bg-[#4CAF50] text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                {form.enabled ? 'Enabled' : 'Disabled'}
+                {form.enabled ? t('common.enabled') : t('common.disabled')}
               </button>
               <button type="submit" disabled={saving} className="flex-1 px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-60">
-                {saving ? 'Saving...' : 'Add'}
+                {saving ? t('common.saving') : t('common.add')}
               </button>
             </div>
           </form>
 
           <div className="p-4 space-y-3">
-            {loading && <LoadingState message="Loading reminders..." />}
+            {loading && <LoadingState message={t('reminders.loading')} />}
             {!loading && filteredReminders.length === 0 && (
-              <EmptyState icon="event_available" title="No reminders yet" description="Add a simple care reminder for watering, fertilizing, or check leaves." />
+              <EmptyState icon="event_available" title={t('reminders.emptyTitle')} description={t('reminders.emptyDescription')} />
             )}
             {!loading && filteredReminders.map((reminder) => {
               const cfg = typeConfig[reminder.type] || typeConfig.watering;
@@ -251,37 +253,37 @@ const RemindersSettings = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-black text-slate-900 dark:text-white">{reminder.plantName}</h3>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${reminder.enabled ? 'bg-[#F0FDF4] text-[#2E7D32]' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>{reminder.enabled ? 'enabled' : 'disabled'}</span>
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">{bucket}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${reminder.enabled ? 'bg-[#F0FDF4] text-[#2E7D32]' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>{reminder.enabled ? t('common.enabled') : t('common.disabled')}</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">{t(`reminders.stats.${bucket}`)}</span>
                       </div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap text-xs font-bold text-slate-500">
-                        <span className={`${cfg.color} flex items-center gap-1`}><span className="material-symbols-outlined text-sm">{cfg.icon}</span>{cfg.label}</span>
+                        <span className={`${cfg.color} flex items-center gap-1`}><span className="material-symbols-outlined text-sm">{cfg.icon}</span>{t(cfg.labelKey)}</span>
                         <span>·</span>
-                        <span>{frequencyLabels[reminder.frequency] || reminder.frequency}</span>
+                        <span>{frequencyLabels[reminder.frequency] ? t(frequencyLabels[reminder.frequency]) : reminder.frequency}</span>
                         <span>·</span>
-                        <span>{reminder.dueDate} at {reminder.time}</span>
+                        <span>{t('reminders.dueAt', { date: reminder.dueDate, time: reminder.time })}</span>
                       </div>
-                      <p className="mt-2 text-xs font-semibold text-slate-400">Email reminder: future backend enhancement only.</p>
+                      <p className="mt-2 text-xs font-semibold text-slate-400">{t('reminders.emailFuture')}</p>
                     </div>
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
                     {!reminder.completed && (
                       <button onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors">
-                        Mark done
+                        {t('reminders.markDone')}
                       </button>
                     )}
                     <button onClick={() => handleToggleEnabled(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300">
-                      {reminder.enabled ? 'Disable' : 'Enable'}
+                      {reminder.enabled ? t('common.disable') : t('common.enable')}
                     </button>
                     <a href={generateGoogleCalendarUrl(reminder)} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-[#F0FDF4] text-xs font-black">
-                      Add to Calendar
+                      {t('reminders.addCalendar')}
                     </a>
                     <button onClick={() => downloadIcs(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black">
-                      Download .ics
+                      {t('reminders.downloadIcs')}
                     </button>
                     <button onClick={() => handleDelete(reminder.id)} className="ml-auto px-4 py-2 rounded-xl text-red-500 text-xs font-black hover:bg-red-50 dark:hover:bg-red-900/20">
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </article>
