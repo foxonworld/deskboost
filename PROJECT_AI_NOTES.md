@@ -218,3 +218,24 @@ Do not remember:
 - raw logs
 - large diffs
 - temporary failures
+
+- UI Polish Sprint A — AI Experience Polish completed. Files changed: `FE/index.html`, `FE/pages/AIPlantAnalysis.jsx`, `FE/pages/AIChat.jsx`, `PROJECT_AI_NOTES.md`.
+- Sprint A AI decisions: AI Laser Scan quét 1 lần duy nhất trong mỗi lần chẩn đoán, ẩn hoàn toàn khi reducedMotion là true; Drag Zone CSS chuyển đổi nét đứt xám nhạt (`border-dashed border-slate-300 dark:border-slate-700 bg-transparent`) sang nét liền xanh lá (`border-solid border-primary bg-primary/5 scale-[1.01]`) mượt mà; Chat typing effect chỉ chạy 1 lần trên tin nhắn AI mới nhận thông qua component `TypedText` và state `typingMessageId` (gõ cực nhanh 15ms/3 ký tự, không replay lịch sử cũ); GSAP bubble reveal cuộn tin nhắn xuống dưới và nảy nhẹ bong bóng chat mới (`scale: 0.96 -> 1`, trượt `8px -> 0px` ease `back.out(1.5)` trong `0.3s`); Context switch thực hiện fade + slide nhẹ (trượt 6px) khi thay đổi bối cảnh cây thông qua `chatHeaderRef`.
+- Sprint A motion constraints preserved: không có chuyển động lặp vô hạn, không có timeline GSAP phức tạp, hỗ trợ hoàn hảo `prefers-reduced-motion` tắt hết chuyển động về trạng thái tĩnh, giữ nguyên routes/API/auth/backend.
+- Sprint A validation: `cd FE && npm run lint` đạt kết quả sạch lỗi; `cd FE && npm run build` biên dịch thành công 100% không có lỗi.
+
+- UI Polish Sprint B — Marketplace & Detail Polish completed. Files changed: `FE/pages/PlantList.jsx`, `FE/pages/PlantDetail.jsx`, `PROJECT_AI_NOTES.md`.
+- Sprint B Marketplace decisions: Thêm component `SkeletonCard` mô phỏng chính xác cấu trúc hình học của Product Card thật (tỷ lệ 4:3, tiêu đề, giá, badge và 2 nút) nhấp nháy sang trọng (`animate-pulse`) thay thế cho Spinner loading cũ; tinh chỉnh Card hover tương tác (scale tối đa `1.02` cho ảnh sản phẩm để giữ độ tinh tế chuyên nghiệp, kết hợp nhấc nhẹ card `hover:-translate-y-1 hover:shadow-md dark:hover:border-primary/20` với transition mượt mà 300ms, không dùng bóng đổ dày marketing giá rẻ).
+- Sprint B Plant Detail decisions: Thay thế text feedback loading bằng 2 khối verified feedback skeleton nhấp nháy mô phỏng đầy đủ avatar, tiêu đề, stars, comment và tags; bổ sung class `animate-cta-pulse-once` cho nút Zalo, Messenger, nút liên hệ chính và Bottom di động CTA để co giãn nhẹ và đổ bóng mờ đúng 1 lần duy nhất khi component mount.
+- Sprint B motion constraints preserved: không có chuyển động lặp vô hạn, không có timeline GSAP phức tạp, hỗ trợ reduced-motion tắt hiệu ứng trượt/scale/pulse về trạng thái tĩnh, giữ nguyên routes/API/auth/backend.
+- Sprint B validation: `cd FE && npm run lint` đạt kết quả sạch lỗi; `cd FE && npm run build` biên dịch thành công 100% không có lỗi.
+
+- UI Polish Sprint C — Landing Page Polish & Future Vision completed. Files changed: `FE/pages/Home.jsx`, `FE/i18n/locales.ts`, `PROJECT_AI_NOTES.md`.
+- Sprint C Hero decisions: Hero Section heading nâng cấp typography leading-[1.12] và dải màu gradient chữ sang trọng (`bg-gradient-to-br from-text-main via-text-main to-primary bg-clip-text text-transparent dark:from-white dark:via-white dark:to-green-400`); không sử dụng video, showcase thiết bị, hay mockups SaaS marketing phô trương.
+- Sprint C Trust Section decisions: Tái cấu trúc grid tính năng niềm tin chính của DeskBoost phản ánh chính xác sản phẩm: `AI Diagnosis` (icon `psychology`), `Plant Profiles` (icon `folder_shared`), `Smart Reminders` (icon `notifications_active`), và `Verified Marketplace` (icon `storefront`); đồng bộ hóa dịch văn bản đa ngôn ngữ vi/en trong locales.
+- Sprint C Future Vision decisions: Thêm section lộ trình phát triển định hướng dài hạn ("Future Vision Section") phía trên footer trong Home.jsx, hiển thị các giai đoạn Phase 01–05: `QR Plant Identity`, `Claim Ownership`, `AI Context Memory`, `Weather Integration`, `IoT Monitoring` dưới dạng đường timeline vertical kẻ mảnh với các badge icon tinh tế, tạo độ thuyết phục cao cho EXE201 mà không thay đổi MVP scope.
+- Sprint C Social Proof decisions: Thêm section chỉ số ảnh hưởng ("Social Proof Section") với các số liệu demo thống kê hợp lý: `1,250+ AI Diagnoses`, `500+ Managed Plants`, `98.6% Care Reminders Completed`, và `200+ Verified Feedback` dưới dạng 4 card compact tinh tế trước footer.
+- Sprint C validation: `cd FE && npm run lint` đạt kết quả sạch lỗi; `cd FE && npm run build` biên dịch thành công 100% không có lỗi.
+
+
+

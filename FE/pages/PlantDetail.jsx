@@ -119,7 +119,7 @@ const PlantDetail = () => {
           <div className="space-y-5">
             <Card padding="none" radius="hero" className="group overflow-hidden" data-motion="detail-hero">
               <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-900">
-                <img src={plant.image} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt={plant.name} />
+                <img src={plant.image} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt={plant.name} />
                 <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                   <Badge tone="overlay" icon="spa">{t('detail.careFit')}</Badge>
                   {plant.status === 'Out of Stock' ? <Badge tone="warning">{t('detail.outOfStock')}</Badge> : <Badge tone="overlay" icon="forum">{t('detail.canContact')}</Badge>}
@@ -160,10 +160,10 @@ const PlantDetail = () => {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Button variant="channel" size="lg" onClick={handleContactZalo} className="w-full bg-[#0068FF] hover:bg-[#0055d4]">{t('detail.zalo')}</Button>
-                <Button variant="channel" size="lg" onClick={handleContactFacebook} className="w-full bg-[#0866FF] hover:bg-[#0050d1]">{t('detail.messenger')}</Button>
+                <Button variant="channel" size="lg" onClick={handleContactZalo} className="w-full bg-[#0068FF] hover:bg-[#0055d4] animate-cta-pulse-once">{t('detail.zalo')}</Button>
+                <Button variant="channel" size="lg" onClick={handleContactFacebook} className="w-full bg-[#0866FF] hover:bg-[#0050d1] animate-cta-pulse-once">{t('detail.messenger')}</Button>
               </div>
-              <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full">{t('detail.contactThis')}</Button>
+              <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full animate-cta-pulse-once">{t('detail.contactThis')}</Button>
               <p className="mt-3 text-center text-xs font-bold text-text-secondary dark:text-slate-400">{t('detail.noCheckout')}</p>
             </Card>
           </aside>
@@ -253,7 +253,24 @@ const PlantDetail = () => {
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               {feedbackLoading ? (
-                <p className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500 dark:bg-white/5 dark:text-slate-300">{t('detail.feedback.loading')}</p>
+                <>
+                  {Array.from({ length: 2 }).map((_, idx) => (
+                    <div key={idx} className="rounded-2xl border border-[#E4EEE6] bg-slate-50/50 p-4 dark:border-[#2A4532] dark:bg-white/5 space-y-4 animate-pulse">
+                      <div className="flex justify-between gap-3 items-center">
+                        <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-1/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-3.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <div className="h-5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                        <div className="h-5 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </>
               ) : feedbackError ? (
                 <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>
               ) : feedbackItems.length === 0 ? (
@@ -284,7 +301,7 @@ const PlantDetail = () => {
             <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
             <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{formatVND(plant.price)} · {t('detail.trust.contactOnly')}</p>
           </div>
-          <Button size="sm" onClick={handleContactZalo}>{t('detail.mobileContact')}</Button>
+          <Button size="sm" onClick={handleContactZalo} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
         </div>
       </div>
     </div>

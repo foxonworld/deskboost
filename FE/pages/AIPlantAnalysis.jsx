@@ -126,7 +126,11 @@ const AIPlantAnalysis = () => {
           <div className="space-y-5 lg:col-span-2">
             <Card data-motion="ai-analysis-state" padding="none" radius="hero" className="overflow-hidden">
               <div
-                className={`relative min-h-[360px] border-2 border-dashed p-4 text-center transition-all sm:min-h-[430px] sm:p-6 ${dragActive ? 'border-primary bg-primary/5' : 'border-transparent'}`}
+                className={`relative min-h-[360px] border-2 p-4 text-center transition-all duration-300 sm:min-h-[430px] sm:p-6 ${
+                  dragActive
+                    ? 'border-solid border-primary bg-primary/5 scale-[1.01]'
+                    : 'border-dashed border-slate-300 dark:border-slate-700 bg-transparent'
+                }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
@@ -136,6 +140,9 @@ const AIPlantAnalysis = () => {
                   <div className="grid h-full min-h-[330px] gap-4 lg:grid-cols-[1fr_260px]">
                     <div className="relative overflow-hidden rounded-3xl bg-[#0B1510]">
                       <img src={selectedImage} alt={t('aiAnalysis.selectedImageAlt')} className="h-full min-h-[330px] w-full object-cover" />
+                      {isAnalyzing && !reducedMotion && (
+                        <div className="absolute inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_8px_rgba(76,175,80,0.8)] animate-scan-once" />
+                      )}
                       <button
                         type="button"
                         aria-label={t('aiAnalysis.removeImageAria')}

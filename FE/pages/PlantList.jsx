@@ -38,6 +38,34 @@ const displayValueKeys = {
   'N/A': 'market.value.notApplicable',
 };
 
+const SkeletonCard = () => (
+  <Card padding="none" className="flex flex-col overflow-hidden border border-[#E4EEE6] dark:border-[#2A4532]">
+    <div className="relative aspect-[4/3] bg-slate-200 dark:bg-slate-800 animate-pulse" />
+    <div className="flex flex-grow flex-col p-4 space-y-4">
+      <div className="flex justify-between gap-3 items-start">
+        <div className="space-y-2 flex-1">
+          <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+          <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        </div>
+        <div className="h-5 w-1/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse shrink-0" />
+      </div>
+      <div className="space-y-2">
+        <div className="h-3.5 w-full bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+        <div className="h-3.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+      </div>
+      <div className="flex gap-2">
+        <div className="h-6 w-14 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+        <div className="h-6 w-16 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+      </div>
+      <div className="h-11 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse mt-auto" />
+      <div className="grid grid-cols-2 gap-2 mt-4">
+        <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+        <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+      </div>
+    </div>
+  </Card>
+);
+
 const PlantList = () => {
   const pageRef = useRef(null);
   const gridRevealedRef = useRef(false);
@@ -215,17 +243,21 @@ const PlantList = () => {
         </section>
 
         {isLoading ? (
-          <LoadingState message={t('market.loading')} />
+          <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <SkeletonCard key={idx} />
+            ))}
+          </section>
         ) : sortedAndFilteredPlants.length > 0 ? (
           <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label={t('market.listAria')}>
             {sortedAndFilteredPlants.map(plant => (
-              <Card key={plant.id} padding="none" interactive className="group flex flex-col overflow-hidden" data-motion="marketplace-card">
+              <Card key={plant.id} padding="none" interactive={false} className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/20 dark:hover:border-primary/20" data-motion="marketplace-card">
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
                     <Badge tone="overlay" icon="forum">{t('market.badge.contact')}</Badge>
                   </div>
                   {(plant.status === 'Out of Stock') && <Badge tone="warning" className="absolute right-3 top-3 z-10">{t('market.badge.outOfStock')}</Badge>}
-                  <img src={plant.image || plant.imageUrl} alt={getProductDisplay(plant, 'name')} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <img src={plant.image || plant.imageUrl} alt={getProductDisplay(plant, 'name')} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
                 </div>
                 <div className="flex flex-grow flex-col p-4">
                   <div className="mb-3 flex items-start justify-between gap-3">
