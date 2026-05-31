@@ -98,3 +98,29 @@ export const get = (path, params) => request(path, { params });
 export const post = (path, body) => request(path, { method: "POST", body });
 export const put = (path, body) => request(path, { method: "PUT", body });
 export const del = (path) => request(path, { method: "DELETE" });
+
+export const requestText = async (path, options = {}) => {
+  const { method = "GET", body, params, ...rest } = options;
+  const res = await fetch(buildUrl(path, params), {
+    method,
+    headers: getHeaders(body),
+    body:
+      body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
+    ...rest,
+  });
+  const text = await res.text();
+
+  if (!res.ok) {
+    const payload = safeParseJson(text)?.error || safeParseJson(text) || {};
+    const message =
+      payload.message ||
+      payload.title ||
+      text ||
+      res.statusText ||
+      "Request failed";
+    if (res.status === 401) clearAuth();
+    throw new ApiError(message, res.status, payload.code, payload.details || payload);
+  }
+
+  return text;
+};

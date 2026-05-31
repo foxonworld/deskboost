@@ -6,12 +6,14 @@ import {
   deleteReminder,
   generateCombinedCalendarExport,
   generateGoogleCalendarUrl,
-  generateIcsFile,
+  getReminderCalendar,
+  getReminderIcs,
   getReminderTypeLabel,
   getReminders,
   markReminderDone,
   updateReminder,
 } from '../services/reminderApi';
+import { getMyPlants } from '../services/plantApi';
 import { useI18n } from '../i18n';
 
 const typeConfig = {
@@ -47,35 +49,32 @@ const downloadIcsContent = (content, filename) => {
   URL.revokeObjectURL(url);
 };
 
-const downloadIcs = (reminder) => {
-  downloadIcsContent(
-    generateIcsFile(reminder),
-    `deskboost-${reminder.plantName}-${getReminderTypeLabel(reminder.type)}.ics`,
-  );
-};
-
 const openCalendarUrls = (urls = []) => {
   urls.forEach(({ url }, index) => {
     window.setTimeout(() => window.open(url, '_blank', 'noopener,noreferrer'), index * 250);
   });
 };
 
-const defaultForm = {
-  plantName: 'Monstera Deliciosa',
-  plantEmoji: '🌿',
+const getDefaultForm = (plantId = '') => ({
+  plantId,
+  title: '',
   type: 'watering',
   frequency: 'daily',
+  dueDate: new Date().toISOString().slice(0, 10),
   time: '08:00',
-  enabled: true,
-};
+  notes: '',
+});
 
 const RemindersSettings = () => {
   const { t } = useI18n();
   const [reminders, setReminders] = useState([]);
-  const [form, setForm] = useState(defaultForm);
+  const [plants, setPlants] = useState([]);
+  const [form, setForm] = useState(getDefaultForm());
+  const [editingId, setEditingId] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [actionId, setActionId] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -83,7 +82,11 @@ const RemindersSettings = () => {
     setLoading(true);
     setError('');
     try {
-      setReminders(await getReminders());
+      const [nextReminders, plantData] = await Promise.all([getReminders(), getMyPlants()]);
+      const nextPlants = plantData.items || [];
+      setReminders(nextReminders);
+      setPlants(nextPlants);
+      setForm((prev) => (prev.plantId ? prev : getDefaultForm(nextPlants[0]?.id || '')));
     } catch (err) {
       setError(err?.message || t('reminders.error.load'));
     } finally {
@@ -124,10 +127,17 @@ const RemindersSettings = () => {
     setSaving(true);
     setError('');
     try {
-      const created = await createReminder(form);
-      setReminders((prev) => [created, ...prev]);
-      setForm(defaultForm);
-      setNotice(t('reminders.notice.added'));
+      if (editingId) {
+        const updated = await updateReminder(editingId, form);
+        setReminders((prev) => prev.map((item) => (item.id === editingId ? updated : item)));
+        setEditingId('');
+        setNotice(t('reminders.notice.updated'));
+      } else {
+        const created = await createReminder(form);
+        setReminders((prev) => [created, ...prev]);
+        setNotice(t('reminders.notice.added'));
+      }
+      setForm(getDefaultForm(plants[0]?.id || ''));
       setTimeout(() => setNotice(''), 2500);
     } catch (err) {
       setError(err?.message || t('reminders.error.save'));
@@ -136,20 +146,63 @@ const RemindersSettings = () => {
     }
   };
 
-  const handleMarkDone = async (id) => {
-    const updated = await markReminderDone(id);
-    setReminders((prev) => prev.map((item) => (item.id === id ? updated : item)));
+  const withReminderAction = async (id, action, fallbackMessage = t('reminders.error.save')) => {
+    setActionId(id);
+    setError('');
+    try {
+      await action();
+    } catch (err) {
+      setError(err?.message || fallbackMessage);
+    } finally {
+      setActionId('');
+    }
   };
 
-  const handleToggleEnabled = async (reminder) => {
-    const updated = await updateReminder(reminder.id, { enabled: !reminder.enabled });
-    setReminders((prev) => prev.map((item) => (item.id === reminder.id ? updated : item)));
+  const handleMarkDone = (id) =>
+    withReminderAction(id, async () => {
+      const updated = await markReminderDone(id);
+      setReminders((prev) => prev.map((item) => (item.id === id ? updated : item)));
+    });
+
+  const handleDelete = (id) =>
+    withReminderAction(id, async () => {
+      await deleteReminder(id);
+      setReminders((prev) => prev.filter((item) => item.id !== id));
+    });
+
+  const handleEdit = (reminder) => {
+    setEditingId(reminder.id);
+    setForm({
+      plantId: reminder.plantId,
+      title: reminder.title || '',
+      type: reminder.type,
+      frequency: reminder.frequency,
+      dueDate: reminder.dueDate,
+      time: reminder.time,
+      notes: reminder.notes || '',
+    });
   };
 
-  const handleDelete = async (id) => {
-    await deleteReminder(id);
-    setReminders((prev) => prev.filter((item) => item.id !== id));
+  const handleCancelEdit = () => {
+    setEditingId('');
+    setForm(getDefaultForm(plants[0]?.id || ''));
   };
+
+  const handleAddToCalendar = (reminder) =>
+    withReminderAction(reminder.id, async () => {
+      const calendar = await getReminderCalendar(reminder.id);
+      const url = calendar.googleCalendarUrl || generateGoogleCalendarUrl(reminder);
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }, t('reminders.error.calendar'));
+
+  const handleDownloadIcs = (reminder) =>
+    withReminderAction(reminder.id, async () => {
+      const ics = await getReminderIcs(reminder.id);
+      downloadIcsContent(
+        ics,
+        `deskboost-${reminder.plantName}-${getReminderTypeLabel(reminder.type)}.ics`,
+      );
+    }, t('reminders.error.calendar'));
 
   const stats = [
     { key: 'today', label: t('reminders.stats.today'), value: grouped.today.length, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
@@ -207,7 +260,7 @@ const RemindersSettings = () => {
             <div>
               <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-[#4CAF50]">notifications_active</span>
-                {t('reminders.settingsTitle')}
+                {editingId ? t('reminders.editTitle') : t('reminders.settingsTitle')}
               </h2>
               <p className="text-xs text-slate-500 mt-1">{t('reminders.settingsDesc')}</p>
             </div>
@@ -215,25 +268,35 @@ const RemindersSettings = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-6 gap-3 border-b border-slate-50 dark:border-slate-800">
-            <input value={form.plantName} onChange={(e) => setForm((prev) => ({ ...prev, plantName: e.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.plantPlaceholder')} required />
-            <select value={form.type} onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
+            <select value={form.plantId} onChange={(event) => setForm((prev) => ({ ...prev, plantId: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
+              {plants.length === 0 && <option value="">{t('reminders.noPlants')}</option>}
+              {plants.map((plant) => (
+                <option key={plant.id} value={plant.id}>{plant.nickname || plant.name}</option>
+              ))}
+            </select>
+            <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
               <option value="watering">{t('reminders.type.watering')}</option>
               <option value="fertilizing">{t('reminders.type.fertilizing')}</option>
               <option value="check_leaves">{t('reminders.type.check_leaves')}</option>
             </select>
-            <select value={form.frequency} onChange={(e) => setForm((prev) => ({ ...prev, frequency: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
+            <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
               <option value="daily">{t('reminders.frequency.daily')}</option>
               <option value="weekly">{t('reminders.frequency.weekly')}</option>
               <option value="biweekly">{t('reminders.frequency.biweekly')}</option>
               <option value="monthly">{t('reminders.frequency.monthly')}</option>
             </select>
-            <input type="time" value={form.time} onChange={(e) => setForm((prev) => ({ ...prev, time: e.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
+            <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
+            <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
+            <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.titlePlaceholder')} />
+            <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className="md:col-span-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.notesPlaceholder')} />
             <div className="flex gap-2">
-              <button type="button" onClick={() => setForm((prev) => ({ ...prev, enabled: !prev.enabled }))} className={`px-4 py-3 rounded-xl text-xs font-black ${form.enabled ? 'bg-[#4CAF50] text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                {form.enabled ? t('common.enabled') : t('common.disabled')}
-              </button>
-              <button type="submit" disabled={saving} className="flex-1 px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-60">
-                {saving ? t('common.saving') : t('common.add')}
+              {editingId && (
+                <button type="button" onClick={handleCancelEdit} className="px-4 py-3 rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 text-xs font-black">
+                  {t('common.cancel')}
+                </button>
+              )}
+              <button type="submit" disabled={saving || !plants.length} className="flex-1 px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-60">
+                {saving ? t('common.saving') : editingId ? t('common.save') : t('common.add')}
               </button>
             </div>
           </form>
@@ -249,7 +312,7 @@ const RemindersSettings = () => {
               return (
                 <article key={reminder.id} className={`rounded-3xl border p-4 transition-all ${reminder.completed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-80' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md'}`}>
                   <div className="flex items-start gap-4">
-                    <div className={`size-12 rounded-2xl flex items-center justify-center text-2xl ${cfg.bg}`}>{reminder.plantEmoji}</div>
+                    <div className={`size-12 rounded-2xl flex items-center justify-center text-2xl ${cfg.bg}`}>{reminder.plantEmoji || '🌿'}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-black text-slate-900 dark:text-white">{reminder.plantName}</h3>
@@ -263,26 +326,26 @@ const RemindersSettings = () => {
                         <span>·</span>
                         <span>{t('reminders.dueAt', { date: reminder.dueDate, time: reminder.time })}</span>
                       </div>
-                      <p className="mt-2 text-xs font-semibold text-slate-400">{t('reminders.emailFuture')}</p>
+                      {reminder.notes && <p className="mt-2 text-xs font-semibold text-slate-400">{reminder.notes}</p>}
                     </div>
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
                     {!reminder.completed && (
-                      <button onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors">
+                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
                         {t('reminders.markDone')}
                       </button>
                     )}
-                    <button onClick={() => handleToggleEnabled(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300">
-                      {reminder.enabled ? t('common.disable') : t('common.enable')}
+                    <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-60">
+                      {t('common.edit')}
                     </button>
-                    <a href={generateGoogleCalendarUrl(reminder)} target="_blank" rel="noreferrer" className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-[#F0FDF4] text-xs font-black">
+                    <button disabled={actionId === reminder.id} onClick={() => handleAddToCalendar(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-[#F0FDF4] text-xs font-black disabled:opacity-60">
                       {t('reminders.addCalendar')}
-                    </a>
-                    <button onClick={() => downloadIcs(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black">
+                    </button>
+                    <button disabled={actionId === reminder.id} onClick={() => handleDownloadIcs(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black disabled:opacity-60">
                       {t('reminders.downloadIcs')}
                     </button>
-                    <button onClick={() => handleDelete(reminder.id)} className="ml-auto px-4 py-2 rounded-xl text-red-500 text-xs font-black hover:bg-red-50 dark:hover:bg-red-900/20">
+                    <button disabled={actionId === reminder.id} onClick={() => handleDelete(reminder.id)} className="ml-auto px-4 py-2 rounded-xl text-red-500 text-xs font-black hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60">
                       {t('common.delete')}
                     </button>
                   </div>

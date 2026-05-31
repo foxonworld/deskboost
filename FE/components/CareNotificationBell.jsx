@@ -11,17 +11,16 @@ const urgencyConfig = {
 
 const CareNotificationBell = () => {
   const { t } = useI18n();
-  const { pendingTasks, doneTasks, urgentCount, notificationOpen, setNotificationOpen, markDone, undoDone } = useCare();
+  const { pendingTasks, doneTasks, urgentCount, loading, error, notificationOpen, setNotificationOpen, markDone, undoDone } = useCare();
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!notificationOpen) return;
-    const handler = (e) => {
+    const handler = (event) => {
       if (
-        panelRef.current && !panelRef.current.contains(e.target) &&
-        buttonRef.current && !buttonRef.current.contains(e.target)
+        panelRef.current && !panelRef.current.contains(event.target) &&
+        buttonRef.current && !buttonRef.current.contains(event.target)
       ) {
         setNotificationOpen(false);
       }
@@ -32,12 +31,19 @@ const CareNotificationBell = () => {
 
   const totalPending = pendingTasks.length;
 
+  const handleMarkDone = async (taskId) => {
+    try {
+      await markDone(taskId);
+    } catch {
+      // Keep the notification panel mounted; CareContext owns refresh/error state.
+    }
+  };
+
   return (
     <div className="relative">
-      {/* Bell Button */}
       <button
         ref={buttonRef}
-        onClick={() => setNotificationOpen(o => !o)}
+        onClick={() => setNotificationOpen((open) => !open)}
         className={`relative flex items-center justify-center size-10 rounded-xl transition-all border ${
           notificationOpen
             ? 'bg-[#4CAF50]/10 border-[#4CAF50]/30 text-[#4CAF50]'
@@ -55,14 +61,12 @@ const CareNotificationBell = () => {
         )}
       </button>
 
-      {/* Notification Panel */}
       {notificationOpen && (
         <div
           ref={panelRef}
           className="absolute right-0 top-full mt-3 w-[360px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 z-[200] overflow-hidden"
           style={{ animation: 'slideDown 0.2s ease' }}
         >
-          {/* Panel Header */}
           <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <div>
               <h3 className="font-black text-slate-900 dark:text-white text-sm">{t('careBell.title')}</h3>
@@ -79,31 +83,40 @@ const CareNotificationBell = () => {
             </Link>
           </div>
 
-          {/* Task List */}
           <div className="max-h-[380px] overflow-y-auto">
-            {totalPending === 0 && doneTasks.length === 0 && (
+            {loading && (
+              <div className="p-8 text-center">
+                <span className="material-symbols-outlined text-[#4CAF50] animate-spin mb-3">progress_activity</span>
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{t('careBell.loading')}</p>
+              </div>
+            )}
+
+            {!loading && error && (
+              <div className="m-3 rounded-2xl border border-red-100 bg-red-50 p-4 text-xs font-bold text-red-600 dark:border-red-900/40 dark:bg-red-900/20">
+                {error}
+              </div>
+            )}
+
+            {!loading && totalPending === 0 && doneTasks.length === 0 && !error && (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">🌿</div>
                 <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{t('careBell.empty')}</p>
               </div>
             )}
 
-            {/* Pending tasks */}
-            {pendingTasks.length > 0 && (
+            {!loading && pendingTasks.length > 0 && (
               <div className="p-3 space-y-2">
-                {pendingTasks.map(task => {
-                  const cfg = urgencyConfig[task.urgency];
+                {pendingTasks.map((task) => {
+                  const cfg = urgencyConfig[task.urgency] || urgencyConfig.upcoming;
                   return (
                     <div
                       key={task.id}
                       className={`flex items-center gap-3 p-3 rounded-2xl border transition-all group ${cfg.bg} border-transparent`}
                     >
-                      {/* Plant emoji + icon */}
                       <div className="flex-shrink-0 size-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-lg">
-                        {task.plantEmoji}
+                        {task.plantEmoji || '🌿'}
                       </div>
 
-                      {/* Info */}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{task.plantName}</p>
                         <div className="flex items-center gap-1.5 mt-0.5">
@@ -118,18 +131,15 @@ const CareNotificationBell = () => {
                         </div>
                       </div>
 
-                      {/* Actions */}
                       <div className="flex flex-col gap-1.5 flex-shrink-0">
-                        {/* Quick confirm */}
                         <button
-                          onClick={() => markDone(task.id)}
+                          onClick={() => handleMarkDone(task.id)}
                           className="flex items-center gap-1 px-2.5 py-1.5 bg-[#4CAF50] text-white text-[11px] font-bold rounded-xl hover:scale-105 active:scale-95 transition-all shadow-sm shadow-[#4CAF50]/30"
                           title={t('careBell.confirmDone')}
                         >
                           <span className="material-symbols-outlined text-xs" style={{ fontSize: '13px' }}>check</span>
                           {t('careBell.doneButton')}
                         </button>
-                        {/* Go to profile */}
                         <Link
                           to={task.plantPath}
                           onClick={() => setNotificationOpen(false)}
@@ -146,8 +156,7 @@ const CareNotificationBell = () => {
               </div>
             )}
 
-            {/* Done tasks (collapsed) */}
-            {doneTasks.length > 0 && (
+            {!loading && doneTasks.length > 0 && (
               <div className="px-3 pb-3">
                 {pendingTasks.length > 0 && (
                   <div className="flex items-center gap-2 mb-2 px-1">
@@ -157,10 +166,10 @@ const CareNotificationBell = () => {
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  {doneTasks.map(task => (
+                  {doneTasks.map((task) => (
                     <div key={task.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 opacity-70">
                       <div className="flex-shrink-0 size-8 bg-[#4CAF50]/10 rounded-lg flex items-center justify-center text-base">
-                        {task.plantEmoji}
+                        {task.plantEmoji || '🌿'}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-slate-500 dark:text-slate-400 line-through truncate">{task.plantName}</p>
@@ -183,7 +192,6 @@ const CareNotificationBell = () => {
             )}
           </div>
 
-          {/* Footer */}
           <div className="px-5 py-3 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-[10px] text-slate-400 font-medium">
               {t('careBell.footer', { done: doneTasks.length, total: doneTasks.length + pendingTasks.length })}

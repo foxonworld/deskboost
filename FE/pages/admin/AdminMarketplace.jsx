@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { createAdminFeedback, getAdminMarketplacePlants } from '../../services/adminApi';
+import { getAdminMarketplacePlants } from '../../services/adminApi';
 
 const AdminMarketplace = () => {
   const [plants, setPlants] = useState([]);
@@ -28,20 +28,8 @@ const AdminMarketplace = () => {
     event.preventDefault();
     setFeedbackStatus('');
     setFeedbackError('');
-    setFeedbackSaving(true);
-    try {
-      await createAdminFeedback({
-        ...feedbackForm,
-        rating: Number(feedbackForm.rating),
-        catalogPlantId: feedbackForm.catalogPlantId || undefined,
-      });
-      setFeedbackStatus('Feedback saved as manually verified mock-ready data.');
-      setFeedbackForm((current) => ({ ...current, comment: '', evidenceNote: '' }));
-    } catch (err) {
-      setFeedbackError(err?.message || 'Could not save manually verified feedback.');
-    } finally {
-      setFeedbackSaving(false);
-    }
+    setFeedbackError('Backend blocker: no admin verified-feedback endpoint exists yet, so DeskBoost will not save manual reviews as mock data.');
+    setFeedbackSaving(false);
   };
 
   useEffect(() => {
@@ -102,7 +90,7 @@ const AdminMarketplace = () => {
         <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Manually verified feedback</p>
         <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">Add feedback from social/manual sale</h2>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-          Lightweight Phase 1 workflow. Evidence note stays private in admin form data only; public cards show customer alias, quote, rating, channel, and Verified manually.
+          Backend blocker: this screen is held as architecture readiness only until an admin verified-feedback endpoint is available. No mock reviews are saved or published from here.
         </p>
         {feedbackStatus && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{feedbackStatus}</p>}
         {feedbackError && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>}
@@ -144,9 +132,9 @@ const AdminMarketplace = () => {
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <button type="submit" disabled={feedbackSaving} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
-              {feedbackSaving ? 'Saving...' : 'Add verified manually'}
+              {feedbackSaving ? 'Saving...' : 'Check backend readiness'}
             </button>
-            <span className="rounded-full bg-[#4CAF50]/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[#4CAF50]">Verified manually</span>
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">Blocked until API exists</span>
           </div>
         </form>
       </section>

@@ -1,136 +1,85 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { getReminderTypeLabel, getReminders, markReminderDone } from '../services/reminderApi';
 
-// --------------------
-//  Default task data
-// --------------------
-const DEFAULT_TASKS = [
-  {
-    id: 1,
-    plantName: 'Monstera Deliciosa',
-    plantEmoji: '🌿',
-    taskType: 'watering',
-    taskLabel: 'Tưới nước',
-    taskIcon: 'water_drop',
-    dueTime: 'Hôm nay, 07:00',
-    urgency: 'overdue', // 'overdue' | 'today' | 'upcoming'
-    plantPath: '/app/my-plants',
-    done: false,
-    doneAt: null,
-  },
-  {
-    id: 2,
-    plantName: 'Cây xương rồng',
-    plantEmoji: '🌵',
-    taskType: 'watering',
-    taskLabel: 'Tưới nước',
-    taskIcon: 'water_drop',
-    dueTime: 'Hôm nay, 09:00',
-    urgency: 'today',
-    plantPath: '/app/my-plants',
-    done: false,
-    doneAt: null,
-  },
-  {
-    id: 3,
-    plantName: 'Pothos',
-    plantEmoji: '🍃',
-    taskType: 'misting',
-    taskLabel: 'Phun sương',
-    taskIcon: 'opacity',
-    dueTime: 'Hôm nay, 14:00',
-    urgency: 'today',
-    plantPath: '/app/my-plants',
-    done: false,
-    doneAt: null,
-  },
-  {
-    id: 4,
-    plantName: 'Hoa hồng',
-    plantEmoji: '🌹',
-    taskType: 'fertilizing',
-    taskLabel: 'Bón phân',
-    taskIcon: 'eco',
-    dueTime: 'Ngày mai, 08:00',
-    urgency: 'upcoming',
-    plantPath: '/app/my-plants',
-    done: false,
-    doneAt: null,
-  },
-  {
-    id: 5,
-    plantName: 'Snake Plant',
-    plantEmoji: '🌱',
-    taskType: 'watering',
-    taskLabel: 'Tưới nước',
-    taskIcon: 'water_drop',
-    dueTime: 'Ngày mai, 10:00',
-    urgency: 'upcoming',
-    plantPath: '/app/my-plants',
-    done: false,
-    doneAt: null,
-  },
-];
-
-// --------------------
-//  Context
-// --------------------
 const CareContext = createContext(null);
 
-const STORAGE_KEY = 'deskboost_care_tasks';
-
-const loadFromStorage = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Merge with defaults in case new tasks were added
-      return DEFAULT_TASKS.map(def => {
-        const saved_task = parsed.find(t => t.id === def.id);
-        return saved_task ? { ...def, done: saved_task.done, doneAt: saved_task.doneAt } : def;
-      });
-    }
-  } catch {}
-  return DEFAULT_TASKS;
+const taskIconMap = {
+  watering: 'water_drop',
+  fertilizing: 'eco',
+  check_leaves: 'psychiatry',
 };
 
+const todayKey = () => new Date().toISOString().slice(0, 10);
+
+const toUrgency = (reminder) => {
+  if (reminder.dueDate < todayKey()) return 'overdue';
+  if (reminder.dueDate === todayKey()) return 'today';
+  return 'upcoming';
+};
+
+const toDoneTime = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+};
+
+const reminderToTask = (reminder) => ({
+  id: reminder.id,
+  plantName: reminder.plantName,
+  plantEmoji: reminder.plantEmoji,
+  taskType: reminder.type,
+  taskLabel: reminder.title || getReminderTypeLabel(reminder.type),
+  taskIcon: taskIconMap[reminder.type] || 'notifications_active',
+  dueTime: `${reminder.dueDate}, ${reminder.time}`,
+  urgency: toUrgency(reminder),
+  plantPath: reminder.plantId ? `/app/my-plants/${reminder.plantId}` : '/app/my-plants',
+  done: reminder.completed,
+  doneAt: toDoneTime(reminder.completedAt),
+});
+
 export const CareProvider = ({ children }) => {
-  const [tasks, setTasks] = useState(loadFromStorage);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [notificationOpen, setNotificationOpen] = useState(false);
 
-  // Persist changes
+  const refreshTasks = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const reminders = await getReminders();
+      setTasks(reminders.map(reminderToTask));
+    } catch (err) {
+      setTasks([]);
+      setError(err?.message || 'Could not load care reminders.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+    refreshTasks();
+  }, [refreshTasks]);
 
-  // Mark task as done (quick confirm)
-  const markDone = useCallback((taskId) => {
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? { ...t, done: true, doneAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) }
-          : t
-      )
+  const markDone = useCallback(async (taskId) => {
+    const updated = await markReminderDone(taskId);
+    setTasks((prev) =>
+      prev.map((task) => (task.id === taskId ? reminderToTask(updated) : task)),
     );
   }, []);
 
-  // Undo done
-  const undoDone = useCallback((taskId) => {
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId ? { ...t, done: false, doneAt: null } : t
-      )
-    );
+  const undoDone = useCallback(() => {
+    setError('Completed reminders cannot be undone from the notification bell yet.');
   }, []);
 
-  // Reset all (for dev/testing)
   const resetAll = useCallback(() => {
-    const reset = DEFAULT_TASKS.map(t => ({ ...t, done: false, doneAt: null }));
-    setTasks(reset);
-  }, []);
+    refreshTasks();
+  }, [refreshTasks]);
 
-  const pendingTasks = tasks.filter(t => !t.done);
-  const doneTasks = tasks.filter(t => t.done);
-  const urgentCount = pendingTasks.filter(t => t.urgency === 'overdue' || t.urgency === 'today').length;
+  const pendingTasks = tasks.filter((task) => !task.done);
+  const doneTasks = tasks.filter((task) => task.done);
+  const urgentCount = pendingTasks.filter((task) => task.urgency === 'overdue' || task.urgency === 'today').length;
 
   return (
     <CareContext.Provider value={{
@@ -138,11 +87,14 @@ export const CareProvider = ({ children }) => {
       pendingTasks,
       doneTasks,
       urgentCount,
+      loading,
+      error,
       notificationOpen,
       setNotificationOpen,
       markDone,
       undoDone,
       resetAll,
+      refreshTasks,
     }}>
       {children}
     </CareContext.Provider>

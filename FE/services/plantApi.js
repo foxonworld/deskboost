@@ -27,6 +27,9 @@ export const normalizeMarketplacePlant = (plant = {}) => ({
   tags: plant.tags || [plant.careLevel, plant.light].filter(Boolean),
   difficulty: plant.difficulty || plant.careLevel,
   status: statusMap[String(plant.status || "active").toLowerCase()] || plant.status || "Active",
+  ownershipCode: plant.ownershipCode || plant.plantCode || "",
+  ownershipStatus: plant.ownershipStatus || plant.claimStatus || "unavailable",
+  isClaimed: Boolean(plant.isClaimed ?? plant.claimedAt),
 });
 
 export const normalizeMyPlant = (plant = {}) => ({
@@ -35,6 +38,9 @@ export const normalizeMyPlant = (plant = {}) => ({
   name: plant.name || plant.nickname,
   image: plant.image || plant.imageUrl,
   imageUrl: plant.imageUrl || plant.image,
+  ownershipCode: plant.ownershipCode || plant.plantCode || "",
+  ownershipStatus: plant.ownershipStatus || plant.claimStatus || "unavailable",
+  isClaimed: Boolean(plant.isClaimed ?? plant.claimedAt),
 });
 
 const toMyPlantPayload = (payload = {}) => ({

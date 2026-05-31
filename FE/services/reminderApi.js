@@ -1,10 +1,4 @@
-import { get, post, put, del } from "./api";
-
-const USE_MOCK_REMINDERS = import.meta.env.VITE_USE_MOCK_REMINDERS !== "false";
-const STORAGE_KEY = "deskboost_reminders_mvp";
-
-const delay = (ms = 250) => new Promise((resolve) => setTimeout(resolve, ms));
-const now = () => new Date().toISOString();
+import { get, post, put, del, requestText } from "./api";
 
 const typeLabels = {
   watering: "watering",
@@ -12,175 +6,97 @@ const typeLabels = {
   check_leaves: "check leaves",
 };
 
-const defaultReminders = [
-  {
-    id: "rem_mock_001",
-    plantId: "plant_monstera",
-    plantName: "Monstera Deliciosa",
-    plantEmoji: "🌿",
-    type: "watering",
-    frequency: "daily",
-    time: "07:00",
-    enabled: true,
-    dueDate: new Date().toISOString().slice(0, 10),
-    completed: false,
-    completedAt: null,
-    source: "mock-fallback",
-  },
-  {
-    id: "rem_mock_002",
-    plantId: "plant_rose",
-    plantName: "Hoa hồng",
-    plantEmoji: "🌹",
-    type: "fertilizing",
-    frequency: "weekly",
-    time: "08:00",
-    enabled: true,
-    dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10),
-    completed: false,
-    completedAt: null,
-    source: "mock-fallback",
-  },
-  {
-    id: "rem_mock_003",
-    plantId: "plant_pothos",
-    plantName: "Pothos",
-    plantEmoji: "🍃",
-    type: "check_leaves",
-    frequency: "weekly",
-    time: "18:00",
-    enabled: false,
-    dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10),
-    completed: false,
-    completedAt: null,
-    source: "mock-fallback",
-  },
-];
+const isDoneStatus = (status) =>
+  ["done", "completed", "complete"].includes(String(status || "").toLowerCase());
 
-const loadMockReminders = () => {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : defaultReminders;
-  } catch {
-    return defaultReminders;
-  }
+const pad = (value) => String(value).padStart(2, "0");
+
+const toLocalDateParts = (value) => {
+  const date = value ? new Date(value) : new Date();
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+
+  return {
+    dueDate: `${safeDate.getFullYear()}-${pad(safeDate.getMonth() + 1)}-${pad(safeDate.getDate())}`,
+    time: `${pad(safeDate.getHours())}:${pad(safeDate.getMinutes())}`,
+  };
 };
 
-const saveMockReminders = (items) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  return items;
-};
-
-const withMockFallback = async (requestFn, fallbackFn) => {
-  if (USE_MOCK_REMINDERS) {
-    await delay();
-    return fallbackFn();
-  }
-
-  try {
-    return await requestFn();
-  } catch {
-    await delay();
-    return fallbackFn();
-  }
+const buildDueAt = (payload = {}) => {
+  if (payload.dueAt) return payload.dueAt;
+  const dueDate = payload.dueDate || new Date().toISOString().slice(0, 10);
+  const time = payload.time || "08:00";
+  return new Date(`${dueDate}T${time}:00`).toISOString();
 };
 
 export const getReminderTypeLabel = (type) =>
   typeLabels[type] || type || "watering";
 
-export const normalizeReminder = (reminder = {}) => ({
-  id: reminder.id || `rem_mock_${Date.now()}`,
-  plantId:
-    reminder.plantId || reminder.plant_id || reminder.plantName || "plant_mock",
-  plantName: reminder.plantName || reminder.plant_name || "My plant",
-  plantEmoji: reminder.plantEmoji || reminder.plant_emoji || "🌿",
-  type:
-    reminder.type ||
-    reminder.reminderType ||
-    reminder.reminder_type ||
-    "watering",
-  frequency: reminder.frequency || "daily",
-  time:
-    reminder.time || reminder.reminderTime || reminder.reminder_time || "08:00",
-  enabled: reminder.enabled !== false,
-  dueDate:
-    reminder.dueDate ||
-    reminder.due_date ||
-    new Date().toISOString().slice(0, 10),
-  completed: Boolean(reminder.completed || reminder.done),
-  completedAt:
-    reminder.completedAt || reminder.completed_at || reminder.doneAt || null,
-  source: reminder.source,
-});
+export const normalizeReminder = (reminder = {}) => {
+  const dueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
+  const { dueDate, time } = toLocalDateParts(dueAt);
+  const status = reminder.status || (reminder.completed || reminder.done ? "done" : "pending");
+  const completed = isDoneStatus(status) || Boolean(reminder.completed || reminder.done);
+
+  return {
+    ...reminder,
+    id: reminder.id,
+    plantId: reminder.plantId || reminder.plant_id || reminder.plant?.id || "",
+    plantName:
+      reminder.plantName ||
+      reminder.plant_name ||
+      reminder.plant?.name ||
+      reminder.plant?.nickname ||
+      "My plant",
+    plantEmoji: reminder.plantEmoji || reminder.plant_emoji || "",
+    title: reminder.title || getReminderTypeLabel(reminder.careType || reminder.type),
+    type: reminder.careType || reminder.care_type || reminder.type || "watering",
+    careType: reminder.careType || reminder.care_type || reminder.type || "watering",
+    frequency: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
+    repeatRule: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
+    notes: reminder.notes || "",
+    dueAt: dueAt || new Date().toISOString(),
+    dueDate,
+    time,
+    status,
+    enabled: reminder.enabled !== false && !["disabled", "cancelled"].includes(String(status).toLowerCase()),
+    completed,
+    completedAt:
+      reminder.completedAt ||
+      reminder.completed_at ||
+      reminder.doneAt ||
+      (completed ? reminder.updatedAt || reminder.updated_at || null : null),
+  };
+};
 
 const normalizeList = (data) => {
   const items = Array.isArray(data)
     ? data
-    : data?.items || data?.reminders || [];
+    : data?.items || data?.data || data?.reminders || [];
   return items.map(normalizeReminder);
 };
 
+export const toReminderPayload = (payload = {}) => ({
+  plantId: payload.plantId,
+  title: payload.title || getReminderTypeLabel(payload.careType || payload.type),
+  careType: payload.careType || payload.type || "watering",
+  dueAt: buildDueAt(payload),
+  repeatRule: payload.repeatRule || payload.frequency || "daily",
+  notes: payload.notes || "",
+});
+
 export const getReminders = (params) =>
-  withMockFallback(
-    () => get("/reminders", params).then(normalizeList),
-    () => loadMockReminders().map(normalizeReminder),
-  );
+  get("/reminders", params).then(normalizeList);
 
 export const createReminder = (payload) =>
-  withMockFallback(
-    () => post("/reminders", payload).then(normalizeReminder),
-    () => {
-      const items = loadMockReminders();
-      const reminder = normalizeReminder({
-        ...payload,
-        id: `rem_mock_${Date.now()}`,
-        completed: false,
-        completedAt: null,
-        source: "mock-fallback",
-      });
-      saveMockReminders([reminder, ...items]);
-      return reminder;
-    },
-  );
+  post("/reminders", toReminderPayload(payload)).then(normalizeReminder);
 
 export const updateReminder = (id, payload) =>
-  withMockFallback(
-    () => put(`/reminders/${id}`, payload).then(normalizeReminder),
-    () => {
-      const items = loadMockReminders();
-      const next = items.map((item) =>
-        item.id === id ? normalizeReminder({ ...item, ...payload }) : item,
-      );
-      saveMockReminders(next);
-      return normalizeReminder(next.find((item) => item.id === id));
-    },
-  );
+  put(`/reminders/${id}`, toReminderPayload(payload)).then(normalizeReminder);
 
-export const deleteReminder = (id) =>
-  withMockFallback(
-    () => del(`/reminders/${id}`),
-    () => {
-      saveMockReminders(loadMockReminders().filter((item) => item.id !== id));
-      return { ok: true, id, source: "mock-fallback" };
-    },
-  );
+export const deleteReminder = (id) => del(`/reminders/${id}`);
 
 export const markReminderDone = (id) =>
-  withMockFallback(
-    () => post(`/reminders/${id}/done`, {}).then(normalizeReminder),
-    () => {
-      const completedAt = now();
-      const next = loadMockReminders().map((item) =>
-        item.id === id ? { ...item, completed: true, completedAt } : item,
-      );
-      saveMockReminders(next);
-      return normalizeReminder(next.find((item) => item.id === id));
-    },
-  );
+  put(`/reminders/${id}/done`, {}).then(normalizeReminder);
 
 const parseReminderDate = (reminder) => {
   const normalized = normalizeReminder(reminder);
@@ -202,8 +118,13 @@ const getCalendarEvent = (reminder) => {
 
   return {
     id: normalized.id,
-    title: `DeskBoost: ${label} - ${normalized.plantName}`,
-    description: `DeskBoost in-app care reminder. Type: ${label}. Frequency: ${normalized.frequency}. This is an add-to-calendar/export event only.`,
+    title: normalized.title || `DeskBoost: ${label} - ${normalized.plantName}`,
+    description: [
+      normalized.notes,
+      `DeskBoost care reminder. Type: ${label}. Frequency: ${normalized.frequency}.`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
     start,
     end,
   };
@@ -225,7 +146,7 @@ const buildCalendar = (events) => {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//DeskBoost//Care Reminder MVP//EN",
+    "PRODID:-//DeskBoost//Care Reminder//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     ...events.flatMap((event) => [
@@ -269,27 +190,25 @@ export const generateCombinedCalendarExport = (reminders = []) => {
   const exportableReminders = getExportableReminders(reminders);
   return {
     reminders: exportableReminders,
-    googleCalendarUrls: exportableReminders.map((reminder) => ({
-      id: reminder.id,
-      url: generateGoogleCalendarUrl(reminder),
-    })),
-    ics: buildCalendar(exportableReminders.map(getCalendarEvent)),
-    source: "frontend-generated",
+    googleCalendarUrls: generateCombinedGoogleCalendarUrls(exportableReminders),
+    ics: generateCombinedIcsFile(exportableReminders),
+    source: "frontend-generated-combined-export",
   };
 };
 
-export const getReminderCalendar = (idOrReminder) =>
-  withMockFallback(
-    () =>
-      typeof idOrReminder === "string"
-        ? get(`/reminders/${idOrReminder}/calendar`)
-        : Promise.resolve(idOrReminder),
-    () => ({
-      googleCalendarUrl: generateGoogleCalendarUrl(idOrReminder),
-      ics: generateIcsFile(idOrReminder),
-      source: "frontend-generated",
-    }),
-  );
+export const getReminderCalendar = (id) =>
+  get(`/reminders/${id}/calendar`).then((data) => ({
+    ...data,
+    googleCalendarUrl:
+      data?.googleCalendarUrl ||
+      data?.googleUrl ||
+      data?.calendarUrl ||
+      data?.url ||
+      data?.link,
+  }));
+
+export const getReminderIcs = (id) =>
+  requestText(`/reminders/${id}/calendar`, { params: { format: "ics" } });
 
 // Backward-compatible aliases during MVP cleanup.
 export const apiGetReminders = getReminders;
