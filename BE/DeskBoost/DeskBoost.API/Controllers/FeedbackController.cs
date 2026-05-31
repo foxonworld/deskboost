@@ -1,5 +1,6 @@
 using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.Feedback.Commands;
+using DeskBoost.Application.Features.Feedback.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,5 +33,23 @@ public class FeedbackController : ControllerBase
         }, ct);
 
         return StatusCode(201, new { id, message = "Feedback đã được ghi nhận." });
+    }
+
+    /// <summary>GET /api/feedback/verified?catalogPlantId=...</summary>
+    [AllowAnonymous]
+    [HttpGet("verified")]
+    public async Task<IActionResult> GetVerified([FromQuery] Guid? catalogPlantId, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetVerifiedFeedbackQuery(catalogPlantId), ct);
+        return Ok(result);
+    }
+
+    /// <summary>PATCH /api/feedback/{id}/verify - Admin only</summary>
+    [Authorize(Roles = "ADMIN")]
+    [HttpPatch("{id:guid}/verify")]
+    public async Task<IActionResult> Verify(Guid id, [FromBody] VerifyFeedbackRequest request, CancellationToken ct)
+    {
+        var result = await _sender.Send(new VerifyFeedbackCommand(id, request.IsVerified), ct);
+        return Ok(result);
     }
 }

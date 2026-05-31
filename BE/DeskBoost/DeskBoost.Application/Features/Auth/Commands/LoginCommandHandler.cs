@@ -42,7 +42,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         return new AuthResponse(
             _jwt.GenerateAccessToken(user),
             refreshInfo.Token,
-            new UserProfile(user.Id, user.Email, user.FullName, user.Role.ToApiString())
+            new UserProfile(user.Id, user.Email, user.FullName, user.Role.ToApiString(), user.AvatarUrl, user.Phone)
         );
     }
 }

@@ -42,7 +42,10 @@ public class UpdatePlantCommandHandler : IRequestHandler<UpdatePlantCommand, Pla
             plant.LastCondition.ToString(),
             plant.Notes,
             plant.CreatedAt,
-            plant.UpdatedAt
+            plant.UpdatedAt,
+            plant.OwnershipCode,
+            plant.OwnershipStatus.ToString(),
+            plant.IsClaimed
         );
     }
 }

@@ -15,5 +15,10 @@ public class Plant : BaseEntity
     public PlantStatus Status { get; set; } = PlantStatus.Healthy;
     public string? Notes { get; set; }
 
+    // Ownership / QR / Claim
+    public string? OwnershipCode { get; set; }
+    public OwnershipStatus OwnershipStatus { get; set; } = OwnershipStatus.Unclaimed;
+    public bool IsClaimed { get; set; } = false;
+
     public PlantSpecies? Species { get; set; }
 }

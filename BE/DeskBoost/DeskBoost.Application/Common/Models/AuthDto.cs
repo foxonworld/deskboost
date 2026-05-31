@@ -10,5 +10,7 @@ public record UserProfile(
     Guid Id,
     string Email,
     string FullName,
-    string Role
+    string Role,
+    string? AvatarUrl,
+    string? Phone
 );

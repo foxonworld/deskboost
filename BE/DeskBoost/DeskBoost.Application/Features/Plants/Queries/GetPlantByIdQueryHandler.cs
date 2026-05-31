@@ -30,7 +30,10 @@ public class GetPlantByIdQueryHandler : IRequestHandler<GetPlantByIdQuery, Plant
                 p.LastCondition.ToString(),
                 p.Notes,
                 p.CreatedAt,
-                p.UpdatedAt
+                p.UpdatedAt,
+                p.OwnershipCode,
+                p.OwnershipStatus.ToString(),
+                p.IsClaimed
             ))
             .FirstOrDefaultAsync(ct);
     }

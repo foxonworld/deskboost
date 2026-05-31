@@ -19,6 +19,6 @@ public class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQuery, U
 
         if (user is null) return null;
 
-        return new UserProfile(user.Id, user.Email, user.FullName, user.Role.ToApiString());
+        return new UserProfile(user.Id, user.Email, user.FullName, user.Role.ToApiString(), user.AvatarUrl, user.Phone);
     }
 }

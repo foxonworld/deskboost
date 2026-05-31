@@ -5,3 +5,8 @@ public class CreateFeedbackRequest
     public string Message { get; set; } = string.Empty;
     public int? Rating { get; set; }
 }
+
+public class VerifyFeedbackRequest
+{
+    public bool IsVerified { get; set; }
+}

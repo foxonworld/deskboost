@@ -13,5 +13,8 @@ public record PlantDto(
     string LastCondition,
     string? Notes,
     DateTime CreatedAt,
-    DateTime? UpdatedAt
+    DateTime? UpdatedAt,
+    string? OwnershipCode,
+    string OwnershipStatus,
+    bool IsClaimed
 );

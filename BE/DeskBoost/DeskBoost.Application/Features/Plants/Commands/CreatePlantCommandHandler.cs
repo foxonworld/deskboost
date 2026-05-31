@@ -47,7 +47,10 @@ public class CreatePlantCommandHandler : IRequestHandler<CreatePlantCommand, Pla
             plant.LastCondition.ToString(),
             plant.Notes,
             plant.CreatedAt,
-            plant.UpdatedAt
+            plant.UpdatedAt,
+            plant.OwnershipCode,
+            plant.OwnershipStatus.ToString(),
+            plant.IsClaimed
         );
     }
 }
