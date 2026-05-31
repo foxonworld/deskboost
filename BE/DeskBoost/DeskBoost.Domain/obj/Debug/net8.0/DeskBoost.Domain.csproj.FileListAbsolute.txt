@@ -1,0 +1,12 @@
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\bin\Debug\net8.0\DeskBoost.Domain.deps.json
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\bin\Debug\net8.0\DeskBoost.Domain.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\bin\Debug\net8.0\DeskBoost.Domain.pdb
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.GeneratedMSBuildEditorConfig.editorconfig
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.AssemblyInfoInputs.cache
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.AssemblyInfo.cs
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.csproj.CoreCompileInputs.cache
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.sourcelink.json
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\refint\DeskBoost.Domain.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\DeskBoost.Domain.pdb
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Domain\obj\Debug\net8.0\ref\DeskBoost.Domain.dll

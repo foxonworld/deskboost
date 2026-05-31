@@ -1,10 +1,9 @@
 /**
- * Central API client for DeskBoost MVP.
- * Backend is not implemented yet; pages can catch failures and use local fallback data.
+ * Central API client for DeskBoost.
+ * Set VITE_API_URL for deployed/local backend targets; falls back to same-origin /api.
  */
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 const TOKEN_KEY = "accessToken";
 
 export class ApiError extends Error {
@@ -26,13 +25,14 @@ export const setAccessToken = (token) => {
 
 export const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem("authUser");
   localStorage.removeItem("token");
   localStorage.removeItem("role");
   localStorage.removeItem("isLoggedIn");
 };
 
 const buildUrl = (path, params) => {
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const url = new URL(`${API_BASE_URL}${path}`, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "")

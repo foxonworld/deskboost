@@ -48,10 +48,9 @@ const AddPlantUser = () => {
     try {
       await createMyPlant({
         species: form.species,
-        nickname: form.nickname.trim(),
+        name: form.nickname.trim(),
         location: form.location,
         imageUrl: form.imageUrl.trim() || undefined,
-        smartReminders: form.smartReminders,
       });
       setSuccess('Plant saved. Returning to your collection...');
       setTimeout(() => navigate('/app/my-plants'), 700);

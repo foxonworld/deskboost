@@ -2,15 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PRODUCTS, formatVND, getProductById } from '../data/mockData';
+import { getMarketplacePlant } from '../services/plantApi';
 import { getVerifiedFeedback } from '../services/feedbackApi';
 
 const PlantDetail = () => {
   const { plantId } = useParams();
-  const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
-  const [selectedRelated, setSelectedRelated] = useState(plant.relatedProductIds || []);
+  const fallbackPlant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
+  const [plant, setPlant] = useState(fallbackPlant);
   const [feedbackItems, setFeedbackItems] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(true);
   const [feedbackError, setFeedbackError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    const loadPlant = async () => {
+      const nextFallback = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
+      setPlant(nextFallback);
+      try {
+        const data = await getMarketplacePlant(plantId);
+        if (active && data?.id) setPlant(data);
+      } catch {
+        if (active) setPlant(nextFallback);
+      }
+    };
+
+    loadPlant();
+    return () => { active = false; };
+  }, [plantId]);
 
   const relatedProducts = (plant.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
 
@@ -91,13 +109,20 @@ const PlantDetail = () => {
             </div>
           </div>
 
-          <div className="lg:col-span-5 space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-5xl font-black tracking-tight text-text-main leading-tight">{plant.name}</h1>
-              <p className="text-xl text-text-secondary font-medium italic">{plant.species}</p>
-              <div className="flex items-center gap-6">
-                <div className="flex flex-col">
-                  <span className="text-4xl font-black text-primary">{formatVND(plant.price)}</span>
+          <aside className="space-y-5 lg:sticky lg:top-24">
+            <Card radius="hero" variant="elevated" className="overflow-hidden" data-motion="detail-hero">
+              <div className="flex flex-wrap gap-2">
+                <Badge tone="primary" size="md" icon="verified">{t('detail.contactFirst')}</Badge>
+                <Badge tone="neutral" size="md">{plant.category || t('detail.fallbackCategory')}</Badge>
+              </div>
+              <h1 id="plant-detail-heading" className="mt-4 text-3xl font-extrabold tracking-tight text-[#111813] dark:text-white md:text-5xl">{plant.name}</h1>
+              <p className="mt-2 text-base font-semibold italic text-text-secondary dark:text-slate-300">{plant.species}</p>
+              <p className="mt-4 text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{plant.description}</p>
+
+              <div className="mt-5 rounded-3xl border border-primary/15 bg-primary/5 p-4 dark:border-primary/25 dark:bg-primary/10">
+                <p className="text-xs font-extrabold text-primary dark:text-green-200">{t('detail.referencePrice')}</p>
+                <div className="mt-1 flex flex-wrap items-end gap-3">
+                  <span className="text-3xl font-extrabold text-primary">{plant.priceText || formatVND(plant.price || 0)}</span>
                   {plant.originalPrice && plant.originalPrice > plant.price && (
                     <span className="text-lg font-bold text-slate-400 line-through">{formatVND(plant.originalPrice)}</span>
                   )}
@@ -276,6 +301,18 @@ const PlantDetail = () => {
                 Nhắn tin Zalo ngay
               </button>
             </div>
+<<<<<<< Updated upstream
+=======
+          </Card>
+        </section>
+      </main>
+
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E4EEE6] bg-white/95 px-4 py-3 shadow-lg backdrop-blur md:hidden dark:border-[#2A4532] dark:bg-background-dark/95" data-motion="detail-mobile-cta">
+        <div className="mx-auto grid max-w-[520px] grid-cols-[1fr_auto] gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
+            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{plant.priceText || formatVND(plant.price || 0)} · {t('detail.trust.contactOnly')}</p>
+>>>>>>> Stashed changes
           </div>
         </div>
 

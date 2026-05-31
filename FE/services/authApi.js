@@ -1,20 +1,13 @@
-import { post } from "./api";
+import { get, post } from "./api";
 
-const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH !== "false";
+export const normalizeUser = (user = {}) => ({
+  ...user,
+  name: user.name || user.fullName || user.email?.split("@")[0] || "DeskBoost User",
+});
 
-const delay = (ms = 450) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const makeMockAuthResponse = ({ name, email }) => ({
-  user: {
-    id: "usr_mock_001",
-    name: name || email?.split("@")[0] || "DeskBoost User",
-    email,
-    avatarUrl: null,
-    phone: null,
-    role: email?.toLowerCase().includes("admin") ? "ADMIN" : "USER",
-    createdAt: new Date().toISOString(),
-  },
-  accessToken: `mock-jwt-${Date.now()}`,
+const normalizeAuthResponse = (data = {}) => ({
+  ...data,
+  user: normalizeUser(data.user),
 });
 
 const normalizeError = (err) => {
@@ -23,54 +16,35 @@ const normalizeError = (err) => {
 };
 
 export const register = async (payload) => {
-  if (USE_MOCK_AUTH) {
-    await delay();
-    if (!payload?.name || !payload?.email || !payload?.password) {
-      throw new Error("Please enter your name, email, and password.");
-    }
-    return makeMockAuthResponse(payload);
-  }
-
   try {
-    return await post("/auth/register", payload);
+    return normalizeAuthResponse(await post("/auth/register", {
+      email: payload.email,
+      password: payload.password,
+      confirmPassword: payload.confirmPassword || payload.password,
+      fullName: payload.fullName || payload.name,
+    }));
   } catch (err) {
     normalizeError(err);
   }
 };
 
 export const login = async (payload) => {
-  if (USE_MOCK_AUTH) {
-    await delay();
-    if (!payload?.email || !payload?.password) {
-      throw new Error("Please enter your email and password.");
-    }
-    return makeMockAuthResponse(payload);
-  }
-
   try {
-    return await post("/auth/login", payload);
+    return normalizeAuthResponse(await post("/auth/login", payload));
   } catch (err) {
     normalizeError(err);
   }
 };
 
 export const forgotPassword = async (email) => {
-  if (USE_MOCK_AUTH) {
-    await delay();
-    if (!email) throw new Error("Please enter your email address.");
-    return {
-      ok: true,
-      message: "If the email exists, reset instructions will be sent.",
-      source: "mock-fallback",
-    };
-  }
-
   try {
     return await post("/auth/forgot-password", { email });
   } catch (err) {
     normalizeError(err);
   }
 };
+
+export const getCurrentUser = async () => normalizeUser(await get("/auth/me"));
 
 export const apiRegister = (name, email, password) =>
   register({ name, email, password });

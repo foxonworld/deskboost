@@ -1,0 +1,16 @@
+D:\FPT\KY7\EXE101\deskboost\BE\DeskBoost\DeskBoost.Application\bin\Debug\net8.0\DeskBoost.Application.deps.json
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\bin\Debug\net8.0\DeskBoost.Application.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\bin\Debug\net8.0\DeskBoost.Application.pdb
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\bin\Debug\net8.0\DeskBoost.Domain.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\bin\Debug\net8.0\DeskBoost.Domain.pdb
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.csproj.AssemblyReference.cache
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.GeneratedMSBuildEditorConfig.editorconfig
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.AssemblyInfoInputs.cache
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.AssemblyInfo.cs
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.csproj.CoreCompileInputs.cache
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.sourcelink.json
+D:\FPT\KY7\EXE101\deskboost\BE\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoos.121A11F3.Up2Date
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\refint\DeskBoost.Application.dll
+D:\FPT\KY7\EXE101\deskboost\Be\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\DeskBoost.Application.pdb
+D:\FPT\KY7\EXE101\deskboost\BE\DeskBoost\DeskBoost.Application\obj\Debug\net8.0\ref\DeskBoost.Application.dll

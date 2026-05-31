@@ -1,21 +1,19 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { login as loginApi, register as registerApi } from "../services/authApi";
+import { getCurrentUser, login as loginApi, register as registerApi } from "../services/authApi";
 import { clearStoredAuth, getStoredToken, getStoredUser, saveAuth } from "../utils/authStorage";
 
 export const AuthContext = createContext(null);
 
-const getSession = () => {
+const getStoredSession = () => {
   const token = getStoredToken();
   const user = getStoredUser();
-  const isAuthenticated = Boolean(token && user);
-
-  if (!isAuthenticated && (token || user)) clearStoredAuth();
-
-  return { token: isAuthenticated ? token : null, user: isAuthenticated ? user : null, isAuthenticated };
+  return { token, user };
 };
 
 const initialState = () => ({
-  ...getSession(),
+  token: getStoredToken(),
+  user: getStoredUser(),
+  isAuthenticated: false,
   isBootstrapping: true,
   isLoading: false,
   error: null,
@@ -33,14 +31,35 @@ export const AuthProvider = ({ children }) => {
   const [state, setState] = useState(initialState);
 
   useEffect(() => {
-    const session = getSession();
-    setState((current) => ({
-      ...current,
-      ...session,
-      isBootstrapping: false,
-      isLoading: false,
-      error: null,
-    }));
+    let active = true;
+    const bootstrap = async () => {
+      const { token } = getStoredSession();
+      if (!token) {
+        clearStoredAuth();
+        if (active) {
+          setState((current) => ({ ...current, token: null, user: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null }));
+        }
+        return;
+      }
+
+      try {
+        const user = await getCurrentUser();
+        saveAuth({ accessToken: token, user });
+        if (active) {
+          setState({ token, user, isAuthenticated: true, isBootstrapping: false, isLoading: false, error: null });
+        }
+      } catch {
+        clearStoredAuth();
+        if (active) {
+          setState({ token: null, user: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null });
+        }
+      }
+    };
+
+    bootstrap();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const start = () =>
@@ -59,7 +78,13 @@ export const AuthProvider = ({ children }) => {
 
   const finishError = (err) => {
     const message = getFriendlyError(err);
-    setState((current) => ({ ...current, isLoading: false, error: message }));
+    if (err?.status === 401) clearStoredAuth();
+    setState((current) => ({
+      ...current,
+      ...(err?.status === 401 ? { token: null, user: null, isAuthenticated: false } : {}),
+      isLoading: false,
+      error: message,
+    }));
     throw new Error(message);
   };
 
