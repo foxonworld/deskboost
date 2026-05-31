@@ -10,6 +10,14 @@ const statusMap = {
 };
 
 const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || data?.data || []);
+const firstValue = (...values) =>
+  values.find((value) => value !== undefined && value !== null) ?? "";
+
+const parseBoolean = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  return Boolean(value);
+};
 
 const parsePrice = (priceText) => {
   if (!priceText) return 0;
@@ -27,9 +35,9 @@ export const normalizeMarketplacePlant = (plant = {}) => ({
   tags: plant.tags || [plant.careLevel, plant.light].filter(Boolean),
   difficulty: plant.difficulty || plant.careLevel,
   status: statusMap[String(plant.status || "active").toLowerCase()] || plant.status || "Active",
-  ownershipCode: plant.ownershipCode || plant.plantCode || "",
-  ownershipStatus: plant.ownershipStatus || plant.claimStatus || "unavailable",
-  isClaimed: Boolean(plant.isClaimed ?? plant.claimedAt),
+  ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
+  ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
+  isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),
 });
 
 export const normalizeMyPlant = (plant = {}) => ({
@@ -38,9 +46,9 @@ export const normalizeMyPlant = (plant = {}) => ({
   name: plant.name || plant.nickname,
   image: plant.image || plant.imageUrl,
   imageUrl: plant.imageUrl || plant.image,
-  ownershipCode: plant.ownershipCode || plant.plantCode || "",
-  ownershipStatus: plant.ownershipStatus || plant.claimStatus || "unavailable",
-  isClaimed: Boolean(plant.isClaimed ?? plant.claimedAt),
+  ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
+  ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
+  isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),
 });
 
 const toMyPlantPayload = (payload = {}) => ({

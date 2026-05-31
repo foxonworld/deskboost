@@ -1,17 +1,19 @@
 import { get, post } from "./api";
 
 const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || data?.data || []);
+const firstValue = (...values) =>
+  values.find((value) => value !== undefined && value !== null) ?? "";
 
 export const normalizeFeedback = (feedback = {}) => ({
-  id: feedback.id,
-  customerAlias: feedback.customerAlias || feedback.userName || feedback.displayName || "",
-  rating: Number(feedback.rating || 0),
-  comment: feedback.comment || feedback.message || "",
-  catalogPlantId: feedback.catalogPlantId || feedback.marketplacePlantId || feedback.plantId,
-  purchaseChannel: feedback.purchaseChannel || feedback.channel || "",
-  isVerified: Boolean(feedback.isVerified ?? feedback.verified ?? feedback.verifiedAt),
-  verificationType: feedback.verificationType || feedback.trustType || "",
-  createdAt: feedback.createdAt,
+  id: firstValue(feedback.id, feedback.Id),
+  customerAlias: firstValue(feedback.customerAlias, feedback.userName, feedback.UserName, feedback.displayName),
+  rating: Number(firstValue(feedback.rating, feedback.Rating, 0)),
+  comment: firstValue(feedback.comment, feedback.message, feedback.Message),
+  catalogPlantId: firstValue(feedback.catalogPlantId, feedback.CatalogPlantId, feedback.marketplacePlantId, feedback.plantId),
+  purchaseChannel: firstValue(feedback.purchaseChannel, feedback.channel),
+  isVerified: Boolean(firstValue(feedback.isVerified, feedback.IsVerified, feedback.verified, feedback.verifiedAt, feedback.VerifiedAt)),
+  verificationType: firstValue(feedback.verificationType, feedback.trustType),
+  createdAt: firstValue(feedback.createdAt, feedback.CreatedAt),
 });
 
 export const toFeedbackPayload = (payload = {}) => ({
@@ -37,6 +39,7 @@ export const getVerifiedFeedback = async (params = {}) => {
       supported: true,
     };
   } catch (error) {
+    console.warn("[DeskBoost] Verified feedback endpoint unavailable", error);
     return {
       items: [],
       source: "backend-unavailable",

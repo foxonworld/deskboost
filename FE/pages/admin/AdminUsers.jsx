@@ -6,7 +6,6 @@ const AdminUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [source, setSource] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -17,9 +16,11 @@ const AdminUsers = () => {
         const data = await getAdminUsers({ limit: 20 });
         if (!active) return;
         setUsers(data?.items || []);
-        setSource(data?.source || 'backend');
       } catch (err) {
-        if (active) setError(err?.message || 'Could not load users.');
+        if (active) {
+          setUsers([]);
+          setError(err?.message || 'Could not load users.');
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -36,12 +37,13 @@ const AdminUsers = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           Basic account list/status only. No enterprise user analytics.
         </p>
-        {source === 'mock-fallback' && <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">Mock fallback active until backend endpoints are ready.</p>}
-        {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
+        {error && <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">Admin users unavailable. Backend endpoint required: GET /api/admin/users.</p>}
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-800">
           {loading ? (
             <p className="p-5 text-sm font-bold text-slate-400">Loading users for lightweight admin review...</p>
+          ) : error ? (
+            <p className="p-5 text-sm font-bold text-slate-400">User data could not be loaded from the real backend. No mock users are shown.</p>
           ) : users.length === 0 ? (
             <p className="p-5 text-sm font-bold text-slate-400">No users found yet. Admin MVP will show basic account status here.</p>
           ) : (

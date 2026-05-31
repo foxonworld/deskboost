@@ -1,221 +1,146 @@
 import { del, get, post, put } from "./api";
 
-const USE_MOCK_ADMIN = import.meta.env.VITE_USE_MOCK_ADMIN !== "false";
+const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || data?.data || []);
+const firstValue = (...values) =>
+  values.find((value) => value !== undefined && value !== null) ?? "";
 
-const delay = (ms = 300) => new Promise((resolve) => setTimeout(resolve, ms));
-const now = () => new Date().toISOString();
-
-const mockUsers = [
-  {
-    id: "usr_mock_001",
-    name: "DeskBoost User",
-    email: "user@example.com",
-    role: "USER",
-    status: "active",
-    createdAt: "2026-05-14T10:00:00.000Z",
-  },
-  {
-    id: "usr_mock_002",
-    name: "DeskBoost Admin",
-    email: "admin@example.com",
-    role: "ADMIN",
-    status: "active",
-    createdAt: "2026-05-14T11:00:00.000Z",
-  },
-];
-
-const mockUserPlants = [
-  {
-    id: "upl_mock_001",
-    userId: "usr_mock_001",
-    userName: "DeskBoost User",
-    name: "Spikey",
-    species: "Sansevieria Trifasciata",
-    status: "thriving",
-    updatedAt: now(),
-  },
-  {
-    id: "upl_mock_002",
-    userId: "usr_mock_001",
-    userName: "DeskBoost User",
-    name: "Monstera Mike",
-    species: "Monstera Deliciosa",
-    status: "needs-water",
-    updatedAt: now(),
-  },
-];
-
-const mockMarketplacePlants = [
-  {
-    id: "mpl_mock_001",
-    name: "Cây Lưỡi Hổ",
-    description: "Chịu hạn tốt, hợp bàn làm việc.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1593691509543-c55fb32d8de5?q=80&w=800&auto=format&fit=crop",
-    priceText: "280,000 VND",
-    careLevel: "easy",
-    light: "low",
-    water: "monthly",
-    contactUrl: "https://zalo.me/YOUR_ZALO_NUMBER",
-    status: "active",
-  },
-  {
-    id: "mpl_mock_002",
-    name: "Cây Trầu Bà Lá Xẻ",
-    description: "Cây nội thất dễ chăm.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=800&auto=format&fit=crop",
-    priceText: "450,000 VND",
-    careLevel: "easy",
-    light: "indirect",
-    water: "weekly",
-    contactUrl: "https://zalo.me/YOUR_ZALO_NUMBER",
-    status: "active",
-  },
-];
-
-const mockAiDialogs = [
-  {
-    id: "dlg_mock_001",
-    plantId: "upl_mock_001",
-    plantName: "Spikey",
-    userName: "DeskBoost User",
-    lastMessage: "Water only when soil is dry.",
-    createdAt: now(),
-  },
-];
-
-const wrapItems = (items) => ({
-  items,
-  pagination: {
-    page: 1,
-    limit: items.length,
-    total: items.length,
-    totalPages: 1,
-  },
-  source: "mock-fallback",
+export const normalizeAdminSummary = (summary = {}) => ({
+  users: Number(firstValue(summary.users, summary.Users, 0)),
+  userPlants: Number(firstValue(summary.userPlants, summary.UserPlants, 0)),
+  marketplacePlants: Number(firstValue(summary.marketplacePlants, summary.MarketplacePlants, 0)),
+  aiDialogs: Number(firstValue(summary.aiDialogs, summary.AiDialogs, 0)),
+  aiConfigured: Boolean(firstValue(summary.aiConfigured, summary.AiConfigured, false)),
+  source: "backend",
 });
 
-const requestWithFallback = async (requestFn, fallbackFn) => {
-  if (USE_MOCK_ADMIN) {
-    await delay();
-    return fallbackFn();
-  }
+export const normalizeAdminUser = (user = {}) => ({
+  ...user,
+  id: firstValue(user.id, user.Id),
+  name: firstValue(user.name, user.Name, user.fullName, user.FullName, user.email, user.Email),
+  email: firstValue(user.email, user.Email),
+  role: firstValue(user.role, user.Role),
+  status: firstValue(user.status, user.Status),
+  avatarUrl: firstValue(user.avatarUrl, user.AvatarUrl),
+  phone: firstValue(user.phone, user.Phone),
+  createdAt: firstValue(user.createdAt, user.CreatedAt),
+});
 
-  try {
-    return await requestFn();
-  } catch (error) {
-    await delay();
-    return fallbackFn();
-  }
-};
+export const normalizeAdminUserPlant = (plant = {}) => ({
+  ...plant,
+  id: firstValue(plant.id, plant.Id),
+  userId: firstValue(plant.userId, plant.UserId),
+  userEmail: firstValue(plant.userEmail, plant.UserEmail),
+  userName: firstValue(plant.userName, plant.UserName, plant.userEmail, plant.UserEmail),
+  name: firstValue(plant.name, plant.Name),
+  species: firstValue(plant.species, plant.Species),
+  location: firstValue(plant.location, plant.Location),
+  status: firstValue(plant.status, plant.Status),
+  createdAt: firstValue(plant.createdAt, plant.CreatedAt),
+});
+
+export const normalizeAdminAiDialog = (dialog = {}) => ({
+  ...dialog,
+  id: firstValue(dialog.id, dialog.Id),
+  plantId: firstValue(dialog.plantId, dialog.PlantId),
+  plantName: firstValue(dialog.plantName, dialog.PlantName),
+  title: firstValue(dialog.title, dialog.Title),
+  lastMessage: firstValue(dialog.lastMessage, dialog.LastMessage),
+  createdAt: firstValue(dialog.createdAt, dialog.CreatedAt),
+});
+
+export const normalizeAdminMarketplacePlant = (plant = {}) => ({
+  ...plant,
+  id: firstValue(plant.id, plant.Id),
+  name: firstValue(plant.name, plant.Name),
+  description: firstValue(plant.description, plant.Description),
+  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl),
+  priceText: firstValue(plant.priceText, plant.PriceText),
+  careLevel: firstValue(plant.careLevel, plant.CareLevel),
+  light: firstValue(plant.light, plant.Light),
+  water: firstValue(plant.water, plant.Water),
+  contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
+  status: firstValue(plant.status, plant.Status),
+});
+
+export const normalizeAdminAiConfigStatus = (status = {}) => ({
+  provider: firstValue(status.provider, status.Provider),
+  configured: Boolean(firstValue(status.configured, status.Configured, false)),
+  lastCheckedAt: firstValue(status.lastCheckedAt, status.LastCheckedAt),
+  source: "backend",
+});
 
 export const getAdminSummary = () =>
-  requestWithFallback(
-    () => get("/admin/summary"),
-    () => ({
-      users: mockUsers.length,
-      userPlants: mockUserPlants.length,
-      marketplacePlants: mockMarketplacePlants.length,
-      aiDialogs: mockAiDialogs.length,
-      aiConfigured: false,
-      source: "mock-fallback",
-    }),
-  );
+  get("/admin/summary").then(normalizeAdminSummary);
 
 export const getAdminUsers = (params) =>
-  requestWithFallback(
-    () => get("/admin/users", params),
-    () => wrapItems(mockUsers),
-  );
+  get("/admin/users", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminUser),
+    source: "backend",
+  }));
 
 export const getAdminUser = (id) =>
-  requestWithFallback(
-    () => get(`/admin/users/${id}`),
-    () => mockUsers.find((user) => user.id === id) || null,
-  );
+  get(`/admin/users/${id}`).then(normalizeAdminUser);
 
 export const updateAdminUserStatus = (id, payload) =>
-  requestWithFallback(
-    () => put(`/admin/users/${id}/status`, payload),
-    () => ({ id, ...payload, updatedAt: now(), source: "mock-fallback" }),
-  );
+  put(`/admin/users/${id}/status`, payload).then(normalizeAdminUser);
 
 export const getAdminUserPlants = (params) =>
-  requestWithFallback(
-    () => get("/admin/user-plants", params),
-    () => wrapItems(mockUserPlants),
-  );
+  get("/admin/user-plants", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminUserPlant),
+    source: "backend",
+  }));
 
 export const getAdminUserPlant = (id) =>
-  requestWithFallback(
-    () => get(`/admin/user-plants/${id}`),
-    () => mockUserPlants.find((plant) => plant.id === id) || null,
-  );
+  get(`/admin/user-plants/${id}`).then(normalizeAdminUserPlant);
 
 export const updateAdminUserPlantStatus = (id, payload) =>
-  requestWithFallback(
-    () => put(`/admin/user-plants/${id}/status`, payload),
-    () => ({ id, ...payload, updatedAt: now(), source: "mock-fallback" }),
+  put(`/admin/user-plants/${id}/status`, payload).then((data) =>
+    data ? normalizeAdminUserPlant(data) : { id, status: payload.status },
   );
 
 export const getAdminMarketplacePlants = (params) =>
-  requestWithFallback(
-    () => get("/admin/marketplace-plants", params),
-    () => wrapItems(mockMarketplacePlants),
-  );
+  get("/admin/marketplace-plants", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminMarketplacePlant),
+    source: "backend",
+  }));
 
 export const createAdminMarketplacePlant = (payload) =>
-  requestWithFallback(
-    () => post("/admin/marketplace-plants", payload),
-    () => ({
-      id: `mpl_mock_${Date.now()}`,
-      ...payload,
-      source: "mock-fallback",
-    }),
-  );
+  post("/admin/marketplace-plants", payload).then(normalizeAdminMarketplacePlant);
 
 export const updateAdminMarketplacePlant = (id, payload) =>
-  requestWithFallback(
-    () => put(`/admin/marketplace-plants/${id}`, payload),
-    () => ({ id, ...payload, updatedAt: now(), source: "mock-fallback" }),
-  );
+  put(`/admin/marketplace-plants/${id}`, payload).then(normalizeAdminMarketplacePlant);
 
 export const deleteAdminMarketplacePlant = (id) =>
-  requestWithFallback(
-    () => del(`/admin/marketplace-plants/${id}`),
-    () => ({ id, deleted: true, source: "mock-fallback" }),
-  );
+  del(`/admin/marketplace-plants/${id}`);
 
-export const createAdminFeedback = (payload) =>
-  post("/admin/feedback", payload);
+export const createAdminFeedback = () =>
+  Promise.reject(new Error("Backend endpoint required"));
 
-export const getAdminFeedback = (params) =>
-  requestWithFallback(
-    () => get("/admin/feedback", params),
-    () => ({ ...wrapItems([]), source: "backend-blocked" }),
-  );
+export const getAdminFeedback = () =>
+  Promise.resolve({ items: [], source: "backend-blocked", supported: false });
 
 export const getAdminAiDialogs = (params) =>
-  requestWithFallback(
-    () => get("/admin/ai-dialogs", params),
-    () => wrapItems(mockAiDialogs),
-  );
+  get("/admin/ai-dialogs", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminAiDialog),
+    source: "backend",
+  }));
 
 export const getAdminAiDialog = (id) =>
-  requestWithFallback(
-    () => get(`/admin/ai-dialogs/${id}`),
-    () => mockAiDialogs.find((dialog) => dialog.id === id) || null,
-  );
+  get(`/admin/ai-dialogs/${id}`).then((data) => ({
+    ...data,
+    ...normalizeAdminAiDialog(data),
+    messages: normalizeItems(data?.messages || data?.Messages).map((message) => ({
+      ...message,
+      id: firstValue(message.id, message.Id),
+      role: firstValue(message.role, message.Role),
+      content: firstValue(message.content, message.Content),
+      createdAt: firstValue(message.createdAt, message.CreatedAt),
+    })),
+  }));
 
 export const getAdminAiConfigStatus = () =>
-  requestWithFallback(
-    () => get("/admin/ai-config/status"),
-    () => ({
-      provider: "gemini",
-      configured: false,
-      mode: "mock-fallback",
-      lastCheckedAt: now(),
-      source: "mock-fallback",
-    }),
-  );
+  get("/admin/ai-config/status").then(normalizeAdminAiConfigStatus);

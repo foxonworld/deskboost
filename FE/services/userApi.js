@@ -56,11 +56,4 @@ export const toUserProfilePayload = (payload = {}) => ({
 
 export const getMe = () => get("/users/me").then(normalizeUserProfile);
 export const updateMe = (payload) =>
-  put("/users/me", toUserProfilePayload(payload)).then((response) => {
-    const normalized = normalizeUserProfile(response);
-    return {
-      ...normalized,
-      avatarUrl: normalized.avatarUrl || payload.avatarUrl || "",
-      phone: normalized.phone || payload.phone || "",
-    };
-  });
+  put("/users/me", toUserProfilePayload(payload)).then(normalizeUserProfile);

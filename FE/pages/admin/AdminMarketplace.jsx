@@ -6,7 +6,6 @@ const AdminMarketplace = () => {
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [source, setSource] = useState('');
   const [feedbackForm, setFeedbackForm] = useState({
     customerAlias: 'Customer from HCMC',
     rating: '5',
@@ -15,9 +14,7 @@ const AdminMarketplace = () => {
     purchaseChannel: 'zalo',
     evidenceNote: '',
   });
-  const [feedbackStatus, setFeedbackStatus] = useState('');
-  const [feedbackError, setFeedbackError] = useState('');
-  const [feedbackSaving, setFeedbackSaving] = useState(false);
+  const feedbackError = 'Backend endpoint required';
 
   const updateFeedbackField = (event) => {
     const { name, value } = event.target;
@@ -26,10 +23,6 @@ const AdminMarketplace = () => {
 
   const handleCreateFeedback = async (event) => {
     event.preventDefault();
-    setFeedbackStatus('');
-    setFeedbackError('');
-    setFeedbackError('Backend blocker: no admin verified-feedback endpoint exists yet, so DeskBoost will not save manual reviews as mock data.');
-    setFeedbackSaving(false);
   };
 
   useEffect(() => {
@@ -41,9 +34,11 @@ const AdminMarketplace = () => {
         const data = await getAdminMarketplacePlants({ limit: 20 });
         if (!active) return;
         setPlants(data?.items || []);
-        setSource(data?.source || 'backend');
       } catch (err) {
-        if (active) setError(err?.message || 'Could not load marketplace plants.');
+        if (active) {
+          setPlants([]);
+          setError(err?.message || 'Could not load marketplace plants.');
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -60,7 +55,6 @@ const AdminMarketplace = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           Marketplace remains display + contact only. No cart, checkout, payment, orders, or shipping.
         </p>
-        {source === 'mock-fallback' && <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">Mock fallback active until backend endpoints are ready.</p>}
         {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -92,8 +86,7 @@ const AdminMarketplace = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           Backend blocker: this screen is held as architecture readiness only until an admin verified-feedback endpoint is available. No mock reviews are saved or published from here.
         </p>
-        {feedbackStatus && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{feedbackStatus}</p>}
-        {feedbackError && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>}
+        <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">{feedbackError}</p>
 
         <form onSubmit={handleCreateFeedback} className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
@@ -131,8 +124,8 @@ const AdminMarketplace = () => {
             <textarea name="evidenceNote" value={feedbackForm.evidenceNote} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Private note, e.g. Bought via Zalo chat on May 14" />
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <button type="submit" disabled={feedbackSaving} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
-              {feedbackSaving ? 'Saving...' : 'Check backend readiness'}
+            <button type="submit" disabled className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
+              Backend endpoint required
             </button>
             <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">Blocked until API exists</span>
           </div>

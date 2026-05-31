@@ -227,15 +227,17 @@ Backend upload response verified from `BE/DeskBoost/DeskBoost.API/Controllers/Up
 
 ## Phase 3 - Feedback, Ownership, and QR Readiness
 
-Status: frontend trust/ownership foundation implemented. Fake verified-feedback fallbacks were removed from runtime UI.
+Status: Phase 3B frontend integration fixed. Fake verified-feedback fallbacks were removed from runtime UI, admin summary no longer falls back to mock metrics, and admin feedback creation is honestly blocked until backend endpoints exist.
 
 ## Phase 3 Endpoint Mappings
 
 | Frontend area | Backend endpoint | Status |
 | --- | --- | --- |
 | User feedback create | `POST /api/feedback` | Connected via `submitFeedback()` |
-| Plant Detail verified feedback read | `GET /api/feedback/verified?catalogPlantId={id}` | Frontend-ready, backend blocker: endpoint not implemented |
-| Admin verified feedback create/read | `POST /api/admin/feedback`, `GET /api/admin/feedback` | Blocked; frontend no longer saves mock verified reviews |
+| Plant Detail verified feedback read | `GET /api/feedback/verified?catalogPlantId={id}` | Connected; empty backend result shows honest empty state |
+| Admin dashboard summary | `GET /api/admin/summary` | Connected; no mock fallback for summary metrics |
+| Admin marketplace list | `GET /api/admin/marketplace-plants` | Connected for admin list/select; no mock fallback in Phase 3B feedback/admin scope |
+| Admin verified feedback create/read | `POST /api/admin/feedback`, `GET /api/admin/feedback` | Backend endpoints do not exist; UI is disabled with `Backend endpoint required` |
 
 ## Phase 3 DTO Mappings
 
@@ -253,11 +255,38 @@ Status: frontend trust/ownership foundation implemented. Fake verified-feedback 
 
 ## Phase 3 Feedback Trust Status
 
-- Public Plant Detail reads verified feedback only from the backend-ready service path.
-- If the verified-feedback read endpoint is missing or unavailable, Plant Detail shows a backend-blocked empty state.
+- Public Plant Detail reads verified feedback only from `GET /api/feedback/verified`.
+- Plant Detail sends `catalogPlantId` resolved from `catalogPlantId`, `marketplacePlantId`, `plantId`, then `id`.
+- If the backend returns an empty list, Plant Detail shows an honest empty state.
+- If the verified-feedback read endpoint fails or is unavailable, Plant Detail shows a backend-unavailable state and logs a dev console warning.
 - Mock `VERIFIED_FEEDBACK` is no longer used by `feedbackApi.js` or `adminApi.js`.
-- Admin manual verified-feedback UI is held as backend readiness only and does not save mock reviews.
+- Admin manual verified-feedback UI is held as backend readiness only, disabled with `Backend endpoint required`, and does not save mock reviews.
 - User feedback creation is connected to real `POST /api/feedback`, but created feedback is not displayed as verified.
+
+## Phase 3B Admin Dashboard Status
+
+- `AdminOverview` calls real `GET /api/admin/summary` through `getAdminSummary()`.
+- Missing or incomplete summary responses show an unavailable state instead of converting missing data to fake zero metrics.
+- `AdminMarketplace` loads marketplace options from real `GET /api/admin/marketplace-plants`; if unavailable, it shows the empty/error state and does not render mock listings as real.
+
+## Phase 3C Admin Real-Data Integration
+
+Status: implemented for active lightweight admin pages. Admin pages no longer present mock fallback records as real data.
+
+| Admin page | Backend endpoint | Status |
+| --- | --- | --- |
+| Overview | `GET /api/admin/summary` | Connected, no mock fallback |
+| Users | `GET /api/admin/users` | Connected, normalized via `normalizeAdminUser()` |
+| User plants | `GET /api/admin/user-plants` | Connected, normalized via `normalizeAdminUserPlant()` |
+| Marketplace | `GET /api/admin/marketplace-plants` | Connected, normalized via `normalizeAdminMarketplacePlant()` |
+| AI | `GET /api/admin/ai-config/status`, `GET /api/admin/ai-dialogs` | Connected, normalized via `normalizeAdminAiDialog()` and config normalizer |
+| User status update | `PUT /api/admin/users/{id}/status` | Service connected to backend source contract |
+| User plant status update | `PUT /api/admin/user-plants/{id}/status` | Service connected to backend source contract |
+| Feedback verify | `PATCH /api/feedback/{id}/verify` | Backend exists, but no admin feedback list endpoint exists, so no verification UI is wired |
+
+- `adminApi.js` owns admin response normalizers for summary, users, user plants, marketplace plants, AI dialogs, and AI config status.
+- Admin list pages show real backend data or an honest unavailable state. They do not fall back to mock users, mock plants, mock marketplace listings, or mock AI dialogs.
+- Admin feedback creation remains disabled because the backend lacks admin create/list endpoints for manual verified feedback.
 
 ## Phase 3 QR Readiness
 
@@ -268,8 +297,9 @@ Status: frontend trust/ownership foundation implemented. Fake verified-feedback 
 
 ## Phase 3 Backend Blockers
 
-- Missing verified feedback read endpoint, e.g. `GET /api/feedback/verified`.
-- Missing admin verified-feedback management endpoint and verification lifecycle.
+- Missing admin verified-feedback create/list endpoints, e.g. `POST /api/admin/feedback` and `GET /api/admin/feedback`.
+- Existing `POST /api/feedback` is normal user feedback only and supports `message` and `rating`, not admin manual verification metadata.
+- `PATCH /api/feedback/{id}/verify` exists but is not usable from the current admin UI without a real admin feedback list endpoint.
 - Missing ownership/claim DTO fields in current backend plant/profile responses.
 - Missing QR/claim endpoints for validate, claim, status, and code lifecycle.
 

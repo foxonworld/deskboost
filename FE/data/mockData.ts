@@ -26,16 +26,6 @@ export interface Product {
   contactUrl?: string;
 }
 
-export interface VerifiedFeedback {
-  id: string;
-  customerAlias: string;
-  rating: number;
-  comment: string;
-  catalogPlantId?: string;
-  purchaseChannel: "zalo" | "facebook" | "manual" | "other";
-  createdAt: string;
-}
-
 export type PlantHealthStatus =
   | "thriving"
   | "needs-water"
@@ -161,38 +151,6 @@ export const PRODUCTS: Product[] = [
 
 export const getProductById = (id: string): Product | undefined =>
   PRODUCTS.find((p) => p.id === id);
-
-export const VERIFIED_FEEDBACK: VerifiedFeedback[] = [
-  {
-    id: "fb_mock_001",
-    customerAlias: "Customer from HCMC",
-    rating: 5,
-    comment: "Cây Lưỡi Hổ nhận qua Zalo, cây khỏe và dễ đặt trên bàn làm việc.",
-    catalogPlantId: "2",
-    purchaseChannel: "zalo",
-    createdAt: "2026-05-10T09:30:00.000Z",
-  },
-  {
-    id: "fb_mock_002",
-    customerAlias: "Customer from HCMC",
-    rating: 4,
-    comment:
-      "DeskBoost tư vấn chăm Monstera khá rõ, cây về nhìn đúng như hình.",
-    catalogPlantId: "1",
-    purchaseChannel: "facebook",
-    createdAt: "2026-05-12T14:10:00.000Z",
-  },
-  {
-    id: "fb_mock_003",
-    customerAlias: "Customer from HCMC",
-    rating: 5,
-    comment:
-      "Mua Trầu Bà Vàng cho góc học tập, team nhắn hướng dẫn tưới nước rất nhanh.",
-    catalogPlantId: "3",
-    purchaseChannel: "zalo",
-    createdAt: "2026-05-14T08:45:00.000Z",
-  },
-];
 
 export const MY_PLANTS: UserPlant[] = [
   {

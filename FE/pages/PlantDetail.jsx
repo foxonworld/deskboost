@@ -46,6 +46,7 @@ const PlantDetail = () => {
 
   const relatedProducts = (plant?.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
   const isPlant = plant?.category !== 'Pot' && plant?.category !== 'Soil' && plant?.category !== 'Fertilizer' && plant?.category !== 'Accessory';
+  const feedbackCatalogPlantId = plant?.catalogPlantId || plant?.marketplacePlantId || plant?.plantId || plant?.id;
   const careHighlights = [
     { icon: 'wb_sunny', label: t('detail.care.light'), value: plant?.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
     { icon: 'water_drop', label: t('detail.care.water'), value: plant?.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
@@ -63,7 +64,7 @@ const PlantDetail = () => {
       setFeedbackLoading(true);
       setFeedbackError('');
       try {
-        const data = await getVerifiedFeedback({ catalogPlantId: plant.id });
+        const data = await getVerifiedFeedback({ catalogPlantId: feedbackCatalogPlantId });
         if (active) {
           setFeedbackItems(data?.items || []);
           setFeedbackStatus({ supported: data?.supported !== false, blocker: data?.blocker || '' });
@@ -75,9 +76,9 @@ const PlantDetail = () => {
       }
     };
 
-    if (plant?.id) loadFeedback();
+    if (feedbackCatalogPlantId) loadFeedback();
     return () => { active = false; };
-  }, [plant?.id, t]);
+  }, [feedbackCatalogPlantId, t]);
 
   useGSAP(() => {
     const q = gsap.utils.selector(pageRef);
