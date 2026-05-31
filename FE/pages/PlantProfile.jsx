@@ -1,16 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { MY_PLANTS } from '../data/mockData';
-import { getMyPlant } from '../services/plantApi';
+import { deleteMyPlant, getMyPlant, updateMyPlant } from '../services/plantApi';
 import { useI18n } from '../i18n';
 
 const PlantProfile = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [plant, setPlant] = useState(null);
+  const [form, setForm] = useState({ nickname: '', species: '', location: '', imageUrl: '', status: '', notes: '' });
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const { t } = useI18n();
+
+  const syncForm = (nextPlant) => {
+    setForm({
+      nickname: nextPlant?.nickname || nextPlant?.name || '',
+      species: nextPlant?.species || '',
+      location: nextPlant?.location || '',
+      imageUrl: nextPlant?.imageUrl || nextPlant?.image || '',
+      status: nextPlant?.status || '',
+      notes: nextPlant?.notes || '',
+    });
+  };
 
   useEffect(() => {
     let alive = true;
@@ -19,11 +34,16 @@ const PlantProfile = () => {
       setError('');
       try {
         const res = await getMyPlant(id);
-        if (alive) setPlant(res?.data || res);
+        if (alive) {
+          const nextPlant = res?.data || res;
+          setPlant(nextPlant);
+          syncForm(nextPlant);
+        }
       } catch (err) {
         const fallback = MY_PLANTS.find(p => p.id === id) || null;
         if (alive) {
           setPlant(fallback);
+          syncForm(fallback);
           setError(fallback ? (err?.message || t('plantProfile.fallbackError')) : t('plantProfile.notFoundError'));
         }
       } finally {
@@ -33,6 +53,44 @@ const PlantProfile = () => {
     load();
     return () => { alive = false; };
   }, [id, t]);
+
+  const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }));
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setIsSaving(true);
+    setError('');
+    try {
+      const updated = await updateMyPlant(id, {
+        name: form.nickname.trim(),
+        species: form.species,
+        location: form.location,
+        imageUrl: form.imageUrl || undefined,
+        status: form.status,
+        notes: form.notes,
+      });
+      setPlant(updated);
+      syncForm(updated);
+      setIsEditing(false);
+    } catch (err) {
+      setError(err?.message || 'Could not update plant.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Delete this plant from My Plants?')) return;
+    setIsSaving(true);
+    setError('');
+    try {
+      await deleteMyPlant(id);
+      navigate('/app/my-plants');
+    } catch (err) {
+      setError(err?.message || 'Could not delete plant.');
+      setIsSaving(false);
+    }
+  };
 
   return (
     <UserLayout>
@@ -51,15 +109,44 @@ const PlantProfile = () => {
             <div className="grid md:grid-cols-2 gap-8 p-8">
               <img src={plant.image || plant.imageUrl} alt={plant.nickname || plant.name} className="w-full aspect-square object-cover rounded-[28px]" />
               <div className="space-y-6">
-                <div><h1 className="text-4xl font-black text-slate-900 dark:text-white">{plant.nickname || plant.name}</h1><p className="text-[#4CAF50] font-black uppercase tracking-widest mt-2">{plant.species}</p></div>
-                <p className="text-slate-500 dark:text-slate-400 font-medium">{plant.notes || t('plantProfile.notesFallback')}</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.light')}</p><p className="font-bold">{plant.light || t('common.nA')}</p></div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.water')}</p><p className="font-bold">{plant.water || t('common.nA')}</p></div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.status')}</p><p className="font-bold">{plant.status || t('common.nA')}</p></div>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.nextWatering')}</p><p className="font-bold">{plant.nextWatering || t('common.nA')}</p></div>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div><h1 className="text-4xl font-black text-slate-900 dark:text-white">{plant.nickname || plant.name}</h1><p className="text-[#4CAF50] font-black uppercase tracking-widest mt-2">{plant.species}</p></div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => setIsEditing((value) => !value)} disabled={isSaving} className="px-4 py-2 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-60">
+                      {isEditing ? t('common.cancel') : 'Edit'}
+                    </button>
+                    <button type="button" onClick={handleDelete} disabled={isSaving} className="px-4 py-2 rounded-2xl bg-red-50 text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-100 dark:bg-red-950/30 dark:text-red-300 disabled:opacity-60">
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <Link to="/app/ai-analysis" className="inline-flex items-center justify-center w-full h-14 rounded-2xl bg-[#4CAF50] text-white font-black uppercase tracking-widest">{t('plantProfile.bioScan')}</Link>
+
+                {isEditing ? (
+                  <form onSubmit={handleSave} className="space-y-4">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <input value={form.nickname} onChange={(e) => updateField('nickname', e.target.value)} required className="h-12 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Plant name" />
+                      <input value={form.species} onChange={(e) => updateField('species', e.target.value)} className="h-12 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Species" />
+                      <input value={form.location} onChange={(e) => updateField('location', e.target.value)} className="h-12 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Location" />
+                      <input value={form.status} onChange={(e) => updateField('status', e.target.value)} className="h-12 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Status" />
+                    </div>
+                    <input value={form.imageUrl} onChange={(e) => updateField('imageUrl', e.target.value)} className="h-12 w-full rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-5 text-sm font-bold outline-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Image URL" />
+                    <textarea value={form.notes} onChange={(e) => updateField('notes', e.target.value)} rows={4} className="w-full rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 p-5 text-sm font-bold outline-none resize-none focus:ring-4 focus:ring-[#4CAF50]/5" placeholder="Notes" />
+                    <button type="submit" disabled={isSaving} className="inline-flex w-full items-center justify-center h-14 rounded-2xl bg-[#4CAF50] text-white font-black uppercase tracking-widest disabled:opacity-60">
+                      {isSaving ? t('common.saving') : t('userProfile.save')}
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">{plant.notes || t('plantProfile.notesFallback')}</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.light')}</p><p className="font-bold">{plant.light || t('common.nA')}</p></div>
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.water')}</p><p className="font-bold">{plant.water || t('common.nA')}</p></div>
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.status')}</p><p className="font-bold">{plant.status || t('common.nA')}</p></div>
+                      <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p className="text-xs font-black text-slate-400">{t('plantProfile.nextWatering')}</p><p className="font-bold">{plant.nextWatering || t('common.nA')}</p></div>
+                    </div>
+                    <Link to="/app/ai-analysis" className="inline-flex items-center justify-center w-full h-14 rounded-2xl bg-[#4CAF50] text-white font-black uppercase tracking-widest">{t('plantProfile.bioScan')}</Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

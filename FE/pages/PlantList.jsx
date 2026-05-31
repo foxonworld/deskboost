@@ -86,8 +86,12 @@ const PlantList = () => {
       try {
         const res = await getMarketplacePlants();
         const items = normalizeItems(res);
-        if (alive) setPlants(items.length ? items : PRODUCTS);
+        if (alive) {
+          if (!items.length) console.warn("[DeskBoost] Using fallback marketplace data");
+          setPlants(items.length ? items : PRODUCTS);
+        }
       } catch (err) {
+        console.warn("[DeskBoost] Using fallback marketplace data", err);
         if (alive) {
           setPlants(PRODUCTS);
           setError(t('market.fallbackNotice'));

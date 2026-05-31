@@ -13,6 +13,7 @@ Status: implemented for the existing React/Vite frontend. Scope intentionally ex
 - `FE/pages/PlantList.jsx`
 - `FE/pages/PlantDetail.jsx`
 - `FE/pages/AddPlantUser.jsx`
+- `FE/pages/PlantProfile.jsx`
 - `docs/frontend-api-migration.md`
 - `PROJECT_AI_NOTES.md`
 
@@ -56,6 +57,27 @@ Status: implemented for the existing React/Vite frontend. Scope intentionally ex
 - Maps `imageUrl` to `image`.
 - Passes through `species`, `location`, `status`, and `notes`.
 - Create/update payload maps UI `nickname` or `name` to backend `name` and omits unsupported `smartReminders`.
+
+## Phase 1 Validation Fixes
+
+Root causes found:
+
+- Marketplace detail imported `getMarketplacePlant` but still rendered `PRODUCTS.find(...) || PRODUCTS[0]`; UUID marketplace ids never matched the old mock ids, so detail fell back to `Cay Trau Ba La Xe`.
+- Marketplace fallback was silent; request failures or empty responses could show mock products without a console signal.
+- MyPlants CRUD existed in the service layer, but the user-facing profile page exposed no edit/delete controls.
+
+Fixes applied:
+
+- `PlantDetail` now fetches `GET /api/marketplace-plants/{id}` and treats the backend response as source of truth.
+- `PlantDetail` only uses `PRODUCTS` after a request failure, and `PlantList`/`PlantDetail` emit `console.warn("[DeskBoost] Using fallback marketplace data")` when fallback is triggered.
+- `PlantProfile` now exposes minimal edit/delete actions on the existing profile route and calls `PUT /api/my-plants/{id}` and `DELETE /api/my-plants/{id}`.
+
+Validation results:
+
+- Real API verification passed for register, login, auth bootstrap, marketplace list/detail, and MyPlants create/list/detail/update/delete.
+- Marketplace real API returned backend items `Hoa DẠi` and `Hoa hồng`; detail verification for the first UUID returned the matching backend item instead of the mock Monstera fallback.
+- `npm run lint` passed.
+- `npm run build` passed.
 
 ## Remaining Mock Areas
 

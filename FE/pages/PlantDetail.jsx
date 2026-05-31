@@ -16,22 +16,42 @@ const PlantDetail = () => {
   const pageRef = useRef(null);
   const feedbackRevealedRef = useRef(false);
   const { plantId } = useParams();
-  const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
+  const [plant, setPlant] = useState(null);
+  const [plantLoading, setPlantLoading] = useState(true);
   const [feedbackItems, setFeedbackItems] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(true);
   const [feedbackError, setFeedbackError] = useState('');
   const reducedMotion = usePrefersReducedMotion();
   const { t } = useI18n();
 
-  const relatedProducts = (plant.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
-  const isPlant = plant.category !== 'Pot' && plant.category !== 'Soil' && plant.category !== 'Fertilizer' && plant.category !== 'Accessory';
+  useEffect(() => {
+    let active = true;
+    const loadPlant = async () => {
+      setPlantLoading(true);
+      try {
+        const data = await getMarketplacePlant(plantId);
+        if (active) setPlant(data);
+      } catch (err) {
+        console.warn("[DeskBoost] Using fallback marketplace data", err);
+        if (active) setPlant(PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0]);
+      } finally {
+        if (active) setPlantLoading(false);
+      }
+    };
+
+    loadPlant();
+    return () => { active = false; };
+  }, [plantId]);
+
+  const relatedProducts = (plant?.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
+  const isPlant = plant?.category !== 'Pot' && plant?.category !== 'Soil' && plant?.category !== 'Fertilizer' && plant?.category !== 'Accessory';
   const careHighlights = [
-    { icon: 'wb_sunny', label: t('detail.care.light'), value: plant.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
-    { icon: 'water_drop', label: t('detail.care.water'), value: plant.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
-    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: plant.difficulty || t('detail.care.difficultyFallback'), tone: 'text-primary' },
+    { icon: 'wb_sunny', label: t('detail.care.light'), value: plant?.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
+    { icon: 'water_drop', label: t('detail.care.water'), value: plant?.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
+    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: plant?.difficulty || t('detail.care.difficultyFallback'), tone: 'text-primary' },
   ];
   const trustStats = [
-    ['verified', t('detail.trust.feedback'), t('detail.trust.records', { count: plant.reviewCount || feedbackItems.length || 0 })],
+    ['verified', t('detail.trust.feedback'), t('detail.trust.records', { count: plant?.reviewCount || feedbackItems.length || 0 })],
     ['forum', t('detail.trust.preClose'), t('detail.trust.channels')],
     ['payments', t('detail.trust.noPayment'), t('detail.trust.contactOnly')],
   ];
@@ -51,9 +71,9 @@ const PlantDetail = () => {
       }
     };
 
-    loadFeedback();
+    if (plant?.id) loadFeedback();
     return () => { active = false; };
-  }, [plant.id, t]);
+  }, [plant?.id, t]);
 
   useGSAP(() => {
     const q = gsap.utils.selector(pageRef);
@@ -104,6 +124,19 @@ const PlantDetail = () => {
     window.open("https://zalo.me/YOUR_ZALO_NUMBER", "_blank");
   };
 
+  if (plantLoading || !plant) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display transition-colors">
+        <Navbar />
+        <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 py-10">
+          <div className="rounded-[32px] border border-[#E4EEE6] bg-white p-12 text-center text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
+            {t('common.loading')}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div ref={pageRef} className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display transition-colors">
       <Navbar />
@@ -152,7 +185,7 @@ const PlantDetail = () => {
               <div className="mt-5 rounded-3xl border border-primary/15 bg-primary/5 p-4 dark:border-primary/25 dark:bg-primary/10">
                 <p className="text-xs font-extrabold text-primary dark:text-green-200">{t('detail.referencePrice')}</p>
                 <div className="mt-1 flex flex-wrap items-end gap-3">
-                  <span className="text-3xl font-extrabold text-primary">{formatVND(plant.price)}</span>
+                  <span className="text-3xl font-extrabold text-primary">{plant.priceText || formatVND(plant.price || 0)}</span>
                   {plant.originalPrice && plant.originalPrice > plant.price && (
                     <span className="pb-1 text-sm font-bold text-text-secondary line-through dark:text-slate-500">{formatVND(plant.originalPrice)}</span>
                   )}
@@ -300,7 +333,7 @@ const PlantDetail = () => {
         <div className="mx-auto grid max-w-[520px] grid-cols-[1fr_auto] gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
-            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{formatVND(plant.price)} · {t('detail.trust.contactOnly')}</p>
+            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{plant.priceText || formatVND(plant.price || 0)} · {t('detail.trust.contactOnly')}</p>
           </div>
           <Button size="sm" onClick={handleContactZalo} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
         </div>
