@@ -1,36 +1,40 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { PRODUCTS, formatVND, getProductById } from '../data/mockData';
 import { getMarketplacePlant } from '../services/plantApi';
 import { getVerifiedFeedback } from '../services/feedbackApi';
+import Button from '../components/Button';
+import Card from '../components/Card';
+import Badge from '../components/Badge';
+import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
+import { useI18n } from '../i18n';
 
 const PlantDetail = () => {
+  const pageRef = useRef(null);
+  const feedbackRevealedRef = useRef(false);
   const { plantId } = useParams();
-  const fallbackPlant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
-  const [plant, setPlant] = useState(fallbackPlant);
+  const plant = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
   const [feedbackItems, setFeedbackItems] = useState([]);
   const [feedbackLoading, setFeedbackLoading] = useState(true);
   const [feedbackError, setFeedbackError] = useState('');
-
-  useEffect(() => {
-    let active = true;
-    const loadPlant = async () => {
-      const nextFallback = PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0];
-      setPlant(nextFallback);
-      try {
-        const data = await getMarketplacePlant(plantId);
-        if (active && data?.id) setPlant(data);
-      } catch {
-        if (active) setPlant(nextFallback);
-      }
-    };
-
-    loadPlant();
-    return () => { active = false; };
-  }, [plantId]);
+  const reducedMotion = usePrefersReducedMotion();
+  const { t } = useI18n();
 
   const relatedProducts = (plant.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
+  const isPlant = plant.category !== 'Pot' && plant.category !== 'Soil' && plant.category !== 'Fertilizer' && plant.category !== 'Accessory';
+  const careHighlights = [
+    { icon: 'wb_sunny', label: t('detail.care.light'), value: plant.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
+    { icon: 'water_drop', label: t('detail.care.water'), value: plant.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
+    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: plant.difficulty || t('detail.care.difficultyFallback'), tone: 'text-primary' },
+  ];
+  const trustStats = [
+    ['verified', t('detail.trust.feedback'), t('detail.trust.records', { count: plant.reviewCount || feedbackItems.length || 0 })],
+    ['forum', t('detail.trust.preClose'), t('detail.trust.channels')],
+    ['payments', t('detail.trust.noPayment'), t('detail.trust.contactOnly')],
+  ];
 
   useEffect(() => {
     let active = true;
@@ -41,7 +45,7 @@ const PlantDetail = () => {
         const data = await getVerifiedFeedback({ catalogPlantId: plant.id });
         if (active) setFeedbackItems(data?.items || []);
       } catch (err) {
-        if (active) setFeedbackError(err?.message || 'Could not load manually verified feedback.');
+        if (active) setFeedbackError(err?.message || t('detail.feedback.error'));
       } finally {
         if (active) setFeedbackLoading(false);
       }
@@ -49,63 +53,89 @@ const PlantDetail = () => {
 
     loadFeedback();
     return () => { active = false; };
-  }, [plant.id]);
+  }, [plant.id, t]);
 
-  const calculateCombo = () => {
-    const basePrice = plant.price;
-    const relatedPrice = selectedRelated.reduce((sum, id) => {
-      const p = getProductById(id);
-      return sum + (p ? p.price : 0);
-    }, 0);
-    const subtotal = basePrice + relatedPrice;
-    const discount = plant.comboDiscount || 0;
-    const discountAmount = (subtotal * discount) / 100;
-    return { subtotal, discountAmount, total: subtotal - discountAmount };
-  };
+  useGSAP(() => {
+    const q = gsap.utils.selector(pageRef);
+    const reveal = getRevealVars(reducedMotion, motionDistances.md);
 
-  const combo = calculateCombo();
+    gsap.fromTo(q('[data-motion="detail-hero"]'), reveal.from, {
+      ...reveal.to,
+      duration: reducedMotion ? reveal.to.duration : 0.3,
+      stagger: reducedMotion ? 0 : 0.05,
+    });
+
+    gsap.fromTo(q('[data-motion="detail-trust"]'), reveal.from, {
+      ...reveal.to,
+      duration: reducedMotion ? reveal.to.duration : 0.24,
+      stagger: reducedMotion ? 0 : 0.04,
+    });
+
+    gsap.fromTo(q('[data-motion="detail-mobile-cta"]'), reveal.from, {
+      ...reveal.to,
+      duration: reducedMotion ? reveal.to.duration : 0.22,
+      stagger: 0,
+    });
+  }, { scope: pageRef, dependencies: [reducedMotion] });
+
+  useGSAP(() => {
+    if (feedbackLoading || feedbackRevealedRef.current) return;
+
+    const q = gsap.utils.selector(pageRef);
+    const feedbackCards = q('[data-motion="detail-feedback"]');
+    if (!feedbackCards.length) return;
+
+    const reveal = getRevealVars(reducedMotion, motionDistances.sm);
+    gsap.fromTo(feedbackCards, reveal.from, {
+      ...reveal.to,
+      duration: reducedMotion ? reveal.to.duration : 0.22,
+      stagger: reducedMotion ? 0 : 0.04,
+    });
+    feedbackRevealedRef.current = true;
+  }, { scope: pageRef, dependencies: [feedbackLoading, reducedMotion] });
 
   const handleContactFacebook = () => {
-    alert("Đang chuyển hướng tới Facebook để nhắn tin...");
+    alert(t('detail.alert.facebook'));
     window.open("https://m.me/deskboost", "_blank");
   };
 
   const handleContactZalo = () => {
-    alert("Đang chuyển hướng tới Zalo để nhắn tin...");
+    alert(t('detail.alert.zalo'));
     window.open("https://zalo.me/YOUR_ZALO_NUMBER", "_blank");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background-light">
+    <div ref={pageRef} className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display transition-colors">
       <Navbar />
-      <main className="flex-grow max-w-7xl mx-auto px-4 md:px-10 py-10 w-full">
-        <nav className="flex mb-8 gap-2 text-sm font-bold text-text-secondary">
-          <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link> <span>/</span> <Link to="/plants" className="hover:text-primary transition-colors">Cửa hàng</Link> <span>/</span> <span className="text-text-main font-black">{plant.name}</span>
+      <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 pb-28 pt-6 md:pb-12 md:pt-10">
+        <nav className="mb-6 flex flex-wrap gap-2 text-sm font-bold text-text-secondary dark:text-slate-400" aria-label={t('detail.breadcrumbAria')}>
+          <Link to="/" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 rounded-lg">{t('detail.breadcrumb.home')}</Link>
+          <span aria-hidden="true">/</span>
+          <Link to="/plants" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20 rounded-lg">{t('detail.breadcrumb.marketplace')}</Link>
+          <span aria-hidden="true">/</span>
+          <span className="text-[#111813] dark:text-white">{plant.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          <div className="lg:col-span-7 space-y-4">
-            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl shadow-primary/5 bg-white group border border-gray-100">
-              <img src={plant.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={plant.name} />
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-primary/20">BÁN CHẠY</span>
-                {plant.originalPrice && plant.originalPrice > plant.price && (
-                  <span className="bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-lg shadow-red-200">
-                    SALE {Math.round(((plant.originalPrice - plant.price) / plant.originalPrice) * 100)}%
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="aspect-square rounded-2xl overflow-hidden border-2 border-transparent hover:border-primary transition-all cursor-pointer shadow-sm">
-                  <img src={plant.image} className="w-full h-full object-cover" alt="thumb" />
+        <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-start" aria-labelledby="plant-detail-heading">
+          <div className="space-y-5">
+            <Card padding="none" radius="hero" className="group overflow-hidden" data-motion="detail-hero">
+              <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-900">
+                <img src={plant.image} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt={plant.name} />
+                <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                  <Badge tone="overlay" icon="spa">{t('detail.careFit')}</Badge>
+                  {plant.status === 'Out of Stock' ? <Badge tone="warning">{t('detail.outOfStock')}</Badge> : <Badge tone="overlay" icon="forum">{t('detail.canContact')}</Badge>}
                 </div>
-              ))}
-              <div className="aspect-square rounded-2xl bg-white flex flex-col items-center justify-center text-text-secondary hover:text-primary transition-all cursor-pointer border border-gray-100 shadow-sm group">
-                <span className="material-symbols-outlined text-3xl group-hover:scale-110 transition-transform">play_circle</span>
-                <span className="text-[10px] font-black uppercase tracking-wider mt-1">Xem Video</span>
               </div>
+            </Card>
+
+            <div className="grid grid-cols-3 gap-3" aria-label={t('detail.careSummaryAria')} data-motion="detail-hero">
+              {careHighlights.map(item => (
+                <Card key={item.label} padding="compact" className="text-center">
+                  <span className={`material-symbols-outlined text-2xl ${item.tone}`} aria-hidden="true">{item.icon}</span>
+                  <p className="mt-2 text-[11px] font-extrabold text-text-secondary dark:text-slate-400">{item.label}</p>
+                  <p className="mt-1 text-xs font-bold leading-5 text-[#111813] dark:text-white">{item.value}</p>
+                </Card>
+              ))}
             </div>
           </div>
 
@@ -122,187 +152,146 @@ const PlantDetail = () => {
               <div className="mt-5 rounded-3xl border border-primary/15 bg-primary/5 p-4 dark:border-primary/25 dark:bg-primary/10">
                 <p className="text-xs font-extrabold text-primary dark:text-green-200">{t('detail.referencePrice')}</p>
                 <div className="mt-1 flex flex-wrap items-end gap-3">
-                  <span className="text-3xl font-extrabold text-primary">{plant.priceText || formatVND(plant.price || 0)}</span>
+                  <span className="text-3xl font-extrabold text-primary">{formatVND(plant.price)}</span>
                   {plant.originalPrice && plant.originalPrice > plant.price && (
-                    <span className="text-lg font-bold text-slate-400 line-through">{formatVND(plant.originalPrice)}</span>
+                    <span className="pb-1 text-sm font-bold text-text-secondary line-through dark:text-slate-500">{formatVND(plant.originalPrice)}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-1 font-bold text-text-main">
-                  <span className="material-symbols-outlined text-yellow-500 text-xl fill-1">star</span>
-                  <span className="text-lg">{plant.rating || '4.8'}</span>
-                  <span className="text-sm text-text-secondary underline ml-2 cursor-pointer hover:text-primary transition-colors">{plant.reviewCount || '12'} Đánh giá</span>
+                <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary dark:text-slate-300">{t('detail.priceNote')}</p>
+              </div>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <Button variant="channel" size="lg" onClick={handleContactZalo} className="w-full bg-[#0068FF] hover:bg-[#0055d4] animate-cta-pulse-once">{t('detail.zalo')}</Button>
+                <Button variant="channel" size="lg" onClick={handleContactFacebook} className="w-full bg-[#0866FF] hover:bg-[#0050d1] animate-cta-pulse-once">{t('detail.messenger')}</Button>
+              </div>
+              <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full animate-cta-pulse-once">{t('detail.contactThis')}</Button>
+              <p className="mt-3 text-center text-xs font-bold text-text-secondary dark:text-slate-400">{t('detail.noCheckout')}</p>
+            </Card>
+          </aside>
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-3">
+          {trustStats.map(([icon, title, desc]) => (
+            <Card key={title} className="flex gap-4" data-motion="detail-trust">
+              <span className="material-symbols-outlined mt-0.5 text-primary" aria-hidden="true">{icon}</span>
+              <div>
+                <h2 className="text-sm font-extrabold text-[#111813] dark:text-white">{title}</h2>
+                <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{desc}</p>
+              </div>
+            </Card>
+          ))}
+        </section>
+
+        <section className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+          <Card radius="hero" variant="subtle" aria-labelledby="workspace-fit-heading">
+            <Badge tone="primary" icon="desk" className="mb-4">{t('detail.workspace.badge')}</Badge>
+            <h2 id="workspace-fit-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.workspace.title')}</h2>
+            <div className="mt-5 space-y-4">
+              {[
+                [t('detail.workspace.position'), isPlant ? t('detail.workspace.positionPlant') : t('detail.workspace.positionAccessory')],
+                [t('detail.workspace.careLevel'), plant.difficulty || t('detail.workspace.careLevelFallback')],
+                [t('detail.workspace.askSeller'), t('detail.workspace.askSellerDesc')],
+              ].map(([title, desc]) => (
+                <div key={title} className="rounded-2xl border border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
+                  <p className="text-sm font-extrabold text-[#111813] dark:text-white">{title}</p>
+                  <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{desc}</p>
                 </div>
-              </div>
+              ))}
             </div>
-            {/* Chips */}
-            <div className="flex flex-wrap gap-2">
-              <div className="inline-flex items-center px-3 py-1 rounded-lg bg-[#f0f4f2] dark:bg-white/10 text-xs font-bold text-[#111813] dark:text-white gap-1.5 border border-transparent dark:border-white/5">
-                <span className="material-symbols-outlined text-primary text-base">air</span> Lọc không khí
-              </div>
-              <div className="inline-flex items-center px-3 py-1 rounded-lg bg-primary/10 text-xs font-bold text-primary gap-1.5 border border-primary/20">
-                <span className="material-symbols-outlined text-base">verified</span> Bảo hành sức khỏe
-              </div>
-            </div>
+          </Card>
 
-            {/* Care Metrics */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
-                <span className="material-symbols-outlined text-yellow-500">wb_sunny</span>
-                <p className="text-[10px] font-black uppercase text-gray-400">Ánh sáng</p>
-                <p className="text-xs font-bold">{plant.light}</p>
-              </div>
-              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
-                <span className="material-symbols-outlined text-blue-500">water_drop</span>
-                <p className="text-[10px] font-black uppercase text-gray-400">Tưới nước</p>
-                <p className="text-xs font-bold">{plant.water}</p>
-              </div>
-              <div className="bg-white dark:bg-surface-dark border border-gray-100 p-4 rounded-xl shadow-sm flex flex-col items-center text-center gap-1">
-                <span className="material-symbols-outlined text-[#4CAF50]">spa</span>
-                <p className="text-[10px] font-black uppercase text-gray-400">Độ khó</p>
-                <p className="text-xs font-bold">{plant.difficulty}</p>
-              </div>
-            </div>
-
-            {/* Frequently Bought Together (Combo) Section */}
-            {relatedProducts.length > 0 && (
-              <div className="bg-white dark:bg-surface-dark border border-gray-100 dark:border-white/10 p-5 rounded-2xl shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs font-black uppercase tracking-widest text-[#111813] dark:text-white flex items-center gap-2">
-                       <span className="material-symbols-outlined text-primary text-lg">auto_fix_high</span>
-                       Gợi ý mua kèm
-                    </h3>
-                    <p className="text-[10px] font-bold text-primary mt-0.5">Tiết kiệm ngay {plant.comboDiscount}% khi mua trọn bộ</p>
-                  </div>
+          <Card radius="hero" aria-labelledby="care-notes-heading">
+            <Badge tone="success" icon="eco" className="mb-4">{t('detail.notes.badge')}</Badge>
+            <h2 id="care-notes-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.notes.title')}</h2>
+            <p className="mt-3 text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{t('detail.notes.description')}</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              {careHighlights.map(item => (
+                <div key={item.label} className="rounded-2xl bg-primary/5 p-4 dark:bg-primary/10">
+                  <p className="text-xs font-extrabold text-primary dark:text-green-200">{item.label}</p>
+                  <p className="mt-1 text-sm font-bold leading-6 text-[#111813] dark:text-white">{item.value}</p>
                 </div>
+              ))}
+            </div>
+          </Card>
+        </section>
 
-                <div className="space-y-3">
-                  {/* Main Product (Fixed) */}
-                  <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-white/5 rounded-xl border border-primary/10">
-                    <div className="size-10 rounded-lg overflow-hidden flex-shrink-0">
-                      <img src={plant.image} alt={plant.name} className="w-full h-full object-cover" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold truncate text-slate-400">Sản phẩm hiện tại</p>
-                      <p className="text-xs font-black truncate">{plant.name}</p>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-xs font-black text-primary">{formatVND(plant.price * (1 - (plant.comboDiscount || 0) / 100))}</p>
-                    </div>
-                  </div>
-
-                  {/* Plus icon divider */}
-                  <div className="flex justify-center -my-2 relative z-10">
-                    <div className="bg-white dark:bg-surface-dark px-2 text-slate-300">
-                      <span className="material-symbols-outlined text-sm">add</span>
-                    </div>
-                  </div>
-
-                  {/* Related Products */}
-                  {relatedProducts.map(p => {
-                    const isSelected = selectedRelated.includes(p.id);
-                    const discountedPrice = p.price * (1 - (plant.comboDiscount || 0) / 100);
-                    
-                    return (
-                      <button 
-                        key={p.id}
-                        onClick={() => setSelectedRelated(prev => isSelected ? prev.filter(id => id !== p.id) : [...prev, p.id])}
-                        className={`w-full flex items-center gap-3 p-2 rounded-xl border-2 transition-all ${
-                          isSelected 
-                            ? 'border-primary bg-primary/5 shadow-sm' 
-                            : 'border-transparent bg-slate-50 dark:bg-white/5 opacity-70 hover:opacity-100'
-                        }`}
-                      >
-                        <div className="size-10 rounded-lg overflow-hidden flex-shrink-0 relative">
-                          <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                          {isSelected && (
-                            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                              <span className="material-symbols-outlined text-white text-xs font-black">check</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-1 text-left min-w-0">
-                          <p className="text-xs font-black truncate">{p.name}</p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-black text-primary">{formatVND(discountedPrice)}</span>
-                            <span className="text-[9px] text-slate-400 line-through font-bold">{formatVND(p.price)}</span>
-                          </div>
-                        </div>
-                        <div className={`size-5 rounded-md border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-black/20'}`}>
-                          {isSelected && <span className="material-symbols-outlined text-xs font-black">check</span>}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Summary & Call to Action */}
-                {selectedRelated.length > 0 && (
-                  <div className="pt-3 border-t border-slate-100 dark:border-white/5 space-y-3">
-                    <div className="flex justify-between items-end">
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng cộng Combo</p>
-                      <div className="text-right">
-                        <p className="text-xs font-bold text-slate-400 line-through mb-1">{formatVND(combo.subtotal)}</p>
-                        <p className="text-xl font-black text-primary leading-none">{formatVND(combo.total)}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-surface-dark" aria-labelledby="verified-feedback-heading">
-              <div className="flex items-start justify-between gap-3">
+        {relatedProducts.length > 0 && (
+          <section className="mt-8" aria-labelledby="support-heading">
+            <Card radius="hero" variant="subtle">
+              <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-primary">Manually verified feedback</p>
-                  <h2 id="verified-feedback-heading" className="mt-1 text-lg font-black text-text-main dark:text-white">Customer stories</h2>
+                  <Badge tone="neutral" icon="auto_fix_high" className="mb-4">{t('detail.support.badge')}</Badge>
+                  <h2 id="support-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.support.title')}</h2>
+                  <p className="mt-3 text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{t('detail.support.description')}</p>
                 </div>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">Verified manually</span>
-              </div>
-              <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary">Simple notes from customers who contacted DeskBoost outside the app.</p>
-
-              <div className="mt-4 space-y-3">
-                {feedbackLoading ? (
-                  <p className="rounded-xl bg-slate-50 p-3 text-xs font-bold text-slate-400 dark:bg-white/5">Loading manually verified feedback...</p>
-                ) : feedbackError ? (
-                  <p className="rounded-xl bg-red-50 p-3 text-xs font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>
-                ) : feedbackItems.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-slate-200 p-3 text-xs font-bold text-slate-400 dark:border-slate-700">No manually verified feedback for this plant yet.</p>
-                ) : (
-                  feedbackItems.map((feedback) => (
-                    <article key={feedback.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-white/5">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-black text-text-main dark:text-white">{feedback.customerAlias || 'Customer from HCMC'}</p>
-                        <p className="text-xs font-black text-yellow-500" aria-label={`${feedback.rating} out of 5 stars`}>{'★'.repeat(feedback.rating || 5)}</p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {relatedProducts.map(p => (
+                    <div key={p.id} className="flex gap-3 rounded-2xl border border-[#E4EEE6] bg-white/80 p-3 dark:border-[#2A4532] dark:bg-white/5">
+                      <img src={p.image} alt={p.name} className="h-16 w-16 flex-shrink-0 rounded-xl object-cover" />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{p.name}</p>
+                        <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-text-secondary dark:text-slate-400">{p.description}</p>
+                        <p className="mt-1 text-xs font-bold text-primary">{t('detail.support.price', { price: formatVND(p.price) })}</p>
                       </div>
-                      <p className="mt-2 text-sm font-semibold leading-6 text-text-secondary">“{feedback.comment}”</p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-primary">Bought via Zalo</span>
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:bg-slate-800 dark:text-slate-300">Verified manually</span>
-                      </div>
-                    </article>
-                  ))
-                )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </section>
+            </Card>
+          </section>
+        )}
 
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleContactFacebook}
-                className="w-full py-4 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 bg-[#0866FF] text-white hover:bg-[#0050d1]"
-              >
-                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="FB" className="w-7 h-7 filter brightness-0 invert" />
-                Dự kiến mua qua Messenger
-              </button>
-              <button
-                onClick={handleContactZalo}
-                className="w-full py-4 rounded-2xl font-black text-xl shadow-xl transition-all hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3 bg-[#0068FF] text-white hover:bg-[#0055d4]"
-              >
-                Nhắn tin Zalo ngay
-              </button>
+        <section className="mt-8" aria-labelledby="verified-feedback-heading">
+          <Card radius="hero">
+            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+              <div>
+                <Badge tone="primary" icon="verified" className="mb-4">{t('detail.feedback.badge')}</Badge>
+                <h2 id="verified-feedback-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.feedback.title')}</h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{t('detail.feedback.description')}</p>
+              </div>
+              <Badge tone="success" size="md">{t('detail.feedback.manualTrust')}</Badge>
             </div>
-<<<<<<< Updated upstream
-=======
+
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {feedbackLoading ? (
+                <>
+                  {Array.from({ length: 2 }).map((_, idx) => (
+                    <div key={idx} className="rounded-2xl border border-[#E4EEE6] bg-slate-50/50 p-4 dark:border-[#2A4532] dark:bg-white/5 space-y-4 animate-pulse">
+                      <div className="flex justify-between gap-3 items-center">
+                        <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-4 w-1/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="h-3.5 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+                        <div className="h-3.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded" />
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <div className="h-5 w-16 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                        <div className="h-5 w-20 bg-slate-200 dark:bg-slate-800 rounded-full" />
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : feedbackError ? (
+                <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>
+              ) : feedbackItems.length === 0 ? (
+                <p className="rounded-2xl border border-dashed border-[#E4EEE6] p-4 text-sm font-bold text-text-secondary dark:border-[#2A4532] dark:text-slate-300">{t('detail.feedback.empty')}</p>
+              ) : (
+                feedbackItems.map((feedback) => (
+                  <article key={feedback.id} className="rounded-2xl border border-[#E4EEE6] bg-slate-50 p-4 dark:border-[#2A4532] dark:bg-white/5" data-motion="detail-feedback">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="text-sm font-extrabold text-[#111813] dark:text-white">{feedback.customerAlias || t('detail.feedback.customerFallback')}</p>
+                      <p className="text-xs font-extrabold text-yellow-500" aria-label={t('detail.feedback.ratingAria', { rating: feedback.rating || 5 })}>{'★'.repeat(feedback.rating || 5)}</p>
+                    </div>
+                    <p className="mt-3 text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">“{feedback.comment}”</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Badge tone="primary">{t('detail.feedback.offApp')}</Badge>
+                      <Badge tone="neutral">{t('detail.feedback.manualVerified')}</Badge>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
           </Card>
         </section>
       </main>
@@ -311,12 +300,11 @@ const PlantDetail = () => {
         <div className="mx-auto grid max-w-[520px] grid-cols-[1fr_auto] gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
-            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{plant.priceText || formatVND(plant.price || 0)} · {t('detail.trust.contactOnly')}</p>
->>>>>>> Stashed changes
+            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{formatVND(plant.price)} · {t('detail.trust.contactOnly')}</p>
           </div>
+          <Button size="sm" onClick={handleContactZalo} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
         </div>
-
-      </main>
+      </div>
     </div>
   );
 };

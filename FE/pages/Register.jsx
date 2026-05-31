@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
+import { useI18n } from '../i18n';
 
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { register, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
+  const { t } = useI18n();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,17 +33,17 @@ const Register = () => {
     setFormError('');
 
     if (!nextName || !nextEmail || !nextPassword) {
-      setFormError('Please enter your name, email, and password.');
+      setFormError(t('register.error.required'));
       return;
     }
 
     if (nextPassword.length < 6) {
-      setFormError('Password should be at least 6 characters for your account safety.');
+      setFormError(t('register.error.passwordLength'));
       return;
     }
 
     if (!acceptedTerms) {
-      setFormError('Please accept the terms to create your account.');
+      setFormError(t('register.error.terms'));
       return;
     }
 
@@ -64,28 +66,28 @@ const Register = () => {
             <span className="material-symbols-outlined text-primary text-4xl">potted_plant</span>
           </div>
           <h1 className="text-2xl font-bold tracking-tight dark:text-white">DeskBoost</h1>
-          <h2 className="text-xl font-bold mt-4 dark:text-white">Create an account</h2>
-          <p className="text-text-secondary text-sm mt-1 dark:text-slate-400">Start your desk plant care workspace.</p>
+          <h2 className="text-xl font-bold mt-4 dark:text-white">{t('register.title')}</h2>
+          <p className="text-text-secondary text-sm mt-1 dark:text-slate-400">{t('register.description')}</p>
         </div>
 
         <form onSubmit={handleRegister} className="p-6 pt-2 space-y-4" noValidate>
           <div className="space-y-1">
-            <label htmlFor="name" className="text-sm font-medium text-text-main">Full Name</label>
-            <input id="name" required disabled={disabled} type="text" autoComplete="name" className={`${formControlClass} h-12`} placeholder="Sarah Jenkins" value={name} onChange={(e) => setName(e.target.value)} />
+            <label htmlFor="name" className="text-sm font-medium text-text-main">{t('register.nameLabel')}</label>
+            <input id="name" required disabled={disabled} type="text" autoComplete="name" className={`${formControlClass} h-12`} placeholder={t('register.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="space-y-1">
-            <label htmlFor="email" className="text-sm font-medium text-text-main">Email address</label>
+            <label htmlFor="email" className="text-sm font-medium text-text-main">{t('register.emailLabel')}</label>
             <input id="email" required disabled={disabled} type="email" autoComplete="email" className={`${formControlClass} h-12`} placeholder="sarah@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="space-y-1">
-            <label htmlFor="password" className="text-sm font-medium text-text-main">Password</label>
-            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className={`${formControlClass} h-12`} placeholder="At least 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <label htmlFor="password" className="text-sm font-medium text-text-main">{t('register.passwordLabel')}</label>
+            <input id="password" required disabled={disabled} type="password" autoComplete="new-password" className={`${formControlClass} h-12`} placeholder={t('register.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="flex items-start gap-2 py-2">
             <input type="checkbox" required disabled={disabled} checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 disabled:opacity-60 disabled:cursor-not-allowed" id="terms" />
             <label htmlFor="terms" className="text-xs text-text-secondary leading-5">
-              I agree to the <span className="text-primary font-bold">Terms of Service</span> and <span className="text-primary font-bold">Privacy Policy</span>
+              {t('register.termsPrefix')} <span className="text-primary font-bold">{t('register.termsService')}</span> {t('register.termsAnd')} <span className="text-primary font-bold">{t('register.privacyPolicy')}</span>
             </label>
           </div>
 
@@ -93,12 +95,12 @@ const Register = () => {
 
           <button type="submit" disabled={disabled} className={`${primaryButtonClass} h-12 w-full`}>
             {isLoading && <Spinner className="text-lg" />}
-            {isLoading ? 'Saving...' : isBootstrapping ? 'Loading...' : 'Submit'}
+            {isLoading ? t('common.saving') : isBootstrapping ? t('common.loading') : t('common.submit')}
           </button>
 
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">
-              Already have an account? <Link to="/login" state={location.state} className="text-text-main font-bold hover:underline">Log in</Link>
+              {t('register.haveAccount')} <Link to="/login" state={location.state} className="text-text-main font-bold hover:underline">{t('register.login')}</Link>
             </p>
           </div>
         </form>

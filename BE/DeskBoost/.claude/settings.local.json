@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"d:\\\\DOWLOAD\\\\SU26\\\\EXE201\\\\DeskBoost\" -Force)",
+      "Bash(Select-Object Name, Mode)"
+    ]
+  }
+}
