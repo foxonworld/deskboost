@@ -13,9 +13,11 @@ const emptyListingForm = {
   description: '',
   imageUrl: '',
   priceText: '',
+  category: 'plant',
   careLevel: '',
   light: '',
   water: '',
+  attributesJson: '',
   contactUrl: '',
   status: 'active',
 };
@@ -23,6 +25,15 @@ const emptyListingForm = {
 const statusOptions = [
   { value: 'active', label: 'Active' },
   { value: 'inactive', label: 'Inactive' },
+];
+
+const categoryOptions = [
+  { value: 'plant', label: 'Plant' },
+  { value: 'pot', label: 'Pot' },
+  { value: 'soil', label: 'Soil' },
+  { value: 'fertilizer', label: 'Fertilizer' },
+  { value: 'accessory', label: 'Accessory' },
+  { value: 'other', label: 'Other' },
 ];
 
 const careLevelOptions = [
@@ -65,9 +76,12 @@ const AdminMarketplace = () => {
     customerAlias: 'Customer from HCMC',
     rating: '5',
     comment: '',
-    catalogPlantId: '',
+    marketplaceItemId: '',
     purchaseChannel: 'zalo',
+    publicImageUrls: '',
+    evidenceImageUrls: '',
     evidenceNote: '',
+    isVerified: true,
   });
   const feedbackError = 'Backend endpoint required';
 
@@ -90,8 +104,9 @@ const AdminMarketplace = () => {
   }, []);
 
   const updateFeedbackField = (event) => {
-    const { name, value } = event.target;
-    setFeedbackForm((current) => ({ ...current, [name]: value }));
+    const { name, value, type, checked } = event.target;
+    const nextValue = type === 'checkbox' ? checked : value;
+    setFeedbackForm((current) => ({ ...current, [name]: nextValue }));
   };
 
   const handleCreateFeedback = async (event) => {
@@ -118,9 +133,11 @@ const AdminMarketplace = () => {
       description: plant.description || '',
       imageUrl: plant.imageUrl || '',
       priceText: plant.priceText || '',
+      category: plant.category || 'plant',
       careLevel: plant.careLevel || '',
       light: plant.light || '',
       water: plant.water || '',
+      attributesJson: plant.attributesJson || '',
       contactUrl: plant.contactUrl || '',
       status: String(plant.status || 'active').toLowerCase(),
     });
@@ -186,6 +203,8 @@ const AdminMarketplace = () => {
     }
   };
 
+  const isPlantCategory = form.category === 'plant';
+
   return (
     <AdminLayout>
       <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
@@ -218,6 +237,12 @@ const AdminMarketplace = () => {
             Price text
             <input name="priceText" value={form.priceText} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="350.000 VND" />
           </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+            Category
+            <select name="category" value={form.category} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+              {categoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
             Description
             <textarea name="description" value={form.description} onChange={updateListingField} rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
@@ -230,27 +255,37 @@ const AdminMarketplace = () => {
             Upload image
             <input type="file" accept="image/*" onChange={handleUploadImage} disabled={uploading} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
           </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Care level
-            <select name="careLevel" value={form.careLevel} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-              <option value="">Select care level</option>
-              {careLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Light
-            <select name="light" value={form.light} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-              <option value="">Select light need</option>
-              {lightOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Water
-            <select name="water" value={form.water} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-              <option value="">Select water need</option>
-              {waterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
-          </label>
+          {isPlantCategory ? (
+            <>
+              <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                Care level
+                <select name="careLevel" value={form.careLevel} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+                  <option value="">Select care level</option>
+                  {careLevelOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                Light
+                <select name="light" value={form.light} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+                  <option value="">Select light need</option>
+                  {lightOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+              <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                Water
+                <select name="water" value={form.water} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+                  <option value="">Select water need</option>
+                  {waterOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>
+            </>
+          ) : (
+            <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+              Attributes JSON
+              <textarea name="attributesJson" value={form.attributesJson} onChange={updateListingField} rows={4} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder='{"material":"ceramic","size":"small"}' />
+              <span className="block text-xs font-bold text-slate-400">Prepared for non-plant marketplace items after backend supports attributes.</span>
+            </label>
+          )}
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
             Status
             <select name="status" value={form.status} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
@@ -265,7 +300,7 @@ const AdminMarketplace = () => {
             <label className="flex items-start gap-3 text-sm font-black text-slate-700 dark:text-slate-200">
               <input type="checkbox" disabled className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50] disabled:opacity-50" />
               <span>
-                <span className="block">Generate ownership code after sale</span>
+                <span className="block">{isPlantCategory ? 'Generate ownership code after sale' : 'Ownership code not applicable for this category'}</span>
                 <span className="mt-1 block text-xs font-bold text-slate-400">Future feature - backend not available yet</span>
               </span>
             </label>
@@ -291,7 +326,7 @@ const AdminMarketplace = () => {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black text-slate-900 dark:text-white">{plant.name}</p>
                     <p className="mt-1 text-sm font-black text-[#4CAF50]">{plant.priceText}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-400">{plant.status} - contact seller only</p>
+                    <p className="mt-1 text-xs font-semibold text-slate-400">{plant.category || 'plant'} - {plant.status} - contact seller only</p>
                     <p className="mt-2 truncate rounded-xl bg-[#4CAF50]/10 px-3 py-2 text-xs font-black text-[#4CAF50]">Contact CTA: {plant.contactUrl}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button type="button" onClick={() => startEdit(plant)} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300">
@@ -323,9 +358,9 @@ const AdminMarketplace = () => {
             <input name="customerAlias" value={feedbackForm.customerAlias} onChange={updateFeedbackField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
           </label>
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Plant
-            <select name="catalogPlantId" value={feedbackForm.catalogPlantId} onChange={updateFeedbackField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-              <option value="">No plant selected</option>
+            Marketplace item
+            <select name="marketplaceItemId" value={feedbackForm.marketplaceItemId} onChange={updateFeedbackField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+              <option value="">No marketplace item selected</option>
               {plants.map((plant) => <option key={plant.id} value={plant.id}>{plant.name}</option>)}
             </select>
           </label>
@@ -349,8 +384,23 @@ const AdminMarketplace = () => {
             <textarea name="comment" value={feedbackForm.comment} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Short real customer quote" />
           </label>
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+            Public image URLs
+            <textarea name="publicImageUrls" value={feedbackForm.publicImageUrls} onChange={updateFeedbackField} rows={2} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="One image URL per line, visible to public later" />
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+            Evidence image URLs
+            <textarea name="evidenceImageUrls" value={feedbackForm.evidenceImageUrls} onChange={updateFeedbackField} rows={2} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="One private evidence URL per line, admin-only later" />
+          </label>
+          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
             Private evidence note
             <textarea name="evidenceNote" value={feedbackForm.evidenceNote} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Private note, e.g. Bought via Zalo chat on May 14" />
+          </label>
+          <label className="md:col-span-2 flex items-start gap-3 text-sm font-black text-slate-700 dark:text-slate-200">
+            <input type="checkbox" name="isVerified" checked={feedbackForm.isVerified} onChange={updateFeedbackField} disabled className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50] disabled:opacity-50" />
+            <span>
+              <span className="block">Create as verified</span>
+              <span className="mt-1 block text-xs font-bold text-slate-400">Future field for POST /api/admin/feedback.</span>
+            </span>
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <button type="submit" disabled className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">

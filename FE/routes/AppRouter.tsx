@@ -18,6 +18,7 @@ import Forbidden from "../pages/Forbidden";
 import AdminOverview from "../pages/admin/AdminOverview";
 import AdminUsers from "../pages/admin/AdminUsers";
 import AdminPlants from "../pages/admin/AdminPlants";
+import AdminPlantInventory from "../pages/admin/AdminPlantInventory";
 import AdminMarketplace from "../pages/admin/AdminMarketplace";
 import AdminAI from "../pages/admin/AdminAI";
 import ProtectedRoute from "./ProtectedRoute";
@@ -60,6 +61,7 @@ const AppRouter: React.FC = () => {
       <Route path="/admin/overview" element={admin(<AdminOverview />)} />
       <Route path="/admin/users" element={admin(<AdminUsers />)} />
       <Route path="/admin/plants" element={admin(<AdminPlants />)} />
+      <Route path="/admin/plant-inventory" element={admin(<AdminPlantInventory />)} />
       <Route path="/admin/marketplace" element={admin(<AdminMarketplace />)} />
       <Route path="/admin/ai" element={admin(<AdminAI />)} />
 

@@ -55,9 +55,11 @@ export const normalizeAdminMarketplacePlant = (plant = {}) => ({
   description: firstValue(plant.description, plant.Description),
   imageUrl: firstValue(plant.imageUrl, plant.ImageUrl),
   priceText: firstValue(plant.priceText, plant.PriceText),
+  category: firstValue(plant.category, plant.Category),
   careLevel: firstValue(plant.careLevel, plant.CareLevel),
   light: firstValue(plant.light, plant.Light),
   water: firstValue(plant.water, plant.Water),
+  attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
   contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
   status: firstValue(plant.status, plant.Status),
 });

@@ -26,6 +26,7 @@ const isValidUrl = (value) => {
 
 const AddPlantUser = () => {
   const navigate = useNavigate();
+  const [activeMode, setActiveMode] = useState('code');
   const [form, setForm] = useState(initialForm);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -105,6 +106,38 @@ const AddPlantUser = () => {
     <UserLayout>
       <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-8 pb-20">
         <div><h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{t('addPlant.title')}</h1><p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">{t('addPlant.description')}</p></div>
+
+        <div className="grid gap-3 rounded-3xl border border-slate-100 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:grid-cols-2">
+          <button type="button" onClick={() => setActiveMode('code')} className={`rounded-2xl px-5 py-4 text-left transition ${activeMode === 'code' ? 'bg-[#4CAF50]/10 text-[#4CAF50]' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            <span className="block text-sm font-black">Add by code</span>
+            <span className="mt-1 block text-xs font-bold opacity-70">Future claim flow</span>
+          </button>
+          <button type="button" onClick={() => setActiveMode('custom')} className={`rounded-2xl px-5 py-4 text-left transition ${activeMode === 'custom' ? 'bg-[#4CAF50]/10 text-[#4CAF50]' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+            <span className="block text-sm font-black">Custom plant</span>
+            <span className="mt-1 block text-xs font-bold opacity-70">Current manual flow</span>
+          </button>
+        </div>
+
+        {activeMode === 'code' ? (
+          <section className="rounded-[32px] border border-dashed border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <span className="material-symbols-outlined text-6xl text-[#4CAF50]" aria-hidden="true">vpn_key</span>
+            <h2 className="mt-4 text-2xl font-black text-slate-900 dark:text-white">Add by plant code</h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm font-bold leading-6 text-slate-500 dark:text-slate-400">
+              Future feature - backend not available yet. This will use claim preview and claim APIs after Plant Inventory and Plant Claim Code are ready.
+            </p>
+            <div className="mx-auto mt-6 grid max-w-xl gap-3 sm:grid-cols-[1fr_auto]">
+              <input disabled placeholder="DB-ABCD-1234" className="h-14 rounded-2xl border border-slate-100 bg-slate-50 px-5 text-sm font-bold text-slate-400 outline-none dark:border-slate-800 dark:bg-slate-800" />
+              <button type="button" disabled className="h-14 rounded-2xl bg-[#4CAF50] px-6 text-xs font-black uppercase tracking-widest text-white opacity-60">
+                Preview
+              </button>
+            </div>
+            <div className="mx-auto mt-5 grid max-w-xl gap-2 text-left text-xs font-bold text-slate-400">
+              <p>Planned: GET /api/my-plants/claim-preview?code=...</p>
+              <p>Planned: POST /api/my-plants/claim</p>
+              <p>No mock claim result and no fake ownership code are generated here.</p>
+            </div>
+          </section>
+        ) : (
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-[32px] border border-slate-50 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="flex flex-col lg:flex-row">
             <div className="lg:w-1/3 bg-[#4CAF50]/5 p-8 flex flex-col items-center justify-center text-center">
@@ -133,6 +166,7 @@ const AddPlantUser = () => {
             </div>
           </div>
         </form>
+        )}
       </div>
     </UserLayout>
   );
