@@ -33,10 +33,11 @@ public class GetAdminPlantInventoryQueryHandler : IRequestHandler<GetAdminPlantI
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync(ct);
 
-        var plantIds = plants.Select(p => p.Id).ToList();
-        var claimCodes = await _db.PlantClaimCodes
-            .Where(c => c.PlantId.HasValue && plantIds.Contains(c.PlantId.Value))
-            .ToDictionaryAsync(c => c.PlantId!.Value, ct);
+        // Use Plant.ClaimCodeId (exists in DB) to look up claim codes — PlantClaimCode.PlantId column is not in the DB
+        var claimCodeIds = plants.Where(p => p.ClaimCodeId.HasValue).Select(p => p.ClaimCodeId!.Value).Distinct().ToList();
+        var claimCodeById = claimCodeIds.Any()
+            ? await _db.PlantClaimCodes.Where(c => claimCodeIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, ct)
+            : new Dictionary<Guid, PlantClaimCode>();
 
         var userIds = plants.Where(p => p.UserId.HasValue).Select(p => p.UserId!.Value).Distinct().ToList();
         var userEmails = userIds.Any()
@@ -45,7 +46,7 @@ public class GetAdminPlantInventoryQueryHandler : IRequestHandler<GetAdminPlantI
 
         return plants.Select(p =>
         {
-            claimCodes.TryGetValue(p.Id, out var cc);
+            PlantClaimCode? cc = p.ClaimCodeId.HasValue ? claimCodeById.GetValueOrDefault(p.ClaimCodeId.Value) : null;
             return ToDto(p, p.UserId.HasValue ? userEmails.GetValueOrDefault(p.UserId.Value) : null, cc);
         }).ToList();
     }
