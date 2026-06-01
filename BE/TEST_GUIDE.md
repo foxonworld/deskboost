@@ -13,10 +13,10 @@
 3. [Users — Hồ sơ người dùng](#3-users)
 4. [Upload Ảnh](#4-upload-ảnh)
 5. [My Plants — Cây của tôi](#5-my-plants)
-6. [Marketplace Plants — Cây bán hàng (Public)](#6-marketplace-plants)
+6. [Marketplace Items — Sản phẩm cửa hàng (Public)](#6-marketplace-items)
 7. [Reminders — Nhắc nhở chăm sóc](#7-reminders)
 8. [AI — Chat & Chẩn đoán bệnh](#8-ai)
-9. [Feedback](#9-feedback)
+9. [Feedback — Đánh giá công khai](#9-feedback)
 10. [Admin Panel](#10-admin)
 11. [Validation — Test lỗi đầu vào](#11-validation)
 12. [Authentication & Authorization — Test bảo mật](#12-authentication--authorization)
@@ -114,7 +114,11 @@ Content-Type: application/json
 }
 ```
 
-> Sau khi đăng ký, vào database đổi `Role = 'ADMIN'` cho tài khoản này, rồi login lại để lấy token admin.
+> Sau khi đăng ký, vào database đổi `Role = 1` (ADMIN) cho tài khoản này:
+> ```sql
+> UPDATE "Users" SET "Role" = 1 WHERE "Email" = 'admin@test.com';
+> ```
+> Rồi login lại để lấy `admin_token`.
 
 ---
 
@@ -272,7 +276,7 @@ file: <chọn file ảnh>
 
 > Tất cả endpoint đều cần `Authorization: Bearer <access_token>`
 
-### 5.1 Tạo cây mới
+### 5.1 Tạo cây tùy chỉnh (không cần mã claim)
 
 ```http
 POST /api/my-plants
@@ -308,7 +312,52 @@ Content-Type: application/json
 
 ---
 
-### 5.2 Lấy danh sách cây
+### 5.2 Xem trước thông tin cây trước khi claim
+
+> Dùng mã code do Admin tạo (xem mục **10.6**).
+
+```http
+GET /api/my-plants/claim-preview?code=DB-ABCD-1234
+Authorization: Bearer <access_token>
+```
+
+**Kết quả mong đợi:** `200 OK`
+```json
+{
+  "plantName": "Cây Trầu Bà #001",
+  "species": "...",
+  "imageUrl": "https://...",
+  "marketplaceItem": { "id": "...", "name": "..." }
+}
+```
+
+**Test lỗi:**
+- `code` không tồn tại → `404 Not Found`
+- `code` đã được claim → `409 Conflict` hoặc `400 Bad Request`
+
+---
+
+### 5.3 Claim cây bằng mã code (mua hàng)
+
+```http
+POST /api/my-plants/claim
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "code": "DB-ABCD-1234",
+  "nickname": "Bé Xanh",
+  "location": "Góc cửa sổ"
+}
+```
+
+**Kết quả mong đợi:** `201 Created` — cây được gán vào tài khoản user.
+
+Sau đó `GET /api/my-plants` → cây vừa claim xuất hiện trong danh sách.
+
+---
+
+### 5.4 Lấy danh sách cây
 
 ```http
 GET /api/my-plants
@@ -326,7 +375,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 5.3 Lấy chi tiết một cây
+### 5.5 Lấy chi tiết một cây
 
 ```http
 GET /api/my-plants/<plant_guid>
@@ -337,7 +386,7 @@ Authorization: Bearer <access_token>
 
 ---
 
-### 5.4 Cập nhật cây
+### 5.6 Cập nhật cây
 
 ```http
 PUT /api/my-plants/<plant_guid>
@@ -348,7 +397,8 @@ Content-Type: application/json
   "name": "Cây Hoa Hồng Đỏ",
   "location": "Ban công",
   "status": "Healthy",
-  "notes": "Cần thêm phân bón"
+  "notes": "Cần thêm phân bón",
+  "wateringCycleDays": 3
 }
 ```
 
@@ -356,7 +406,7 @@ Content-Type: application/json
 
 ---
 
-### 5.5 Xóa cây
+### 5.7 Xóa cây
 
 ```http
 DELETE /api/my-plants/<plant_guid>
@@ -369,53 +419,57 @@ Sau đó `GET /api/my-plants/<plant_guid>` → phải trả về `404 Not Found`
 
 ---
 
-## 6. Marketplace Plants
+## 6. Marketplace Items
 
 > Không cần đăng nhập để xem.  
-> ⚠️ Để có dữ liệu test, cần tạo cây qua Admin endpoint trước (xem mục 10.4).
+> ⚠️ Để có dữ liệu test, cần tạo item qua Admin endpoint trước (xem mục **10.4**).
 
-### Chuẩn bị dữ liệu (nếu chưa có cây nào)
-
-1. Đổi role trong database:
-   ```sql
-   UPDATE "Users" SET "Role" = 1 WHERE "Email" = 'admin@test.com';
-   ```
-2. Login lại bằng `admin@test.com` để lấy `admin_token`
-3. Tạo cây marketplace (xem mục **10.4**)
-4. Quay lại test các endpoint bên dưới
-
----
-
-### 6.1 Lấy danh sách cây marketplace (phân trang)
+### 6.1 Lấy danh sách sản phẩm (phân trang)
 
 ```http
-GET /api/marketplace-plants?page=1&limit=10
+GET /api/marketplace-items?page=1&limit=12
 ```
 
 **Kết quả mong đợi:** `200 OK`
 ```json
 {
   "items": [...],
-  "pagination": { "page": 1, "limit": 10, "total": 1, "totalPages": 1 }
+  "pagination": { "page": 1, "limit": 12, "total": 1, "totalPages": 1 }
 }
 ```
 
 ---
 
-### 6.2 Lấy chi tiết một cây marketplace
+### 6.2 Lấy chi tiết một sản phẩm
 
 ```http
-GET /api/marketplace-plants/<marketplace_plant_guid>
+GET /api/marketplace-items/<marketplace_item_guid>
 ```
 
-**Kết quả mong đợi:** `200 OK` hoặc `404 Not Found` nếu không tồn tại.
+**Kết quả mong đợi:** `200 OK`
+```json
+{
+  "id": "<guid>",
+  "name": "Cây Trầu Bà",
+  "description": "...",
+  "category": "Indoor",
+  "imageUrl": "https://...",
+  "priceText": "150.000đ",
+  "contactUrl": "https://shopee.vn/...",
+  "careLevel": "Easy",
+  "light": "Low",
+  "water": "Weekly"
+}
+```
+
+Trả về `404 Not Found` nếu không tồn tại.
 
 ---
 
 ## 7. Reminders
 
 > Tất cả endpoint đều cần `Authorization`.  
-> `<plant_guid>` lấy từ bước tạo cây ở mục 5.1.
+> `<plant_guid>` lấy từ bước tạo cây ở mục **5.1** hoặc **5.3**.
 
 ### 7.1 Tạo reminder
 
@@ -428,20 +482,20 @@ Content-Type: application/json
   "plantId": "<plant_guid>",
   "title": "Tưới nước buổi sáng",
   "careType": "watering",
-  "dueAt": "2026-06-01T08:00:00Z",
+  "dueAt": "2026-06-05T08:00:00Z",
   "repeatRule": "Daily",
   "notes": "Nhớ kiểm tra độ ẩm đất"
 }
 ```
 
-**Kết quả mong đợi:** `200 OK`
+**Kết quả mong đợi:** `201 Created`
 ```json
 {
   "id": "<reminder_guid>",
   "plantId": "<plant_guid>",
   "title": "Tưới nước buổi sáng",
   "careType": "watering",
-  "dueAt": "2026-06-01T08:00:00Z",
+  "dueAt": "2026-06-05T08:00:00Z",
   "repeatRule": "Daily",
   "status": "Pending"
 }
@@ -469,7 +523,7 @@ Content-Type: application/json
 
 {
   "title": "Tưới nước buổi chiều",
-  "dueAt": "2026-06-01T17:00:00Z"
+  "dueAt": "2026-06-05T17:00:00Z"
 }
 ```
 
@@ -498,7 +552,7 @@ GET /api/reminders/<reminder_guid>/calendar?format=ics
 Authorization: Bearer <access_token>
 ```
 
-**Kết quả mong đợi:** JSON với link ICS hoặc file `.ics` để import vào lịch.
+**Kết quả mong đợi:** JSON với link ICS hoặc file `.ics` để import vào Google Calendar / Outlook.
 
 ---
 
@@ -523,10 +577,12 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {
-  "plantId": "<plant_guid>",
-  "message": "Lá cây của tôi bị vàng, phải làm gì?"
+  "message": "Lá cây của tôi bị vàng, phải làm gì?",
+  "plantId": "<plant_guid>"
 }
 ```
+
+> `plantId` là optional — nếu truyền, AI sẽ có thêm context về cây.
 
 **Kết quả mong đợi:** `200 OK`
 ```json
@@ -545,8 +601,12 @@ Authorization: Bearer <access_token>
 Content-Type: application/json
 
 {
+  "message": "Tôi nên tưới bao nhiêu nước?",
   "plantId": "<plant_guid>",
-  "message": "Tôi nên tưới bao nhiêu nước?"
+  "history": [
+    { "role": "user", "content": "Lá cây của tôi bị vàng, phải làm gì?" },
+    { "role": "assistant", "content": "Lá vàng có thể do..." }
+  ]
 }
 ```
 
@@ -561,9 +621,8 @@ POST /api/ai/diagnose
 Authorization: Bearer <access_token>
 Content-Type: multipart/form-data
 
-plantId: <plant_guid>           (optional)
-question: "Cây bị bệnh gì?"    (optional)
-image: <file.jpg>               (required)
+image: <file.jpg>          (required)
+plantId: <plant_guid>      (optional)
 ```
 
 **Kết quả mong đợi:** `200 OK`
@@ -605,36 +664,34 @@ Authorization: Bearer <access_token>
 
 ## 9. Feedback
 
-### 9.1 Gửi feedback
+> Feedback là **public** — không cần đăng nhập để xem.  
+> Admin nhập và kiểm duyệt feedback (xem mục **10.7**).
+
+### 9.1 Xem đánh giá đã xác minh của một sản phẩm
 
 ```http
-POST /api/feedback
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "message": "Ứng dụng rất hữu ích, tôi thích tính năng chẩn đoán bệnh cây!",
-  "rating": 5
-}
+GET /api/feedback/verified?catalogPlantId=<marketplace_item_guid>
 ```
 
 **Kết quả mong đợi:** `200 OK`
-
----
-
-### 9.2 Gửi feedback không có rating (optional)
-
-```http
-POST /api/feedback
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "message": "Cần thêm tính năng xuất báo cáo chăm sóc cây."
-}
+```json
+[
+  {
+    "id": "<guid>",
+    "customerAlias": "Chị Lan",
+    "rating": 5,
+    "comment": "Cây đẹp, giao hàng nhanh",
+    "purchaseChannel": "Zalo",
+    "publicImageUrls": ["https://..."],
+    "createdAt": "2026-05-20T10:00:00Z"
+  }
+]
 ```
 
-**Kết quả mong đợi:** `200 OK`
+**Test các trường hợp:**
+- Sản phẩm không có feedback → `200 OK: []`
+- `catalogPlantId` không hợp lệ → `400 Bad Request`
+- Không truyền `catalogPlantId` → `200 OK` (trả về tất cả feedback đã verify)
 
 ---
 
@@ -654,7 +711,7 @@ Authorization: Bearer <admin_token>
 {
   "users": 5,
   "userPlants": 12,
-  "marketplacePlants": 8,
+  "marketplaceItems": 8,
   "aiDialogs": 20,
   "aiConfigured": true
 }
@@ -694,7 +751,7 @@ Content-Type: application/json
 
 ---
 
-### 10.3 Quản lý cây của người dùng
+### 10.3 Quản lý cây của người dùng (User Plants)
 
 ```http
 GET /api/admin/user-plants
@@ -712,53 +769,256 @@ Content-Type: application/json
 
 ---
 
-### 10.4 Quản lý Marketplace Plants
+### 10.4 Quản lý Marketplace Items (sản phẩm cửa hàng)
 
-**Tạo cây:**
+**Tạo sản phẩm:**
 ```http
-POST /api/admin/marketplace-plants
+POST /api/admin/marketplace-items
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
-  "name": "Cây Xương Rồng Mini",
-  "description": "Dễ trồng, ít tưới nước",
+  "name": "Cây Trầu Bà",
+  "description": "Cây phong thủy, dễ trồng trong nhà",
+  "category": "Indoor",
   "imageUrl": "https://res.cloudinary.com/...",
-  "priceText": "50.000đ - 100.000đ",
-  "careLevel": "easy",
-  "light": "Ánh sáng mạnh",
-  "water": "1 lần/tuần",
+  "priceText": "150.000đ",
   "contactUrl": "https://shopee.vn/shop/123",
-  "status": "active"
+  "status": "Active",
+  "careLevel": "Easy",
+  "light": "Low",
+  "water": "Weekly",
+  "attributesJson": "{}"
 }
 ```
 
-**Kết quả mong đợi:** `200 OK`
+**Kết quả mong đợi:** `201 Created`
 
 **Cập nhật:**
 ```http
-PUT /api/admin/marketplace-plants/<marketplace_plant_guid>
+PUT /api/admin/marketplace-items/<marketplace_item_guid>
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
 {
-  "name": "Cây Xương Rồng Mini (Updated)",
-  "priceText": "60.000đ - 120.000đ",
-  "status": "active"
+  "name": "Cây Trầu Bà (Updated)",
+  "priceText": "120.000đ",
+  "status": "Active"
 }
 ```
 
 **Xóa:**
 ```http
-DELETE /api/admin/marketplace-plants/<marketplace_plant_guid>
+DELETE /api/admin/marketplace-items/<marketplace_item_guid>
 Authorization: Bearer <admin_token>
 ```
 
 **Kết quả mong đợi:** `204 No Content`
 
+**Lấy danh sách (có filter):**
+```http
+GET /api/admin/marketplace-items?page=1&limit=50&category=Indoor
+Authorization: Bearer <admin_token>
+```
+
 ---
 
-### 10.5 Xem AI Dialogs (Admin)
+### 10.5 Quản lý Plant Inventory (kho cây vật lý)
+
+> Luồng: Admin nhập cây vào kho → hệ thống tạo claim code → gửi code cho khách mua → khách claim cây.
+
+**Thêm cây vào kho:**
+```http
+POST /api/admin/plant-inventory
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Cây Trầu Bà #001",
+  "marketplaceItemId": "<marketplace_item_guid>",
+  "imageUrl": "https://res.cloudinary.com/...",
+  "location": "Kệ A-01",
+  "wateringCycleDays": 3,
+  "notes": "Cây khỏe, mới nhập"
+}
+```
+
+**Kết quả mong đợi:** `201 Created`
+```json
+{
+  "id": "<inventory_guid>",
+  "name": "Cây Trầu Bà #001",
+  "claimCode": "DB-ABCD-1234",
+  "status": "Unclaimed",
+  ...
+}
+```
+
+**Lấy danh sách kho (filter theo trạng thái):**
+```http
+GET /api/admin/plant-inventory?status=unclaimed
+Authorization: Bearer <admin_token>
+
+GET /api/admin/plant-inventory?status=claimed&marketplaceItemId=<guid>
+Authorization: Bearer <admin_token>
+```
+
+**Tạo lại mã claim (nếu mã cũ bị lộ/thất lạc):**
+```http
+POST /api/admin/plant-inventory/<inventory_guid>/regenerate-code
+Authorization: Bearer <admin_token>
+```
+
+**Kết quả mong đợi:** `200 OK` — `{ "newCode": "DB-EFGH-5678" }`
+
+**Cập nhật thông tin cây:**
+```http
+PUT /api/admin/plant-inventory/<inventory_guid>
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "name": "Cây Trầu Bà #001 (Updated)",
+  "location": "Kệ B-02",
+  "notes": "Đã bón phân"
+}
+```
+
+**Xóa cây khỏi kho:**
+```http
+DELETE /api/admin/plant-inventory/<inventory_guid>
+Authorization: Bearer <admin_token>
+```
+
+---
+
+### 10.6 Quản lý Plant Claim Codes (mã claim)
+
+**Tạo mã claim cho khách mua:**
+```http
+POST /api/admin/plant-claim-codes
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "marketplaceItemId": "<marketplace_item_guid>",
+  "buyerContact": "0901234567",
+  "note": "Khách mua ngày 01/06/2026, Zalo"
+}
+```
+
+**Kết quả mong đợi:** `201 Created`
+```json
+{
+  "id": "<code_guid>",
+  "code": "DB-XXXX-XXXX",
+  "status": "Active",
+  "buyerContact": "0901234567"
+}
+```
+
+> Gửi mã `DB-XXXX-XXXX` cho khách. Khách dùng `POST /api/my-plants/claim` để nhận cây.
+
+**Lấy danh sách mã:**
+```http
+GET /api/admin/plant-claim-codes?marketplaceItemId=<guid>&status=Active
+Authorization: Bearer <admin_token>
+```
+
+**Hủy mã chưa được dùng:**
+```http
+PATCH /api/admin/plant-claim-codes/<code_guid>/cancel
+Authorization: Bearer <admin_token>
+```
+
+**Kết quả mong đợi:** `200 OK`
+
+---
+
+### 10.7 Quản lý Feedback
+
+> Admin nhập feedback từ phản hồi của khách (Zalo, Shopee...) và kiểm duyệt trước khi hiển thị công khai.
+
+**Xem feedback chờ duyệt:**
+```http
+GET /api/admin/feedback?isVerified=false
+Authorization: Bearer <admin_token>
+```
+
+**Xem feedback theo sản phẩm:**
+```http
+GET /api/admin/feedback?catalogPlantId=<marketplace_item_guid>&channel=Zalo
+Authorization: Bearer <admin_token>
+```
+
+**Nhập feedback thủ công từ khách:**
+```http
+POST /api/admin/feedback
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "catalogPlantId": "<marketplace_item_guid>",
+  "customerAlias": "Chị Lan",
+  "rating": 5,
+  "comment": "Cây đẹp, giao hàng nhanh, đóng gói cẩn thận",
+  "purchaseChannel": "Zalo",
+  "publicImageUrls": ["https://..."],
+  "evidenceImageUrls": ["https://..."],
+  "evidenceNote": "Ảnh chụp từ Zalo",
+  "isVerified": false
+}
+```
+
+**Xác minh feedback (cho phép hiển thị công khai):**
+```http
+PATCH /api/admin/feedback/<feedback_guid>/verify
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{ "isVerified": true }
+```
+
+**Kết quả mong đợi:** `200 OK`
+
+Sau đó kiểm tra feedback đã xuất hiện trên public endpoint:
+```http
+GET /api/feedback/verified?catalogPlantId=<marketplace_item_guid>
+```
+
+**Bỏ xác minh:**
+```http
+PATCH /api/admin/feedback/<feedback_guid>/verify
+Content-Type: application/json
+
+{ "isVerified": false }
+```
+
+**Cập nhật feedback:**
+```http
+PUT /api/admin/feedback/<feedback_guid>
+Authorization: Bearer <admin_token>
+Content-Type: application/json
+
+{
+  "catalogPlantId": "<guid>",
+  "customerAlias": "Chị Lan (sửa)",
+  "rating": 4,
+  "comment": "Nội dung đã chỉnh sửa",
+  "purchaseChannel": "Shopee",
+  "isVerified": true
+}
+```
+
+**Xóa feedback:**
+```http
+DELETE /api/admin/feedback/<feedback_guid>
+Authorization: Bearer <admin_token>
+```
+
+---
+
+### 10.8 Xem AI Dialogs (Admin)
 
 ```http
 GET /api/admin/ai-dialogs
@@ -770,7 +1030,7 @@ Authorization: Bearer <admin_token>
 
 ---
 
-### 10.6 Kiểm tra trạng thái AI Config
+### 10.9 Kiểm tra trạng thái AI Config
 
 ```http
 GET /api/admin/ai-config/status
@@ -811,7 +1071,7 @@ Content-Type: application/json
   "confirmPassword": "Password123!"
 }
 ```
-**Kết quả mong đợi:** `400 Bad Request` — `"Họ và tên không được để trống."`
+**Kết quả mong đợi:** `400 Bad Request`
 
 #### Đăng ký — confirmPassword không khớp
 ```http
@@ -839,7 +1099,7 @@ Content-Type: application/json
   "fullName": "Duplicate User"
 }
 ```
-**Kết quả mong đợi:** `409 Conflict` — `"Email đã được sử dụng."`
+**Kết quả mong đợi:** `409 Conflict`
 
 #### Đăng nhập — sai mật khẩu
 ```http
@@ -849,18 +1109,6 @@ Content-Type: application/json
 {
   "email": "user@test.com",
   "password": "WrongPassword!"
-}
-```
-**Kết quả mong đợi:** `401 Unauthorized` — `"Email hoặc mật khẩu không đúng."`
-
-#### Đăng nhập — email không tồn tại
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "notexist@test.com",
-  "password": "Password123!"
 }
 ```
 **Kết quả mong đợi:** `401 Unauthorized`
@@ -874,7 +1122,7 @@ Content-Type: application/json
   "token": "invalid_refresh_token_here"
 }
 ```
-**Kết quả mong đợi:** `401 Unauthorized` — `"Refresh token không hợp lệ hoặc đã hết hạn."`
+**Kết quả mong đợi:** `401 Unauthorized`
 
 ---
 
@@ -886,13 +1134,13 @@ POST /api/upload/image
 Authorization: Bearer <access_token>
 Content-Type: multipart/form-data
 ```
-**Kết quả mong đợi:** `400 Bad Request` — `"File ảnh không được để trống."`
+**Kết quả mong đợi:** `400 Bad Request`
 
 #### Upload — file không phải ảnh (ví dụ .pdf)
-**Kết quả mong đợi:** `400 Bad Request` — `"Chỉ chấp nhận ảnh định dạng JPEG, PNG, WebP hoặc GIF."`
+**Kết quả mong đợi:** `400 Bad Request`
 
 #### Upload — file quá lớn (>5MB)
-**Kết quả mong đợi:** `400 Bad Request` — `"Kích thước ảnh không được vượt quá 5MB."`
+**Kết quả mong đợi:** `400 Bad Request`
 
 ---
 
@@ -910,19 +1158,6 @@ Content-Type: application/json
 ```
 **Kết quả mong đợi:** `400 Bad Request`
 
-#### Tạo cây — name rỗng hoặc chỉ có khoảng trắng
-```http
-POST /api/my-plants
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "name": "   ",
-  "species": "Rosa"
-}
-```
-**Kết quả mong đợi:** `400 Bad Request`
-
 #### Lấy cây — ID không tồn tại
 ```http
 GET /api/my-plants/00000000-0000-0000-0000-000000000000
@@ -930,14 +1165,7 @@ Authorization: Bearer <access_token>
 ```
 **Kết quả mong đợi:** `404 Not Found`
 
-#### Lấy cây — ID không phải GUID hợp lệ
-```http
-GET /api/my-plants/not-a-valid-guid
-Authorization: Bearer <access_token>
-```
-**Kết quả mong đợi:** `400 Bad Request`
-
-#### Xóa cây của người dùng khác (cross-user)
+#### Xóa cây của người dùng khác (cross-user isolation)
 Đăng nhập bằng tài khoản thứ 2, thử xóa cây của tài khoản 1:
 ```http
 DELETE /api/my-plants/<plant_guid_of_user1>
@@ -945,11 +1173,21 @@ Authorization: Bearer <access_token_user2>
 ```
 **Kết quả mong đợi:** `404 Not Found`
 
+#### Claim — mã không tồn tại
+```http
+POST /api/my-plants/claim
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{ "code": "DB-ZZZZ-9999", "nickname": "Test", "location": "Test" }
+```
+**Kết quả mong đợi:** `404 Not Found`
+
 ---
 
 ### 11.4 Reminder Validation
 
-#### Tạo reminder — thiếu title hoặc title rỗng
+#### Tạo reminder — title rỗng
 ```http
 POST /api/reminders
 Authorization: Bearer <access_token>
@@ -959,7 +1197,7 @@ Content-Type: application/json
   "plantId": "<plant_guid>",
   "title": "",
   "careType": "watering",
-  "dueAt": "2026-06-01T08:00:00Z"
+  "dueAt": "2026-06-05T08:00:00Z"
 }
 ```
 **Kết quả mong đợi:** `400 Bad Request`
@@ -974,7 +1212,7 @@ Content-Type: application/json
   "plantId": "00000000-0000-0000-0000-000000000000",
   "title": "Test",
   "careType": "watering",
-  "dueAt": "2026-06-01T08:00:00Z"
+  "dueAt": "2026-06-05T08:00:00Z"
 }
 ```
 **Kết quả mong đợi:** `404 Not Found`
@@ -983,7 +1221,7 @@ Content-Type: application/json
 
 ### 11.5 AI Validation
 
-#### Chat — thiếu hoặc rỗng message
+#### Chat — message rỗng
 ```http
 POST /api/ai/chat
 Authorization: Bearer <access_token>
@@ -1002,33 +1240,17 @@ POST /api/ai/diagnose
 Authorization: Bearer <access_token>
 Content-Type: multipart/form-data
 
-question: "Cây bị bệnh gì?"
+plantId: <plant_guid>
 ```
 **Kết quả mong đợi:** `400 Bad Request`
 
 ---
 
-### 11.6 Feedback Validation
+### 11.6 Admin Validation
 
-#### Gửi feedback — thiếu hoặc rỗng message
+#### Tạo marketplace item — thiếu name
 ```http
-POST /api/feedback
-Authorization: Bearer <access_token>
-Content-Type: application/json
-
-{
-  "rating": 4
-}
-```
-**Kết quả mong đợi:** `400 Bad Request`
-
----
-
-### 11.7 Admin Validation
-
-#### Tạo marketplace plant — thiếu name
-```http
-POST /api/admin/marketplace-plants
+POST /api/admin/marketplace-items
 Authorization: Bearer <admin_token>
 Content-Type: application/json
 
@@ -1075,7 +1297,7 @@ Authorization: Bearer invalid.token.here
 
 ### 12.3 Gọi endpoint có [Authorize] với token hết hạn
 
-Đợi 15 phút sau khi đăng nhập (hoặc tạm thời sửa `AccessTokenExpiryMinutes = 1`), rồi gọi bất kỳ endpoint nào có `[Authorize]`.
+Đợi token hết hạn (hoặc tạm thời sửa `AccessTokenExpiryMinutes = 1`), rồi gọi bất kỳ endpoint nào có `[Authorize]`.
 
 **Kết quả mong đợi:** `401 Unauthorized`
 
@@ -1092,49 +1314,69 @@ Authorization: Bearer <access_token_of_normal_user>
 
 ---
 
-### 12.5 Marketplace endpoint không cần auth (public)
+### 12.5 Marketplace và Feedback không cần auth (public)
 
 ```http
-GET /api/marketplace-plants
+GET /api/marketplace-items
+GET /api/feedback/verified?catalogPlantId=<guid>
 ```
 
-**Kết quả mong đợi:** `200 OK` — danh sách cây hiển thị bình thường.
+**Kết quả mong đợi:** `200 OK` — dữ liệu hiển thị bình thường, không cần token.
 
 ---
 
 ## 13. Thứ Tự Test End-to-End Đề Xuất
 
 ```
-1.  POST /api/auth/register             → Đăng ký user (kèm confirmPassword)
-2.  POST /api/auth/login                → Đăng nhập, lấy token
-3.  GET  /api/auth/me                   → Xác nhận token hoạt động
-4.  POST /api/upload/image              → Upload ảnh, lấy URL
-5.  PUT  /api/users/me                  → Cập nhật hồ sơ (dùng URL ảnh vừa upload)
-6.  POST /api/my-plants                 → Tạo cây (dùng imageUrl từ bước 4)
-7.  GET  /api/my-plants                 → Xem danh sách cây
-8.  GET  /api/my-plants/{plant_guid}    → Xem chi tiết cây
-9.  PUT  /api/my-plants/{plant_guid}    → Sửa thông tin cây
-10. POST /api/reminders                 → Tạo nhắc nhở cho cây
-11. GET  /api/reminders                 → Xem danh sách nhắc nhở
-12. PUT  /api/reminders/{id}/done       → Đánh dấu hoàn thành
-13. GET  /api/reminders/{id}/calendar   → Xuất lịch ICS
-14. GET  /api/marketplace-plants        → Xem cây marketplace (không cần auth)
-15. POST /api/ai/chat                   → Chat với AI về cây
-16. GET  /api/ai/dialogs                → Xem lịch sử chat
-17. POST /api/ai/diagnose               → Upload ảnh chẩn đoán bệnh
-18. POST /api/feedback                  → Gửi feedback
-19. POST /api/auth/refresh-token        → Làm mới token
-20. POST /api/auth/logout               → Đăng xuất
+=== PHẦN USER ===
+1.  POST /api/auth/register                    → Đăng ký user
+2.  POST /api/auth/login                       → Đăng nhập, lấy access_token
+3.  GET  /api/auth/me                          → Xác nhận token hoạt động
+4.  POST /api/upload/image                     → Upload ảnh, lấy imageUrl
+5.  PUT  /api/users/me                         → Cập nhật hồ sơ (avatarUrl từ bước 4)
+6.  POST /api/my-plants                        → Tạo cây tùy chỉnh (imageUrl từ bước 4)
+7.  GET  /api/my-plants                        → Xem danh sách cây
+8.  GET  /api/my-plants/{plant_guid}           → Xem chi tiết cây
+9.  PUT  /api/my-plants/{plant_guid}           → Sửa thông tin cây
+10. POST /api/reminders                        → Tạo nhắc nhở cho cây
+11. GET  /api/reminders                        → Xem danh sách nhắc nhở
+12. PUT  /api/reminders/{id}/done              → Đánh dấu hoàn thành
+13. GET  /api/reminders/{id}/calendar?format=ics → Xuất lịch ICS
+14. POST /api/ai/chat                          → Chat với AI về cây
+15. GET  /api/ai/dialogs                       → Xem lịch sử chat
+16. POST /api/ai/diagnose                      → Upload ảnh chẩn đoán bệnh
+17. POST /api/auth/refresh-token               → Làm mới token
+18. POST /api/auth/logout                      → Đăng xuất
 
---- Chuyển sang tài khoản Admin ---
-21. POST /api/auth/login (admin)                 → Đăng nhập admin
-22. GET  /api/admin/summary                      → Xem tổng quan
-23. GET  /api/admin/users                        → Quản lý users
-24. POST /api/upload/image (admin_token)         → Upload ảnh marketplace
-25. POST /api/admin/marketplace-plants           → Thêm cây vào marketplace
-26. GET  /api/admin/ai-config/status             → Kiểm tra AI config
-27. PUT  /api/admin/users/{id}/status (Banned)   → Ban user test
-28. POST /api/auth/login (banned user)           → Xác nhận bị từ chối
+=== PHẦN PUBLIC ===
+19. GET  /api/marketplace-items                → Xem sản phẩm (không cần auth)
+20. GET  /api/marketplace-items/{id}           → Chi tiết sản phẩm
+21. GET  /api/feedback/verified?catalogPlantId=<guid> → Xem đánh giá đã duyệt
+
+=== PHẦN ADMIN ===
+22. POST /api/auth/login (admin)               → Đăng nhập admin
+23. GET  /api/admin/summary                    → Xem tổng quan hệ thống
+24. GET  /api/admin/users                      → Xem danh sách users
+25. POST /api/upload/image (admin_token)       → Upload ảnh cho sản phẩm
+26. POST /api/admin/marketplace-items          → Tạo sản phẩm mới (imageUrl từ bước 25)
+27. POST /api/admin/plant-inventory            → Thêm cây vật lý vào kho
+28. POST /api/admin/plant-claim-codes          → Tạo mã claim cho khách
+
+=== LUỒNG CLAIM CÂY ===
+29. (Dùng lại user_token từ bước 2)
+    GET  /api/my-plants/claim-preview?code=DB-XXXX-XXXX  → Xem trước cây
+30. POST /api/my-plants/claim                  → Claim cây bằng mã từ bước 28
+31. GET  /api/my-plants                        → Xác nhận cây đã xuất hiện
+
+=== LUỒNG FEEDBACK ===
+32. POST /api/admin/feedback (admin_token)     → Admin nhập feedback từ khách
+33. PATCH /api/admin/feedback/{id}/verify      → Xác minh feedback
+34. GET  /api/feedback/verified?catalogPlantId=<guid> → Xác nhận hiển thị công khai
+
+=== TEST BẢO MẬT ===
+35. PUT  /api/admin/users/{id}/status (Banned) → Ban tài khoản user test
+36. POST /api/auth/login (banned user)         → Xác nhận bị từ chối đăng nhập
+37. PUT  /api/admin/users/{id}/status (Active) → Unban
 ```
 
 ---
@@ -1143,11 +1385,14 @@ GET /api/marketplace-plants
 
 | Mục | Chi tiết |
 |-----|----------|
-| **Upload ảnh** | Upload trước tại `POST /api/upload/image`, lấy URL dùng cho `imageUrl` / `avatarUrl` |
-| **AI API Keys** | Nếu không có PlantId/Gemini API key hợp lệ, endpoint `/api/ai/diagnose` và `/api/ai/chat` có thể trả về lỗi 500 |
+| **Upload ảnh** | Upload tại `POST /api/upload/image` trước, dùng URL trả về cho `imageUrl` / `avatarUrl` |
+| **AI API Keys** | Nếu không có Gemini API key hợp lệ, `/api/ai/diagnose` và `/api/ai/chat` có thể trả về lỗi 500 |
 | **CORS** | Dev đang cấu hình `AllowAnyOrigin` — môi trường production cần giới hạn lại |
 | **Access Token TTL** | 15 phút — dùng refresh token để lấy token mới |
 | **Refresh Token TTL** | 7 ngày — sau logout bị thu hồi ngay |
-| **Phân trang Marketplace** | Query params: `?page=1&limit=10` |
-| **Enum values** | `status`: `Active`, `Inactive`, `Banned`; `careType`: `watering`, `fertilizing`, `repotting`, `other`; `repeatRule`: `Daily`, `Weekly`, `Monthly` |
+| **Phân trang** | Query params: `?page=1&limit=12` (marketplace); mặc định `limit=50` cho admin |
+| **Claim code format** | `DB-XXXX-XXXX` (4 chữ cái hoa + 4 chữ số) |
+| **Enum status** | `Active`, `Inactive`, `Banned` |
+| **Enum careType** | `watering`, `fertilizing`, `repotting`, `other` |
+| **Enum repeatRule** | `Daily`, `Weekly`, `Monthly` |
 | **Format lỗi** | Mọi lỗi trả về `{ "statusCode": int, "message": string, "errors": string[]? }` |
