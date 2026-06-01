@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { MY_PLANTS } from '../data/mockData';
 import { getMyPlants } from '../services/plantApi';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import { useI18n } from '../i18n';
@@ -36,10 +35,10 @@ const MyPlants = () => {
       try {
         const res = await getMyPlants();
         const items = normalizeItems(res);
-        if (alive) setPlants(items.length ? items : MY_PLANTS);
+        if (alive) setPlants(items);
       } catch (err) {
         if (alive) {
-          setPlants(MY_PLANTS);
+          setPlants([]);
           setError(err?.message || t('myPlants.fallbackError'));
         }
       } finally {
