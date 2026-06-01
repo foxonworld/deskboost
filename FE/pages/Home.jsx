@@ -5,10 +5,11 @@ import { useGSAP } from '@gsap/react';
 import Navbar from '../components/Navbar';
 import ChatbotWidget from '../components/ChatbotWidget';
 import { useCare } from '../context/CareContext';
-import { PLANTS, formatVND } from '../data/mockData';
+import { getMarketplacePlants } from '../services/plantApi';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
+import { formatVND } from '../utils/currency';
 import { getRevealVars, motionDistances, motionDurations, motionEasings, usePrefersReducedMotion } from '../utils/motion';
 import { useI18n } from '../i18n';
 
@@ -31,6 +32,9 @@ const Home = () => {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [activeActivityIndex, setActiveActivityIndex] = React.useState(0);
+  const [featuredPlants, setFeaturedPlants] = React.useState([]);
+  const [featuredLoading, setFeaturedLoading] = React.useState(true);
+  const [featuredError, setFeaturedError] = React.useState('');
   const rootRef = React.useRef(null);
   const reducedMotion = usePrefersReducedMotion();
 
@@ -76,7 +80,27 @@ const Home = () => {
   };
 
   const cfg = urgencyConfig[currentTask.urgency] || urgencyConfig.upcoming;
-  const featuredPlants = PLANTS.slice(0, 3);
+
+  React.useEffect(() => {
+    let active = true;
+    const loadFeaturedPlants = async () => {
+      setFeaturedLoading(true);
+      setFeaturedError('');
+      try {
+        const data = await getMarketplacePlants({ limit: 3 });
+        if (active) setFeaturedPlants(data?.items || []);
+      } catch (err) {
+        if (active) {
+          setFeaturedPlants([]);
+          setFeaturedError(err?.message || 'Could not load marketplace items.');
+        }
+      } finally {
+        if (active) setFeaturedLoading(false);
+      }
+    };
+    loadFeaturedPlants();
+    return () => { active = false; };
+  }, []);
 
   return (
     <div ref={rootRef} className="flex min-h-screen flex-col bg-background-light text-text-main antialiased dark:bg-background-dark dark:text-white">
@@ -234,12 +258,25 @@ const Home = () => {
               </Button>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-3">
-              {featuredPlants.map((plant) => (
+            {featuredLoading ? (
+              <p className="rounded-2xl border border-[#E4EEE6] bg-white p-5 text-sm font-bold text-text-secondary dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
+                {t('common.loading')}
+              </p>
+            ) : featuredError ? (
+              <p className="rounded-2xl bg-red-50 p-5 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">
+                {featuredError}
+              </p>
+            ) : featuredPlants.length === 0 ? (
+              <p className="rounded-2xl border border-dashed border-[#E4EEE6] p-5 text-sm font-bold text-text-secondary dark:border-[#2A4532] dark:text-slate-300">
+                No marketplace items found yet.
+              </p>
+            ) : (
+              <div className="grid gap-5 md:grid-cols-3">
+                {featuredPlants.map((plant) => (
                 <Card key={plant.id} padding="none" interactive={false} className="group overflow-hidden bg-white dark:bg-surface-dark transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/20 dark:hover:border-primary/20">
                   <Link to={`/plants/${plant.id}`} className="block aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-900">
                     <img
-                      src={plant.image}
+                      src={plant.image || plant.imageUrl}
                       alt={plant.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
                     />
@@ -250,7 +287,7 @@ const Home = () => {
                         <h3 className="text-lg font-extrabold text-text-main dark:text-white">{plant.name}</h3>
                         <p className="mt-1 text-sm text-text-secondary dark:text-slate-400">{t('home.market.cardDescription')}</p>
                       </div>
-                      <span className="whitespace-nowrap text-sm font-extrabold text-primary">{formatVND(plant.price)}</span>
+                      <span className="whitespace-nowrap text-sm font-extrabold text-primary">{plant.priceText || formatVND(plant.price)}</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Badge tone="primary">{t('home.market.easyCare')}</Badge>
@@ -261,8 +298,9 @@ const Home = () => {
                     </Button>
                   </div>
                 </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

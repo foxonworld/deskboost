@@ -209,23 +209,26 @@ const PlantProfile = () => {
                         <span className="material-symbols-outlined text-[#4CAF50]" aria-hidden="true">qr_code_2</span>
                         <div>
                           <h2 id="plant-ownership-heading" className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">{t('plantProfile.ownership.title')}</h2>
-                          <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">{t('plantProfile.ownership.description')}</p>
+                          <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">Future feature - backend not available yet</p>
                         </div>
                       </div>
                       <div className="mt-4 grid gap-3 sm:grid-cols-3">
                         <div className="rounded-2xl bg-white p-3 dark:bg-slate-900">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('plantProfile.ownership.code')}</p>
-                          <p className="mt-1 text-sm font-bold">{plant.ownershipCode || t('common.nA')}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Plant code</p>
+                          <p className="mt-1 text-sm font-bold text-slate-500">Backend required</p>
                         </div>
                         <div className="rounded-2xl bg-white p-3 dark:bg-slate-900">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('plantProfile.ownership.status')}</p>
-                          <p className="mt-1 text-sm font-bold">{plant.ownershipStatus || t('common.nA')}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">QR placeholder</p>
+                          <p className="mt-1 text-sm font-bold text-slate-500">No QR generated</p>
                         </div>
                         <div className="rounded-2xl bg-white p-3 dark:bg-slate-900">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('plantProfile.ownership.claimed')}</p>
-                          <p className="mt-1 text-sm font-bold">{plant.isClaimed ? t('common.yes') : t('common.no')}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Claim status</p>
+                          <p className="mt-1 text-sm font-bold text-slate-500">Backend required</p>
                         </div>
                       </div>
+                      <button type="button" disabled className="mt-4 w-full rounded-2xl border border-dashed border-slate-200 px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-400 dark:border-slate-700">
+                        Future feature - backend not available yet
+                      </button>
                     </section>
                     <Link to="/app/ai-analysis" className="inline-flex items-center justify-center w-full h-14 rounded-2xl bg-[#4CAF50] text-white font-black uppercase tracking-widest">{t('plantProfile.bioScan')}</Link>
                   </>

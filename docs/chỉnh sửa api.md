@@ -1,316 +1,458 @@
-# Kế hoạch chỉnh sửa API cho flow MyPlants bằng QR/code
+# Kế hoạch chỉnh sửa API cho MarketplaceItem và Plant Claim Code
 
-Tài liệu này mô tả ý tưởng sản phẩm và các thay đổi API đề xuất cho DeskBoost, để BE tham khảo khi phát triển flow người dùng nhận cây bằng QR/code sau khi mua cây từ admin.
+Tài liệu này mô tả lại đúng ý tưởng hiện tại của DeskBoost để gửi BE tham khảo.
 
 Mục tiêu chính:
 
-- Admin tạo cây bán trên marketplace.
-- Admin tạo cây vật lý có QR/code ownership.
-- User scan QR hoặc nhập code để claim cây.
-- Sau khi claim, cây xuất hiện trong My Plants của user.
-- User có thể đặt tên riêng, sửa vị trí, ghi chú, ảnh, reminder, AI chat, AI diagnosis.
+- Marketplace không chỉ bán cây, mà còn bán chậu, đất trồng, phân bón, phụ kiện.
+- Các item trên marketplace là catalog/listing, không phải từng cây vật lý duy nhất.
+- Ownership/claim code chỉ áp dụng cho item loại cây (`category = plant`).
+- Mỗi lần bán một cây từ cùng một listing, admin tạo một mã code riêng.
+- User nhập code để thêm cây đã mua vào My Plants.
+- Sau khi claim, admin xem được cây đó trong Admin User Plants và theo dõi thông tin user cập nhật.
+
+Không làm:
+
+- Không tạo code cho phân bón, chậu, đất, phụ kiện.
+- Không coi MarketplaceItem là cây vật lý duy nhất.
+- Không dùng mock code hoặc QR giả.
 
 ---
 
-## 1. Ý tưởng tổng quan
+## 1. Ý tưởng đúng của hệ thống
 
-Hiện tại đang dễ bị nhầm giữa:
+Marketplace hiện tại nên được hiểu là nơi hiển thị **loại sản phẩm / catalog item**.
 
-- `MarketplacePlant`
-- `Plant`
-- `MyPlants`
-- legacy `/api/plants`
-
-Hướng nên phát triển là tách rõ 3 lớp:
+Ví dụ:
 
 ```text
-MarketplacePlant
-= bài đăng / listing cây đang bán ngoài marketplace
-
-Plant Inventory / Physical Plant
-= cây vật lý thật, có QR/code riêng, admin tạo
-
-MyPlant
-= cây vật lý sau khi user claim vào tài khoản
+Marketplace item: Cây Tim Tròn
 ```
 
-Flow sản phẩm:
+Điều này không có nghĩa là chỉ có một cây Tim Tròn duy nhất. Đây là một loại cây có thể bán nhiều lần.
+
+Ví dụ flow bán hàng:
 
 ```text
-Admin tạo listing marketplace
+Admin có listing "Cây Tim Tròn"
         |
         v
-Admin tạo cây vật lý từ listing đó
+Khách A mua Cây Tim Tròn
         |
         v
-Backend sinh ownershipCode / QR
+Admin tạo CODE-A cho khách A
         |
         v
-Khách mua cây
+Khách A nhập CODE-A
         |
         v
-User scan QR hoặc nhập code
-        |
-        v
-Backend claim cây cho user
-        |
-        v
-Cây xuất hiện trong My Plants
-        |
-        v
-User đặt nickname, location, notes, reminders, AI chat, diagnosis
+App tạo MyPlant riêng cho khách A
 ```
 
-Nói ngắn gọn:
+Khách B cũng mua cùng loại cây:
 
 ```text
-Marketplace = nơi bán
-Plant Inventory = cây thật có mã QR
-MyPlants = cây đã thuộc về user
+Cùng listing "Cây Tim Tròn"
+        |
+        v
+Admin tạo CODE-B cho khách B
+        |
+        v
+Khách B nhập CODE-B
+        |
+        v
+App tạo MyPlant riêng cho khách B
+```
+
+Bảng minh họa:
+
+| MarketplaceItem | Category | Code | User | MyPlant |
+| --- | --- | --- | --- | --- |
+| Cây Tim Tròn | plant | CODE-A | Khách A | Cây Tim Tròn của Khách A |
+| Cây Tim Tròn | plant | CODE-B | Khách B | Cây Tim Tròn của Khách B |
+| Cây Tim Tròn | plant | CODE-C | Chưa claim | Chưa có MyPlant |
+| Chậu gốm | pot | Không áp dụng | Không áp dụng | Không áp dụng |
+| Phân bón | fertilizer | Không áp dụng | Không áp dụng | Không áp dụng |
+
+Câu mô tả ngắn:
+
+```text
+MarketplaceItem là sản phẩm/catalog bán hàng.
+PlantClaimCode là mã riêng cho từng cây vật lý đã bán.
+MyPlant là cây cá nhân của user sau khi claim code.
 ```
 
 ---
 
-## 2. Trạng thái hiện tại
+## 2. Domain model đề xuất
 
-### API hiện có liên quan
+## 2.1. MarketplaceItem
 
-Admin hiện có:
-
-```http
-GET    /api/admin/summary
-GET    /api/admin/users
-GET    /api/admin/users/{id}
-PUT    /api/admin/users/{id}/status
-
-GET    /api/admin/user-plants
-GET    /api/admin/user-plants/{id}
-PUT    /api/admin/user-plants/{id}/status
-
-GET    /api/admin/marketplace-plants
-POST   /api/admin/marketplace-plants
-PUT    /api/admin/marketplace-plants/{id}
-DELETE /api/admin/marketplace-plants/{id}
-
-GET    /api/admin/ai-dialogs
-GET    /api/admin/ai-dialogs/{id}
-GET    /api/admin/ai-config/status
-```
-
-User hiện có:
-
-```http
-GET    /api/my-plants
-POST   /api/my-plants
-GET    /api/my-plants/{id}
-PUT    /api/my-plants/{id}
-DELETE /api/my-plants/{id}
-```
-
-Marketplace public hiện có:
-
-```http
-GET /api/marketplace-plants
-GET /api/marketplace-plants/{id}
-```
-
-Legacy hiện có:
-
-```http
-GET    /api/plants
-POST   /api/plants
-GET    /api/plants/{id}
-PUT    /api/plants/{id}
-DELETE /api/plants/{id}
-```
-
-`/api/plants` hiện không được FE dùng và nên coi là legacy/dư thừa.
-
----
-
-## 3. Vấn đề cần giải quyết
-
-### 3.1. MyPlants hiện giống user tự tạo cây
-
-Hiện tại user có thể tạo cây trực tiếp bằng:
-
-```http
-POST /api/my-plants
-```
-
-Điều này phù hợp MVP/dev, nhưng không đúng với flow sản phẩm mới:
+Thay vì `MarketplacePlant`, nên đổi sang `MarketplaceItem` vì marketplace bán nhiều loại sản phẩm.
 
 ```text
-Admin bán cây -> admin tạo QR/code -> user claim cây
-```
-
-### 3.2. Plant hiện bắt buộc có UserId
-
-Hiện entity `Plant` đang có:
-
-```csharp
-public Guid UserId { get; set; }
-```
-
-Nếu admin tạo cây trước khi user claim, cây chưa có chủ. Vì vậy `UserId` nên nullable:
-
-```csharp
-public Guid? UserId { get; set; }
-```
-
-### 3.3. Admin user-plants và admin inventory nên tách nhau
-
-Hiện admin có:
-
-```http
-GET /api/admin/user-plants
-```
-
-API này nên giữ để xem cây đã thuộc về user.
-
-Nhưng cần thêm nhóm API mới để quản lý cây vật lý chưa claim hoặc đã claim:
-
-```text
-Admin Plant Inventory
-= kho cây thật có QR/code
-```
-
-### 3.4. `/api/plants` dễ gây nhầm và có rủi ro
-
-`/api/plants` đang trùng vai trò với `/api/my-plants`.
-
-Khuyến nghị:
-
-- Deprecate hoặc xóa `/api/plants`.
-- Nếu chưa xóa ngay, phải check ownership ở detail/update/delete.
-
----
-
-## 4. Domain model đề xuất
-
-### 4.1. MarketplacePlant
-
-Dùng cho bài đăng bán hàng.
-
-```text
-MarketplacePlant
+MarketplaceItem
 - Id
 - Name
 - Description
+- Category
 - ImageUrl
 - PriceText
-- CareLevel
-- Light
-- Water
 - ContactUrl
 - Status
-```
-
-Vai trò:
-
-```text
-Hiển thị ngoài marketplace.
-Không đại diện cho cây vật lý cụ thể.
-Không phải cây của user.
-```
-
-### 4.2. Plant
-
-Dùng cho cây vật lý thật, có thể chưa claim hoặc đã claim.
-
-Đề xuất field:
-
-```text
-Plant
-- Id
-- UserId?                  nullable, null nếu chưa claim
-- MarketplacePlantId?      liên kết listing nguồn nếu có
-- PlantSpeciesId?
-- Name                     tên gốc/admin đặt
-- SpeciesName?
-- ImageUrl
-- Location?
-- WateringCycleDays
-- LastCondition
-- Status
-- Notes?
-- OwnershipCode
-- OwnershipStatus          Unclaimed / Claimed / Revoked
-- IsClaimed
-- ClaimedAt?
+- CareLevel nullable
+- Light nullable
+- Water nullable
+- AttributesJson nullable
 - CreatedAt
 - UpdatedAt
+```
+
+Category đề xuất:
+
+```text
+plant
+pot
+soil
+fertilizer
+accessory
+other
 ```
 
 Ý nghĩa:
 
 ```text
-UserId == null
-=> cây đang nằm trong kho/admin inventory, chưa thuộc user
+Category = plant
+=> item là cây, có thể tạo claim code sau khi bán.
 
-UserId != null
-=> cây đã được claim, xuất hiện trong MyPlants của user
+Category != plant
+=> item là chậu/đất/phân bón/phụ kiện, không tạo claim code.
 ```
 
-### 4.3. MyPlant DTO
+Ví dụ cây:
 
-`MyPlantDto` nên trả đủ thông tin để FE hiển thị profile cây, QR ownership, reminders, AI context.
-
-Đề xuất:
-
-```text
-MyPlantDto
-- id
-- name
-- nickname?                nếu muốn tách tên user đặt riêng
-- species
-- plantSpeciesId?
-- location
-- imageUrl
-- status
-- lastCondition
-- wateringCycleDays
-- notes
-- ownershipCode
-- ownershipStatus
-- isClaimed
-- claimedAt
-- createdAt
-- updatedAt
+```json
+{
+  "name": "Cây Tim Tròn",
+  "description": "Cây để bàn dễ chăm.",
+  "category": "plant",
+  "imageUrl": "https://...",
+  "priceText": "180.000 VND",
+  "contactUrl": "https://zalo.me/...",
+  "status": "active",
+  "careLevel": "2",
+  "light": "3",
+  "water": "1/3",
+  "attributesJson": null
+}
 ```
 
-Nếu chưa muốn thêm `nickname` riêng, có thể dùng `Name` là tên user chỉnh sửa sau claim.
+Ví dụ chậu:
+
+```json
+{
+  "name": "Chậu gốm mini",
+  "description": "Chậu gốm trắng cho cây để bàn.",
+  "category": "pot",
+  "imageUrl": "https://...",
+  "priceText": "120.000 VND",
+  "contactUrl": "https://zalo.me/...",
+  "status": "active",
+  "careLevel": null,
+  "light": null,
+  "water": null,
+  "attributesJson": {
+    "material": "ceramic",
+    "size": "small",
+    "color": "white"
+  }
+}
+```
+
+Ví dụ phân bón:
+
+```json
+{
+  "name": "Phân bón hữu cơ 500g",
+  "description": "Phù hợp cây để bàn và cây trong nhà.",
+  "category": "fertilizer",
+  "imageUrl": "https://...",
+  "priceText": "80.000 VND",
+  "contactUrl": "https://zalo.me/...",
+  "status": "active",
+  "careLevel": null,
+  "light": null,
+  "water": null,
+  "attributesJson": {
+    "type": "organic",
+    "weight": "500g",
+    "usage": "monthly"
+  }
+}
+```
 
 ---
 
-## 5. API cần thêm
+## 2.2. PlantClaimCode
 
-## 5.1. Admin Plant Inventory
+Model này chỉ dành cho item loại cây.
 
-Nên dùng tên rõ nghĩa:
-
-```http
-/api/admin/plant-inventory
+```text
+PlantClaimCode
+- Id
+- Code
+- MarketplaceItemId
+- Status
+- BuyerContact nullable
+- Note nullable
+- ClaimedByUserId nullable
+- ClaimedPlantId nullable
+- ClaimedAt nullable
+- CreatedAt
+- UpdatedAt
 ```
 
-Tên này tránh nhầm với:
+Status đề xuất:
 
-- `/api/admin/user-plants`
-- `/api/admin/marketplace-plants`
-- legacy `/api/plants`
+```text
+unclaimed
+claimed
+cancelled
+expired
+```
 
-### GET /api/admin/plant-inventory
+Rule:
 
-Mục đích:
+```text
+Một MarketplaceItem category = plant có thể sinh nhiều PlantClaimCode.
+Mỗi PlantClaimCode chỉ claim được một lần.
+PlantClaimCode không áp dụng cho item category khác plant.
+```
 
-Admin xem toàn bộ cây vật lý đã tạo QR/code.
+Ví dụ:
 
-Query gợi ý:
+```text
+MarketplaceItem: Cây Tim Tròn
+  - CODE-A: unclaimed
+  - CODE-B: claimed bởi user A
+  - CODE-C: claimed bởi user B
+```
+
+---
+
+## 2.3. MyPlant
+
+`MyPlant` là cây đã thuộc về user sau khi user nhập code.
+
+Đề xuất field:
+
+```text
+MyPlant / Plant
+- Id
+- UserId
+- MarketplaceItemId nullable
+- ClaimCodeId nullable
+- Name
+- Nickname nullable
+- Species nullable
+- ImageUrl nullable
+- Location nullable
+- Status
+- CareLevel nullable
+- Light nullable
+- Water nullable
+- Notes nullable
+- CreatedAt
+- UpdatedAt
+```
+
+Khi user claim code, BE tạo MyPlant bằng cách copy thông tin từ `MarketplaceItem` category `plant`.
+
+User có thể chỉnh:
+
+```text
+Nickname
+Location
+Status
+Notes
+ImageUrl cá nhân nếu cho phép
+```
+
+User không được chỉnh:
+
+```text
+ClaimCodeId
+MarketplaceItemId
+UserId
+Claim status
+```
+
+---
+
+## 3. API MarketplaceItem đề xuất
+
+## 3.1. Public marketplace
 
 ```http
-GET /api/admin/plant-inventory?status=unclaimed
-GET /api/admin/plant-inventory?status=claimed
-GET /api/admin/plant-inventory?marketplacePlantId=...
+GET /api/marketplace-items
+GET /api/marketplace-items/{id}
+```
+
+Query optional:
+
+```http
+GET /api/marketplace-items?category=plant
+GET /api/marketplace-items?category=pot
+GET /api/marketplace-items?status=active
+```
+
+Public chỉ nên thấy item public/active.
+
+Response list:
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Cây Tim Tròn",
+      "description": "Cây để bàn dễ chăm.",
+      "category": "plant",
+      "imageUrl": "https://...",
+      "priceText": "180.000 VND",
+      "contactUrl": "https://zalo.me/...",
+      "status": "active",
+      "careLevel": "2",
+      "light": "3",
+      "water": "1/3",
+      "attributesJson": null,
+      "createdAt": "2026-06-01T10:00:00Z",
+      "updatedAt": "2026-06-01T10:00:00Z"
+    }
+  ]
+}
+```
+
+## 3.2. Admin marketplace
+
+```http
+GET    /api/admin/marketplace-items
+POST   /api/admin/marketplace-items
+GET    /api/admin/marketplace-items/{id}
+PUT    /api/admin/marketplace-items/{id}
+DELETE /api/admin/marketplace-items/{id}
+```
+
+Admin nên xem được tất cả status:
+
+```text
+active
+inactive
+draft
+archived
+```
+
+Body create/update:
+
+```json
+{
+  "name": "Cây Tim Tròn",
+  "description": "Cây để bàn dễ chăm.",
+  "category": "plant",
+  "imageUrl": "https://...",
+  "priceText": "180.000 VND",
+  "contactUrl": "https://zalo.me/...",
+  "status": "active",
+  "careLevel": "2",
+  "light": "3",
+  "water": "1/3",
+  "attributesJson": null
+}
+```
+
+Rule validate:
+
+```text
+Nếu category = plant:
+  careLevel/light/water có thể có giá trị.
+
+Nếu category != plant:
+  careLevel/light/water nên null hoặc bị bỏ qua.
+  attributesJson dùng để lưu thông tin riêng của chậu/đất/phân bón/phụ kiện.
+```
+
+---
+
+## 4. API Plant Claim Code đề xuất
+
+## 4.1. Admin tạo code sau khi bán cây
+
+```http
+POST /api/admin/plant-claim-codes
+```
+
+Body:
+
+```json
+{
+  "marketplaceItemId": "uuid",
+  "buyerContact": "Zalo 09xxxx",
+  "note": "Khách mua Cây Tim Tròn ngày 01/06"
+}
+```
+
+BE xử lý:
+
+```text
+1. Tìm MarketplaceItem theo marketplaceItemId.
+2. Nếu không tồn tại -> 404.
+3. Nếu category != plant -> 400.
+4. Sinh code unique.
+5. Status = unclaimed.
+6. Trả code để admin gửi cho khách.
+```
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "code": "DB-TIMTRON-A8K2",
+  "marketplaceItemId": "uuid",
+  "marketplaceItemName": "Cây Tim Tròn",
+  "status": "unclaimed",
+  "buyerContact": "Zalo 09xxxx",
+  "note": "Khách mua Cây Tim Tròn ngày 01/06",
+  "createdAt": "2026-06-01T10:00:00Z"
+}
+```
+
+Nếu admin tạo code cho chậu/phân bón:
+
+```http
+400 Bad Request
+```
+
+```json
+{
+  "message": "Only plant marketplace items can generate ownership codes."
+}
+```
+
+---
+
+## 4.2. Admin xem danh sách code
+
+```http
+GET /api/admin/plant-claim-codes
+```
+
+Query optional:
+
+```http
+GET /api/admin/plant-claim-codes?marketplaceItemId=uuid
+GET /api/admin/plant-claim-codes?status=unclaimed
+GET /api/admin/plant-claim-codes?status=claimed
 ```
 
 Response:
@@ -319,135 +461,78 @@ Response:
 {
   "items": [
     {
-      "id": "plant-id",
-      "marketplacePlantId": "listing-id",
-      "name": "Monstera Deliciosa",
-      "imageUrl": "...",
-      "ownershipCode": "DB-7F92-KLAQ",
-      "ownershipStatus": "unclaimed",
-      "isClaimed": false,
+      "id": "uuid",
+      "code": "DB-TIMTRON-A8K2",
+      "marketplaceItemId": "uuid",
+      "marketplaceItemName": "Cây Tim Tròn",
+      "status": "unclaimed",
+      "buyerContact": "Zalo 09xxxx",
+      "note": "Khách mua ngày 01/06",
+      "claimedByUserId": null,
+      "claimedByEmail": null,
+      "claimedPlantId": null,
       "claimedAt": null,
-      "userId": null,
-      "userEmail": null,
-      "createdAt": "2026-06-01T00:00:00Z"
+      "createdAt": "2026-06-01T10:00:00Z"
     }
   ]
 }
 ```
 
-### POST /api/admin/plant-inventory
+---
 
-Mục đích:
+## 4.3. Admin hủy code
 
-Admin tạo cây vật lý và sinh ownership code.
+```http
+PATCH /api/admin/plant-claim-codes/{id}/cancel
+```
 
-Body:
+Rule:
 
-```json
-{
-  "marketplacePlantId": "uuid optional",
-  "plantSpeciesId": "uuid optional",
-  "name": "Monstera Deliciosa",
-  "speciesName": "Monstera",
-  "imageUrl": "...",
-  "wateringCycleDays": 3,
-  "notes": "Batch 06/2026"
-}
+```text
+Chỉ hủy code nếu status = unclaimed.
+Nếu đã claimed -> 409 Conflict.
 ```
 
 Response:
 
 ```json
 {
-  "id": "plant-id",
-  "name": "Monstera Deliciosa",
-  "ownershipCode": "DB-7F92-KLAQ",
-  "ownershipStatus": "unclaimed",
-  "isClaimed": false,
-  "qrClaimUrl": "https://deskboost.../#/claim/DB-7F92-KLAQ"
+  "id": "uuid",
+  "code": "DB-TIMTRON-A8K2",
+  "status": "cancelled"
 }
-```
-
-Backend cần:
-
-- Sinh `OwnershipCode` unique.
-- Set `UserId = null`.
-- Set `OwnershipStatus = Unclaimed`.
-- Set `IsClaimed = false`.
-
-### GET /api/admin/plant-inventory/{id}
-
-Mục đích:
-
-Admin xem chi tiết cây vật lý, kể cả claim status.
-
-### PUT /api/admin/plant-inventory/{id}
-
-Mục đích:
-
-Admin sửa thông tin cây vật lý trước hoặc sau khi claim.
-
-Lưu ý:
-
-- Nếu cây đã claim, nên hạn chế sửa các field có thể làm user bị bất ngờ.
-- Có thể cho sửa field admin-only như source listing, notes nội bộ.
-
-### DELETE /api/admin/plant-inventory/{id}
-
-Mục đích:
-
-Admin xóa cây vật lý.
-
-Rule đề xuất:
-
-```text
-Nếu cây chưa claim:
-- cho delete
-
-Nếu cây đã claim:
-- không hard delete
-- trả 409 hoặc chuyển status Revoked/Archived
-```
-
-### POST /api/admin/plant-inventory/{id}/regenerate-code
-
-Mục đích:
-
-Sinh lại ownership code nếu mã cũ bị lộ hoặc in sai.
-
-Rule đề xuất:
-
-```text
-Chỉ cho regenerate nếu cây chưa claim.
-Nếu đã claim -> 409 Conflict.
 ```
 
 ---
 
-## 5.2. User claim API
+## 5. API User claim cây bằng code
 
-### GET /api/my-plants/claim-preview?code=...
+## 5.1. Xem trước code
+
+```http
+GET /api/my-plants/claim-preview?code=DB-TIMTRON-A8K2
+```
 
 Mục đích:
 
-Trước khi claim, FE hiển thị cho user biết mã này thuộc cây nào.
+Trước khi claim, user thấy code này thuộc cây nào.
 
-Ví dụ:
-
-```http
-GET /api/my-plants/claim-preview?code=DB-7F92-KLAQ
-```
-
-Response:
+Response hợp lệ:
 
 ```json
 {
-  "plantId": "plant-id",
-  "name": "Monstera Deliciosa",
-  "species": "Monstera",
-  "imageUrl": "...",
-  "ownershipStatus": "unclaimed",
-  "isClaimed": false
+  "valid": true,
+  "codeStatus": "unclaimed",
+  "marketplaceItem": {
+    "id": "uuid",
+    "name": "Cây Tim Tròn",
+    "description": "Cây để bàn dễ chăm.",
+    "category": "plant",
+    "imageUrl": "https://...",
+    "careLevel": "2",
+    "light": "3",
+    "water": "1/3"
+  }
 }
 ```
 
@@ -459,187 +544,319 @@ Nếu code không tồn tại:
 
 Nếu code đã claim:
 
+```http
+409 Conflict
+```
+
 ```json
 {
-  "plantId": "plant-id",
-  "name": "Monstera Deliciosa",
-  "imageUrl": "...",
-  "ownershipStatus": "claimed",
-  "isClaimed": true
+  "valid": false,
+  "codeStatus": "claimed",
+  "message": "This code has already been claimed."
 }
 ```
 
-### POST /api/my-plants/claim
+---
 
-Mục đích:
+## 5.2. User claim code
 
-User claim cây vào tài khoản.
+```http
+POST /api/my-plants/claim
+```
 
 Body:
 
 ```json
 {
-  "ownershipCode": "DB-7F92-KLAQ",
-  "nickname": "Cây Monstera bàn làm việc",
+  "code": "DB-TIMTRON-A8K2",
+  "nickname": "Tim tròn bàn làm việc",
   "location": "Bàn làm việc"
 }
 ```
 
-`nickname` và `location` có thể optional.
-
-Backend xử lý:
+BE xử lý:
 
 ```text
 1. Lấy current user từ JWT.
-2. Tìm Plant theo ownershipCode.
+2. Tìm PlantClaimCode theo code.
 3. Nếu không tồn tại -> 404.
-4. Nếu đã claim -> 409.
-5. Nếu hợp lệ:
-   - Plant.UserId = currentUserId
-   - Plant.IsClaimed = true
-   - Plant.OwnershipStatus = Claimed
-   - Plant.ClaimedAt = now
-   - Nếu có nickname thì update Name hoặc Nickname
-   - Nếu có location thì update Location
-6. Trả về MyPlantDto.
+4. Nếu status != unclaimed -> 409.
+5. Lấy MarketplaceItem của code.
+6. Nếu MarketplaceItem.Category != plant -> 400.
+7. Tạo MyPlant cho current user từ MarketplaceItem.
+8. Set PlantClaimCode.Status = claimed.
+9. Set ClaimedByUserId, ClaimedPlantId, ClaimedAt.
+10. Trả về MyPlantDto.
 ```
 
 Response:
 
 ```json
 {
-  "id": "plant-id",
-  "name": "Cây Monstera bàn làm việc",
-  "species": "Monstera",
+  "id": "my-plant-id",
+  "marketplaceItemId": "uuid",
+  "claimCodeId": "uuid",
+  "name": "Cây Tim Tròn",
+  "nickname": "Tim tròn bàn làm việc",
+  "species": null,
+  "imageUrl": "https://...",
   "location": "Bàn làm việc",
-  "imageUrl": "...",
   "status": "healthy",
-  "lastCondition": "healthy",
-  "wateringCycleDays": 3,
-  "ownershipCode": "DB-7F92-KLAQ",
-  "ownershipStatus": "claimed",
-  "isClaimed": true,
-  "claimedAt": "2026-06-01T00:00:00Z"
+  "careLevel": "2",
+  "light": "3",
+  "water": "1/3",
+  "notes": null,
+  "createdAt": "2026-06-01T10:00:00Z",
+  "updatedAt": "2026-06-01T10:00:00Z"
 }
 ```
 
 ---
 
-## 6. API cần chỉnh sửa
+## 6. MyPlants sau khi claim
 
-## 6.1. GET /api/my-plants
+Các API hiện có nên tiếp tục dùng:
 
-Hiện tại:
-
-```text
-Trả cây theo UserId.
-DTO còn đơn giản.
+```http
+GET    /api/my-plants
+GET    /api/my-plants/{id}
+PUT    /api/my-plants/{id}
+DELETE /api/my-plants/{id}
 ```
 
-Nên chỉnh:
+Ý nghĩa:
 
 ```text
-Chỉ trả cây UserId == currentUserId.
-Trả thêm ownership/care fields.
-Không trả cây UserId == null.
+/api/my-plants chỉ trả cây đã thuộc current user.
+Không trả marketplace catalog item.
+Không trả claim code chưa claim.
 ```
-
-## 6.2. GET /api/my-plants/{id}
-
-Nên đảm bảo:
-
-```text
-Plant.Id == id
-Plant.UserId == currentUserId
-```
-
-Response nên có đầy đủ:
-
-```text
-ownershipCode
-ownershipStatus
-isClaimed
-claimedAt
-wateringCycleDays
-lastCondition
-plantSpeciesId
-speciesName
-```
-
-## 6.3. PUT /api/my-plants/{id}
-
-Mục đích:
-
-User cá nhân hóa cây sau claim.
 
 User được sửa:
 
 ```text
-name hoặc nickname
+nickname
 location
-imageUrl cá nhân nếu cho phép
-status cá nhân nếu cần
+status
 notes
-wateringCycleDays nếu muốn cho user tự chỉnh
+imageUrl cá nhân nếu cho phép
 ```
 
-User không nên sửa:
+User không được sửa:
 
 ```text
-ownershipCode
-ownershipStatus
-isClaimed
+marketplaceItemId
+claimCodeId
+userId
 claimedAt
-UserId
 ```
 
-## 6.4. GET /api/admin/user-plants
+DTO nên có:
 
-Hiện tại admin đã xem được cây user qua API này.
-
-Nên giữ, nhưng định nghĩa lại rõ:
-
-```text
-API này chỉ list cây đã claim / đã có owner.
-Điều kiện: UserId != null
-```
-
-Nên trả thêm:
-
-```text
-ownershipCode
-ownershipStatus
-isClaimed
-claimedAt
-userEmail
-```
-
-## 6.5. GET /api/admin/marketplace-plants
-
-Hiện đang dùng chung query với public marketplace và có thể chỉ trả `Active`.
-
-Admin nên xem được tất cả status:
-
-```text
-Active
-Hidden
-OutOfStock
-Archived
-```
-
-Public marketplace vẫn chỉ nên thấy cây public/active.
-
-Khuyến nghị:
-
-```text
-Tách query public và query admin.
+```json
+{
+  "id": "my-plant-id",
+  "marketplaceItemId": "uuid",
+  "claimCodeId": "uuid",
+  "name": "Cây Tim Tròn",
+  "nickname": "Tim tròn bàn làm việc",
+  "species": null,
+  "imageUrl": "https://...",
+  "location": "Bàn làm việc",
+  "status": "healthy",
+  "careLevel": "2",
+  "light": "3",
+  "water": "1/3",
+  "notes": "Lá hơi vàng",
+  "createdAt": "2026-06-01T10:00:00Z",
+  "updatedAt": "2026-06-02T10:00:00Z"
+}
 ```
 
 ---
 
-## 7. API nên bỏ hoặc deprecate
+## 7. Admin User Plants
 
-## 7.1. /api/plants
+Admin vẫn dùng:
+
+```http
+GET /api/admin/user-plants
+GET /api/admin/user-plants/{id}
+PUT /api/admin/user-plants/{id}/status
+```
+
+Ý nghĩa:
+
+```text
+Admin User Plants = các cây đã được user claim hoặc user đang sở hữu.
+```
+
+Response nên có thêm nguồn claim:
+
+```json
+{
+  "id": "my-plant-id",
+  "userId": "uuid",
+  "userEmail": "user@example.com",
+  "marketplaceItemId": "uuid",
+  "marketplaceItemName": "Cây Tim Tròn",
+  "claimCodeId": "uuid",
+  "claimCode": "DB-TIMTRON-A8K2",
+  "name": "Cây Tim Tròn",
+  "nickname": "Tim tròn bàn làm việc",
+  "species": null,
+  "location": "Bàn làm việc",
+  "status": "needs-water",
+  "careLevel": "2",
+  "light": "3",
+  "water": "1/3",
+  "notes": "User cập nhật lá hơi vàng",
+  "createdAt": "2026-06-01T10:00:00Z",
+  "updatedAt": "2026-06-02T10:00:00Z"
+}
+```
+
+Nhờ vậy admin có thể:
+
+```text
+Xem cây nào thuộc user nào.
+Biết cây đó được claim từ listing nào.
+Biết code nào đã dùng.
+Theo dõi status/location/notes user cập nhật.
+Hỗ trợ hậu mãi sau bán.
+```
+
+---
+
+## 8. Feedback marketplace có ảnh bằng chứng
+
+Feedback hiện tại chưa đủ cho ý tưởng admin nhập feedback từ Zalo/Facebook.
+
+API nên thêm:
+
+```http
+GET    /api/admin/feedback
+POST   /api/admin/feedback
+PUT    /api/admin/feedback/{id}
+PATCH  /api/admin/feedback/{id}/verify
+DELETE /api/admin/feedback/{id}
+```
+
+Body create/update:
+
+```json
+{
+  "marketplaceItemId": "uuid",
+  "customerAlias": "Khách từ Zalo",
+  "rating": 5,
+  "comment": "Cây đẹp, giao nhanh.",
+  "purchaseChannel": "zalo",
+  "publicImageUrls": [
+    "https://res.cloudinary.com/.../customer-plant.jpg"
+  ],
+  "evidenceImageUrls": [
+    "https://res.cloudinary.com/.../zalo-screenshot.jpg"
+  ],
+  "evidenceNote": "Khách gửi feedback qua Zalo ngày 01/06.",
+  "isVerified": true
+}
+```
+
+Public API:
+
+```http
+GET /api/feedback/verified?marketplaceItemId=uuid
+```
+
+Public response không trả evidence nội bộ:
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "marketplaceItemId": "uuid",
+      "customerAlias": "Khách từ Zalo",
+      "rating": 5,
+      "comment": "Cây đẹp, giao nhanh.",
+      "purchaseChannel": "zalo",
+      "publicImageUrls": [
+        "https://res.cloudinary.com/.../customer-plant.jpg"
+      ],
+      "isVerified": true,
+      "verifiedAt": "2026-06-01T10:00:00Z",
+      "createdAt": "2026-06-01T09:30:00Z"
+    }
+  ]
+}
+```
+
+Không trả public:
+
+```text
+evidenceImageUrls
+evidenceNote
+```
+
+---
+
+## 9. Ảnh hưởng tới các tính năng liên quan
+
+## 9.1. Reminders
+
+Reminders nên chỉ cho tạo với cây thuộc current user:
+
+```text
+MyPlant.UserId == currentUserId
+```
+
+Không tạo reminder cho marketplace item hoặc claim code chưa claim.
+
+## 9.2. AI Chat
+
+Nếu request có `plantId`, BE cần validate:
+
+```text
+MyPlant.UserId == currentUserId
+```
+
+Không cho user chat với cây của người khác.
+
+## 9.3. AI Diagnose
+
+Nếu request có `plantId`, BE cần validate:
+
+```text
+MyPlant.UserId == currentUserId
+```
+
+Ảnh diagnose vẫn gửi multipart:
+
+```text
+Image: File
+PlantId: optional
+Question: optional
+```
+
+## 9.4. Upload
+
+Upload dùng lại:
+
+```http
+POST /api/upload/image
+```
+
+Dùng cho:
+
+```text
+ảnh marketplace item
+ảnh avatar user
+ảnh MyPlant cá nhân hóa
+ảnh public feedback
+ảnh evidence feedback
+```
+
+## 9.5. Legacy /api/plants
 
 Nên deprecate hoặc xóa:
 
@@ -653,422 +870,177 @@ DELETE /api/plants/{id}
 
 Lý do:
 
-- Trùng với `/api/my-plants`.
-- FE hiện không dùng.
-- Dễ gây nhầm với route FE `#/plants`.
-- Có rủi ro ownership nếu detail/update/delete không check `UserId`.
-
-Nếu chưa xóa ngay:
-
 ```text
-Phải thêm owner check cho GET/PUT/DELETE /api/plants/{id}.
-```
-
-## 7.2. Legacy AI endpoints
-
-Có thể giữ tạm:
-
-```http
-POST /api/ai-chat/send
-POST /api/Diagnosis
-```
-
-Nhưng về lâu dài nên dùng:
-
-```http
-POST /api/ai/chat
-POST /api/ai/diagnose
+Dễ nhầm với /api/my-plants.
+FE hiện không cần dùng.
+Marketplace đã đi theo MarketplaceItem.
 ```
 
 ---
 
-## 8. Ảnh hưởng tới các tính năng liên quan
+## 10. Flow FE sau khi BE sẵn sàng
 
-## 8.1. Reminders
-
-Hiện reminders dùng:
+## 10.1. Admin tạo marketplace item
 
 ```text
-Reminder.PlantId
-Reminder.UserId
-```
-
-Và create reminder đã check:
-
-```text
-Plant.Id == PlantId
-Plant.UserId == currentUserId
-```
-
-Vì vậy flow claim không phá reminders nếu giữ rule:
-
-```text
-Chỉ cây đã claim mới tạo reminder được.
-```
-
-Cần đảm bảo:
-
-```text
-Plant.UserId nullable nhưng Reminder chỉ tạo khi UserId == currentUserId.
-Không tạo reminder cho cây UserId == null.
-```
-
-## 8.2. AI Chat / Dialog
-
-Hiện `AiDialog` có:
-
-```text
-UserId
-PlantId?
-```
-
-Flow claim không phá AI Chat.
-
-Nhưng nên bổ sung validate:
-
-```text
-Nếu request.PlantId có giá trị:
-  Plant.UserId phải == currentUserId
-Nếu không đúng:
-  trả 404 hoặc 403
-```
-
-Lý do:
-
-- Tránh user chat với cây không thuộc mình.
-- Tránh lộ context cây của người khác.
-
-## 8.3. AI Diagnosis
-
-Hiện `DiagnosisResult` có:
-
-```text
-PlantId?
-```
-
-Flow claim không phá diagnosis.
-
-Nhưng cần validate:
-
-```text
-Nếu PlantId != null:
-  Plant.UserId phải == currentUserId
-```
-
-Ngoài ra đang có vấn đề contract:
-
-```text
-BE /api/ai/diagnose cần multipart/form-data.
-FE hiện gửi imageBase64 JSON trong aiApi.js.
-```
-
-Cần sửa FE hoặc BE để thống nhất.
-
-## 8.4. Feedback
-
-Feedback hiện có:
-
-```text
-CatalogPlantId -> PlantSpecies
-```
-
-Feedback gần như không bị ảnh hưởng bởi MyPlants claim flow.
-
-Tuy nhiên nếu muốn feedback/review gắn với marketplace listing thì nên cân nhắc đổi hoặc thêm:
-
-```text
-MarketplacePlantId?
-```
-
-Hiện admin feedback lifecycle còn thiếu:
-
-```http
-GET  /api/admin/feedback
-POST /api/admin/feedback
-```
-
-Nhưng đây là vấn đề riêng, không bắt buộc cho claim flow.
-
-## 8.5. Admin user-plants
-
-Không bị phá, nhưng cần định nghĩa rõ:
-
-```text
-/api/admin/user-plants
-= cây đã thuộc về user
-
-/api/admin/plant-inventory
-= tất cả cây vật lý admin đã tạo QR/code
-```
-
-Nếu `Plant.UserId` chuyển nullable, query admin user-plants cần lọc:
-
-```text
-UserId != null
-```
-
-## 8.6. Marketplace
-
-Marketplace không bị ảnh hưởng nhiều.
-
-Marketplace vẫn là:
-
-```text
-Public listing để khách xem và liên hệ mua.
-```
-
-Plant inventory có thể liên kết với marketplace listing qua:
-
-```text
-MarketplacePlantId
-```
-
-Ví dụ:
-
-```text
-Listing: Monstera size M
-Inventory:
-- Monstera #001, code DB-A
-- Monstera #002, code DB-B
-- Monstera #003, code DB-C
-```
-
-## 8.7. Upload
-
-Không bị ảnh hưởng.
-
-Upload vẫn dùng:
-
-```http
-POST /api/upload/image
-```
-
-Dùng cho:
-
-- ảnh marketplace
-- ảnh cây inventory
-- ảnh cây user cá nhân hóa
-- avatar user
-
----
-
-## 9. Flow chi tiết cho FE sau khi BE sẵn sàng
-
-## 9.1. Admin tạo cây QR
-
-```text
-Admin vào Admin Marketplace hoặc Admin Inventory
+Admin vào Admin Marketplace
         |
         v
-Chọn listing marketplace hoặc nhập thông tin cây
+Tạo MarketplaceItem
         |
         v
-Bấm "Tạo cây QR"
+Chọn category: plant / pot / soil / fertilizer / accessory
         |
         v
-FE gọi POST /api/admin/plant-inventory
-        |
-        v
-BE trả ownershipCode + qrClaimUrl
-        |
-        v
-FE hiển thị QR để admin in/dán/gửi khách
+Nếu category = plant thì nhập careLevel/light/water
+Nếu category khác plant thì nhập attributes
 ```
 
-## 9.2. User claim bằng QR/code
+## 10.2. Admin tạo code sau khi bán cây
 
 ```text
-User mua cây
+Khách mua Cây Tim Tròn qua Zalo/Facebook
         |
         v
-Scan QR hoặc nhập code
+Admin mở item Cây Tim Tròn
+        |
+        v
+Bấm "Generate claim code after sale"
+        |
+        v
+FE gọi POST /api/admin/plant-claim-codes
+        |
+        v
+BE trả code riêng cho lần bán đó
+        |
+        v
+Admin gửi code cho khách
+```
+
+## 10.3. User thêm cây bằng code
+
+```text
+User vào Add Plant
+        |
+        v
+Chọn Add by code
+        |
+        v
+Nhập code
         |
         v
 FE gọi GET /api/my-plants/claim-preview?code=...
         |
         v
-FE hiển thị cây để xác nhận
-        |
-        v
-User bấm "Claim cây này"
+User xác nhận cây đúng
         |
         v
 FE gọi POST /api/my-plants/claim
         |
         v
-BE gắn cây vào user
-        |
-        v
-FE điều hướng tới /app/my-plants/{id}/profile
+Cây xuất hiện trong My Plants
 ```
 
-## 9.3. User chăm cây sau claim
+## 10.4. Admin theo dõi cây user
 
 ```text
-MyPlants
-  |
-  +-- PlantProfile
-  |     +-- sửa nickname/location/notes
-  |     +-- xem ownership status
-  |
-  +-- Reminders
-  |     +-- tạo lịch tưới/bón phân/check lá
-  |
-  +-- AI Chat
-  |     +-- hỏi theo context cây thật
-  |
-  +-- AI Diagnose
-        +-- chẩn đoán ảnh cho cây thật
+User cập nhật nickname/location/status/notes
+        |
+        v
+Admin vào Admin User Plants
+        |
+        v
+Admin thấy cây đã claim, owner, code nguồn, trạng thái user cập nhật
 ```
-
----
-
-## 10. Thứ tự triển khai đề xuất
-
-## Phase 1 - Backend foundation
-
-1. Đổi `Plant.UserId` thành nullable.
-2. Thêm field:
-   ```text
-   MarketplacePlantId?
-   ClaimedAt?
-   ```
-3. Đảm bảo `OwnershipCode` unique.
-4. Migration database.
-5. Update query hiện tại để không lỗi khi `UserId == null`.
-
-## Phase 2 - Admin inventory API
-
-1. Thêm:
-   ```http
-   GET /api/admin/plant-inventory
-   POST /api/admin/plant-inventory
-   GET /api/admin/plant-inventory/{id}
-   PUT /api/admin/plant-inventory/{id}
-   DELETE /api/admin/plant-inventory/{id}
-   POST /api/admin/plant-inventory/{id}/regenerate-code
-   ```
-2. Admin inventory list trả cả claimed/unclaimed.
-3. Admin user-plants tiếp tục chỉ trả cây đã có user.
-
-## Phase 3 - User claim API
-
-1. Thêm:
-   ```http
-   GET /api/my-plants/claim-preview?code=...
-   POST /api/my-plants/claim
-   ```
-2. Validate code.
-3. Chặn claim lại cây đã claim.
-4. Trả về `MyPlantDto`.
-
-## Phase 4 - Update MyPlants DTO
-
-1. Bổ sung ownership/care fields vào:
-   ```http
-   GET /api/my-plants
-   GET /api/my-plants/{id}
-   ```
-2. Giới hạn `PUT /api/my-plants/{id}` chỉ sửa field user được phép sửa.
-
-## Phase 5 - Security validation cho related features
-
-1. Reminder:
-   ```text
-   chỉ tạo/sửa/xóa với Plant.UserId == currentUserId
-   ```
-2. AI Chat:
-   ```text
-   nếu có PlantId thì validate ownership
-   ```
-3. AI Diagnosis:
-   ```text
-   nếu có PlantId thì validate ownership
-   ```
-4. Admin:
-   ```text
-   các API admin yêu cầu role ADMIN
-   ```
-
-## Phase 6 - Deprecate legacy
-
-1. Xóa hoặc deprecate `/api/plants`.
-2. Nếu chưa xóa ngay, thêm ownership check.
-3. Cập nhật Swagger/docs để tránh nhầm `plants` với `marketplace-plants`.
 
 ---
 
 ## 11. Checklist gửi BE
 
-### Must have
+### MarketplaceItem
 
-- [ ] `Plant.UserId` nullable.
-- [ ] `Plant.MarketplacePlantId?`.
-- [ ] `Plant.ClaimedAt?`.
-- [ ] Unique `OwnershipCode`.
-- [ ] `GET /api/admin/plant-inventory`.
-- [ ] `POST /api/admin/plant-inventory`.
-- [ ] `GET /api/my-plants/claim-preview?code=...`.
-- [ ] `POST /api/my-plants/claim`.
-- [ ] `MyPlantDto` trả ownership/care fields.
-- [ ] Reminder validate cây thuộc user.
-- [ ] AI Chat validate cây thuộc user.
-- [ ] AI Diagnosis validate cây thuộc user.
-- [ ] Admin user-plants chỉ list cây đã có user.
+- [ ] Tạo entity/model `MarketplaceItem`.
+- [ ] Category hỗ trợ `plant`, `pot`, `soil`, `fertilizer`, `accessory`, `other`.
+- [ ] Public API:
+  - [ ] `GET /api/marketplace-items`
+  - [ ] `GET /api/marketplace-items/{id}`
+- [ ] Admin API:
+  - [ ] `GET /api/admin/marketplace-items`
+  - [ ] `POST /api/admin/marketplace-items`
+  - [ ] `GET /api/admin/marketplace-items/{id}`
+  - [ ] `PUT /api/admin/marketplace-items/{id}`
+  - [ ] `DELETE /api/admin/marketplace-items/{id}`
+- [ ] Admin thấy được tất cả status.
+- [ ] Public chỉ thấy item active/public.
+
+### Plant claim code
+
+- [ ] Tạo entity/model `PlantClaimCode`.
+- [ ] Code unique.
+- [ ] Chỉ tạo code cho `MarketplaceItem.Category == plant`.
+- [ ] Admin API:
+  - [ ] `GET /api/admin/plant-claim-codes`
+  - [ ] `POST /api/admin/plant-claim-codes`
+  - [ ] `PATCH /api/admin/plant-claim-codes/{id}/cancel`
+- [ ] User API:
+  - [ ] `GET /api/my-plants/claim-preview?code=...`
+  - [ ] `POST /api/my-plants/claim`
+- [ ] Chặn claim code đã dùng.
+- [ ] Chặn claim code cancelled/expired.
+
+### MyPlants
+
+- [ ] Claim code tạo MyPlant cho current user.
+- [ ] `GET /api/my-plants` chỉ trả cây của current user.
+- [ ] `GET /api/my-plants/{id}` check owner.
+- [ ] `PUT /api/my-plants/{id}` chỉ cho sửa field user được phép.
+- [ ] DTO trả `marketplaceItemId`, `claimCodeId`, care fields.
+
+### Admin User Plants
+
+- [ ] `GET /api/admin/user-plants` trả cây đã thuộc user.
+- [ ] Response có owner, marketplace item nguồn, claim code nguồn.
+- [ ] Detail có đủ location/status/notes user cập nhật.
+
+### Feedback
+
+- [ ] Thêm `POST /api/admin/feedback`.
+- [ ] Feedback gắn `marketplaceItemId`.
+- [ ] Hỗ trợ `publicImageUrls`.
+- [ ] Hỗ trợ `evidenceImageUrls`.
+- [ ] Evidence chỉ admin xem.
+- [ ] Public verified feedback không trả evidence nội bộ.
+
+### Security
+
+- [ ] Reminder validate MyPlant thuộc current user.
+- [ ] AI Chat validate MyPlant thuộc current user.
+- [ ] AI Diagnose validate MyPlant thuộc current user.
+- [ ] Admin APIs yêu cầu role ADMIN.
 - [ ] Deprecate hoặc secure `/api/plants`.
-
-### Should have
-
-- [ ] Admin regenerate ownership code.
-- [ ] Admin inventory filter theo claimed/unclaimed.
-- [ ] Admin inventory link tới marketplace listing.
-- [ ] Admin marketplace query trả tất cả status cho admin.
-- [ ] QR claim URL trong response.
-
-### Later
-
-- [ ] Admin feedback create/list endpoint.
-- [ ] Full QR scan UI.
-- [ ] Claim history/audit log.
-- [ ] Transfer ownership giữa users.
-- [ ] Revoke ownership.
 
 ---
 
 ## 12. Tóm tắt ngắn để trao đổi
 
-Đề xuất:
-
 ```text
-Không để MyPlants là nơi user tự tạo cây làm flow chính.
-
-Flow chính nên là:
-Admin tạo cây vật lý có ownershipCode/QR.
-User scan QR hoặc nhập code để claim cây.
-Sau claim, cây mới xuất hiện trong MyPlants.
-User chỉ cá nhân hóa cây sau khi đã claim.
+MarketplaceItem là catalog sản phẩm bán hàng, không phải từng cây vật lý.
+MarketplaceItem có thể là cây, chậu, đất, phân bón, phụ kiện.
+Chỉ item category = plant mới được tạo PlantClaimCode.
+Mỗi lần bán một cây từ cùng listing thì admin tạo một PlantClaimCode riêng.
+User nhập code để claim, sau đó BE tạo MyPlant riêng cho user.
+Admin xem các MyPlant đã claim trong Admin User Plants để hỗ trợ và theo dõi trạng thái user cập nhật.
 ```
 
-Cần BE làm:
+Ví dụ:
 
 ```text
-1. Tách rõ marketplace listing, plant inventory, my plants.
-2. Thêm admin plant inventory API.
-3. Thêm user claim-preview và claim API.
-4. Mở rộng MyPlantDto.
-5. Validate ownership cho reminders, AI chat, AI diagnosis.
-6. Deprecate /api/plants.
-```
+Listing: Cây Tim Tròn
+  - Khách A mua -> CODE-A -> MyPlant của khách A
+  - Khách B mua -> CODE-B -> MyPlant của khách B
+  - Khách C mua -> CODE-C -> MyPlant của khách C
 
-Ảnh hưởng:
-
-```text
-Marketplace: ít ảnh hưởng.
-MyPlants: ảnh hưởng chính.
-Admin user-plants: chỉ cần lọc cây đã có user.
-Reminders: giữ được, cần validate ownership.
-AI Chat/Dialog: giữ được, cần validate ownership.
-AI Diagnosis: giữ được, cần validate ownership và sửa contract multipart/base64.
-Feedback: gần như không ảnh hưởng claim flow.
-Upload: không ảnh hưởng.
+Listing: Chậu gốm
+  - Không tạo claim code
+  - Chỉ bán/contact như marketplace item bình thường
 ```

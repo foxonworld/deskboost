@@ -112,13 +112,21 @@ export const AuthProvider = ({ children }) => {
     setState({ user: null, token: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null });
   }, []);
 
+  const updateUser = useCallback((user) => {
+    setState((current) => {
+      const nextUser = { ...(current.user || {}), ...(user || {}) };
+      saveAuth({ accessToken: current.token, user: nextUser });
+      return { ...current, user: nextUser };
+    });
+  }, []);
+
   const clearError = useCallback(() => {
     setState((current) => ({ ...current, error: null }));
   }, []);
 
   const value = useMemo(
-    () => ({ ...state, login, register, logout, clearError }),
-    [state, login, register, logout, clearError]
+    () => ({ ...state, login, register, logout, updateUser, clearError }),
+    [state, login, register, logout, updateUser, clearError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -39,6 +39,14 @@ const UserNavLinks = ({ currentPath, onNavigate, t }) => (
   </>
 );
 
+const UserAvatar = ({ user }) => {
+  if (user?.avatarUrl) {
+    return <img src={user.avatarUrl} alt={user?.name || 'User'} className="h-full w-full object-cover" />;
+  }
+
+  return <span className="material-symbols-outlined text-slate-400">person</span>;
+};
+
 const UserSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -103,7 +111,7 @@ const UserSidebar = () => {
         <div className="space-y-4 border-t border-[#E4EEE6] p-4 dark:border-[#2A4532]">
           <div className="flex items-center gap-3 p-2 min-w-0">
             <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-              <span className="material-symbols-outlined text-slate-400">person</span>
+              <UserAvatar user={user} />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="max-w-[150px] truncate text-sm font-bold dark:text-white">{user?.name || t('userSidebar.account')}</span>

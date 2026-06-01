@@ -22,6 +22,7 @@ const Navbar = () => {
   };
 
   const baseMobileLink = 'flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition-colors';
+  const avatarUrl = user?.avatarUrl;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#E4EEE6] bg-surface-light/95 backdrop-blur-sm transition-colors dark:border-[#2A4532] dark:bg-background-dark/95">
@@ -68,8 +69,12 @@ const Navbar = () => {
                   {isLoading && <span className="material-symbols-outlined animate-spin text-base">progress_activity</span>}
                   {isLoading ? t('navbar.loggingOut') : t('navbar.logout')}
                 </button>
-                <Link to="/app/profile" aria-label={t('navbar.openProfile')} className="bg-primary/10 rounded-full w-10 h-10 hidden sm:flex items-center justify-center border border-primary/20 hover:border-primary/40 transition-colors shrink-0">
-                  <span className="material-symbols-outlined text-primary">person</span>
+                <Link to="/app/profile" aria-label={t('navbar.openProfile')} className="bg-primary/10 rounded-full w-10 h-10 hidden sm:flex items-center justify-center border border-primary/20 hover:border-primary/40 transition-colors shrink-0 overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={user?.name || t('common.profile')} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="material-symbols-outlined text-primary">person</span>
+                  )}
                 </Link>
                 <button
                   type="button"
@@ -105,7 +110,11 @@ const Navbar = () => {
               {t('navbar.plants')}
             </Link>
             <Link onClick={closeMenu} to="/app/profile" className={`${baseMobileLink} text-slate-600 dark:text-slate-300`}>
-              <span className="material-symbols-outlined text-lg">person</span>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={user?.name || t('common.profile')} className="h-6 w-6 rounded-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-lg">person</span>
+              )}
               {t('common.profile')}
             </Link>
             <button disabled={isLoading} onClick={handleLogout} className="flex items-center gap-2 rounded-xl px-4 py-3 text-left text-sm font-bold text-red-500 disabled:opacity-60">

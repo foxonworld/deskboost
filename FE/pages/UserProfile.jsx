@@ -3,6 +3,7 @@ import UserLayout from '../components/UserLayout';
 import { LoadingState, StateNotice } from '../components/UiState';
 import { getMe, updateMe } from '../services/userApi';
 import { uploadImage, validateImageFile } from '../services/uploadApi';
+import { useAuth } from '../hooks/useAuth';
 import { useI18n } from '../i18n';
 
 const defaultAvatar =
@@ -24,6 +25,7 @@ const formatMemberSince = (value) => {
 
 const UserProfile = () => {
   const { t } = useI18n();
+  const { updateUser } = useAuth();
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -125,6 +127,7 @@ const UserProfile = () => {
     try {
       const updated = await updateMe(form);
       applyProfile(updated);
+      updateUser(updated);
       clearAvatarPreview();
       setNotice(t('userProfile.saved'));
       setTimeout(() => setNotice(''), 2500);

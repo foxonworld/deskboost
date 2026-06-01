@@ -3,6 +3,16 @@ import { get, post } from "./api";
 export const normalizeUser = (user = {}) => ({
   ...user,
   name: user.name || user.fullName || user.email?.split("@")[0] || "DeskBoost User",
+  avatarUrl:
+    user.avatarUrl ||
+    user.AvatarUrl ||
+    user.avatar ||
+    user.imageUrl ||
+    user.photoUrl ||
+    user.profileImageUrl ||
+    user.avatar_url ||
+    user.image_url ||
+    "",
 });
 
 const normalizeAuthResponse = (data = {}) => ({

@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import Navbar from '../components/Navbar';
-import { PRODUCTS, formatVND } from '../data/mockData';
 import { getMarketplacePlants } from '../services/plantApi';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import { Badge, Chip } from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
+import { formatVND } from '../utils/currency';
 import { useI18n } from '../i18n';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
@@ -86,14 +86,10 @@ const PlantList = () => {
       try {
         const res = await getMarketplacePlants();
         const items = normalizeItems(res);
-        if (alive) {
-          if (!items.length) console.warn("[DeskBoost] Using fallback marketplace data");
-          setPlants(items.length ? items : PRODUCTS);
-        }
+        if (alive) setPlants(items);
       } catch (err) {
-        console.warn("[DeskBoost] Using fallback marketplace data", err);
         if (alive) {
-          setPlants(PRODUCTS);
+          setPlants([]);
           setError(t('market.fallbackNotice'));
         }
       } finally {

@@ -3,13 +3,13 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useParams, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { PRODUCTS, formatVND, getProductById } from '../data/mockData';
 import { getMarketplacePlant } from '../services/plantApi';
 import { getVerifiedFeedback } from '../services/feedbackApi';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
+import { formatVND } from '../utils/currency';
 import { useI18n } from '../i18n';
 
 const PlantDetail = () => {
@@ -18,6 +18,7 @@ const PlantDetail = () => {
   const { plantId } = useParams();
   const [plant, setPlant] = useState(null);
   const [plantLoading, setPlantLoading] = useState(true);
+  const [plantError, setPlantError] = useState('');
   const [feedbackItems, setFeedbackItems] = useState([]);
   const [feedbackStatus, setFeedbackStatus] = useState({ supported: true, blocker: '' });
   const [feedbackLoading, setFeedbackLoading] = useState(true);
@@ -29,12 +30,15 @@ const PlantDetail = () => {
     let active = true;
     const loadPlant = async () => {
       setPlantLoading(true);
+      setPlantError('');
       try {
         const data = await getMarketplacePlant(plantId);
         if (active) setPlant(data);
       } catch (err) {
-        console.warn("[DeskBoost] Using fallback marketplace data", err);
-        if (active) setPlant(PRODUCTS.find(p => p.id === plantId) || PRODUCTS[0]);
+        if (active) {
+          setPlant(null);
+          setPlantError(err?.message || 'Marketplace item could not be loaded.');
+        }
       } finally {
         if (active) setPlantLoading(false);
       }
@@ -44,7 +48,7 @@ const PlantDetail = () => {
     return () => { active = false; };
   }, [plantId]);
 
-  const relatedProducts = (plant?.relatedProductIds || []).map(id => getProductById(id)).filter(Boolean);
+  const relatedProducts = [];
   const isPlant = plant?.category !== 'Pot' && plant?.category !== 'Soil' && plant?.category !== 'Fertilizer' && plant?.category !== 'Accessory';
   const feedbackCatalogPlantId = plant?.catalogPlantId || plant?.marketplacePlantId || plant?.plantId || plant?.id;
   const careHighlights = [
@@ -135,7 +139,7 @@ const PlantDetail = () => {
         <Navbar />
         <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 py-10">
           <div className="rounded-[32px] border border-[#E4EEE6] bg-white p-12 text-center text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
-            {t('common.loading')}
+            {plantLoading ? t('common.loading') : plantError || 'Marketplace item not found.'}
           </div>
         </main>
       </div>
