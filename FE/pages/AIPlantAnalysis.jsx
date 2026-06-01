@@ -1,8 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import UserLayout from '../components/UserLayout';
 import { diagnosePlant } from '../services/aiApi';
+import { getMyPlants } from '../services/plantApi';
 import { Spinner, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -21,6 +22,10 @@ const AIPlantAnalysis = () => {
   const defaultRecommendations = defaultRecommendationKeys.map((key) => t(key));
   const [dragActive, setDragActive] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [plants, setPlants] = useState([]);
+  const [selectedPlantId, setSelectedPlantId] = useState('');
+  const [question, setQuestion] = useState('Diagnose this plant image and keep advice plant-care only.');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
@@ -43,6 +48,20 @@ const AIPlantAnalysis = () => {
     gsap.fromTo(items, vars.from, vars.to);
   }, { scope: rootRef, dependencies: [reducedMotion, Boolean(selectedImage), isAnalyzing, Boolean(result)] });
 
+  useEffect(() => {
+    let active = true;
+    const loadPlants = async () => {
+      try {
+        const data = await getMyPlants();
+        if (active) setPlants(data?.items || []);
+      } catch {
+        if (active) setPlants([]);
+      }
+    };
+    loadPlants();
+    return () => { active = false; };
+  }, []);
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -52,6 +71,8 @@ const AIPlantAnalysis = () => {
   const loadImageFile = (file) => {
     setError('');
     setResult(null);
+    setSelectedFile(null);
+    setSelectedImage(null);
     if (!file?.type?.startsWith('image/')) {
       setError(t('aiAnalysis.errorInvalidFile'));
       return;
@@ -60,6 +81,7 @@ const AIPlantAnalysis = () => {
       setError(t('aiAnalysis.errorFileSize'));
       return;
     }
+    setSelectedFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setSelectedImage(ev.target.result);
     reader.onerror = () => setError(t('aiAnalysis.errorReadFile'));
@@ -74,7 +96,7 @@ const AIPlantAnalysis = () => {
   };
 
   const handleAnalyze = async () => {
-    if (!selectedImage) {
+    if (!selectedFile) {
       setError(t('aiAnalysis.errorNoImage'));
       return;
     }
@@ -82,8 +104,9 @@ const AIPlantAnalysis = () => {
     setError('');
     try {
       const diagnosis = await diagnosePlant({
-        imageBase64: selectedImage,
-        question: 'Diagnose this plant image and keep advice plant-care only.',
+        imageFile: selectedFile,
+        plantId: selectedPlantId || undefined,
+        question: question || undefined,
       });
       setResult(diagnosis);
     } catch (err) {
@@ -95,6 +118,7 @@ const AIPlantAnalysis = () => {
 
   const handleRemoveImage = () => {
     setSelectedImage(null);
+    setSelectedFile(null);
     setResult(null);
     setError('');
   };
@@ -159,6 +183,19 @@ const AIPlantAnalysis = () => {
                         <p className="mt-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
                           {t('aiAnalysis.previewDescription')}
                         </p>
+                        <label className="mt-4 block space-y-2 text-xs font-extrabold text-text-main dark:text-white">
+                          Plant context
+                          <select value={selectedPlantId} onChange={(event) => setSelectedPlantId(event.target.value)} className="w-full rounded-2xl border border-[#E4EEE6] bg-white px-3 py-3 text-sm font-bold outline-none focus:border-primary dark:border-[#2A4532] dark:bg-surface-dark">
+                            <option value="">No plant selected</option>
+                            {plants.map((plant) => (
+                              <option key={plant.id} value={plant.id}>{plant.nickname || plant.name}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="mt-4 block space-y-2 text-xs font-extrabold text-text-main dark:text-white">
+                          Question
+                          <textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={3} className="w-full rounded-2xl border border-[#E4EEE6] bg-white px-3 py-3 text-sm font-bold outline-none focus:border-primary dark:border-[#2A4532] dark:bg-surface-dark" />
+                        </label>
                       </div>
                       <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing} loading={isAnalyzing} className="mt-5 w-full">
                         {isAnalyzing ? t('aiAnalysis.analyzingButton') : t('aiAnalysis.analyzeButton')}

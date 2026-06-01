@@ -1,6 +1,6 @@
 import { get, post } from "./api";
 
-const USE_MOCK_AI = import.meta.env.VITE_USE_MOCK_AI !== "false";
+const USE_MOCK_AI = import.meta.env.VITE_USE_MOCK_AI === "true";
 
 const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -46,18 +46,26 @@ const fallback = async (factory) => {
   return factory();
 };
 
-const requestWithFallback = async (requestFn, fallbackFn) => {
+const requestOrExplicitMock = async (requestFn, fallbackFn) => {
   if (USE_MOCK_AI) return fallback(fallbackFn);
-  try {
-    return await requestFn();
-  } catch (error) {
-    return fallback(fallbackFn);
-  }
+  return requestFn();
 };
 
-export const diagnosePlant = (payload) =>
-  requestWithFallback(
-    () => post("/ai/diagnose", payload),
+const toDiagnoseFormData = ({ imageFile, plantId, question } = {}) => {
+  if (!(imageFile instanceof File)) {
+    throw new Error("Please select a valid image file before diagnosing.");
+  }
+
+  const formData = new FormData();
+  formData.append("Image", imageFile);
+  if (plantId) formData.append("PlantId", plantId);
+  if (question) formData.append("Question", question);
+  return formData;
+};
+
+export const diagnosePlant = (payload = {}) =>
+  requestOrExplicitMock(
+    () => post("/ai/diagnose", toDiagnoseFormData(payload)),
     () => ({
       diagnosisId: `diag_mock_${Date.now()}`,
       plantId: payload?.plantId,
@@ -80,7 +88,7 @@ export const sendPlantContextChatMessage = ({
   plantContext,
 }) => {
   const payload = { plantId, message, history, plantContext };
-  return requestWithFallback(
+  return requestOrExplicitMock(
     () => post("/ai/chat", payload),
     () => makePlantReply(payload),
   );
@@ -89,19 +97,19 @@ export const sendPlantContextChatMessage = ({
 export const chatWithAI = sendPlantContextChatMessage;
 
 export const getMyAiDialogs = (params) =>
-  requestWithFallback(
+  requestOrExplicitMock(
     () => get("/ai/dialogs", params),
     () => ({ items: mockDialogs, source: "mock-fallback" }),
   );
 
 export const getMyAiDialog = (id) =>
-  requestWithFallback(
+  requestOrExplicitMock(
     () => get(`/ai/dialogs/${id}`),
     () => mockDialogs.find((dialog) => dialog.id === id) || null,
   );
 
 export const getAiConfigStatus = () =>
-  requestWithFallback(
+  requestOrExplicitMock(
     () => get("/admin/ai-config/status"),
     () => ({
       provider: "gemini",
@@ -113,10 +121,10 @@ export const getAiConfigStatus = () =>
 
 // Backward-compatible aliases during MVP cleanup.
 export const apiDiagnoseImage = (
-  imageBase64,
+  imageFile,
   plantId,
   question = "What is wrong with this plant?",
-) => diagnosePlant({ plantId, imageBase64, question });
+) => diagnosePlant({ plantId, imageFile, question });
 
 export const apiChatWithAI = (message, history = [], plantId, plantContext) =>
   sendPlantContextChatMessage({ plantId, message, history, plantContext });

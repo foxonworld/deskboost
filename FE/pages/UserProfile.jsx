@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import UserLayout from '../components/UserLayout';
 import { LoadingState, StateNotice } from '../components/UiState';
-import { submitFeedback } from '../services/feedbackApi';
 import { getMe, updateMe } from '../services/userApi';
 import { uploadImage, validateImageFile } from '../services/uploadApi';
 import { useI18n } from '../i18n';
@@ -33,9 +32,6 @@ const UserProfile = () => {
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [feedbackMessage, setFeedbackMessage] = useState('');
-  const [feedbackRating, setFeedbackRating] = useState('5');
-  const [feedbackSaving, setFeedbackSaving] = useState(false);
 
   const applyProfile = (nextProfile) => {
     setProfile(nextProfile);
@@ -136,23 +132,6 @@ const UserProfile = () => {
       setError(err?.message || t('userProfile.errorSave'));
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleFeedbackSubmit = async (event) => {
-    event.preventDefault();
-    setFeedbackSaving(true);
-    setError('');
-    setNotice('');
-    try {
-      await submitFeedback({ message: feedbackMessage.trim(), rating: feedbackRating });
-      setFeedbackMessage('');
-      setNotice(t('userProfile.feedbackSaved'));
-      setTimeout(() => setNotice(''), 2500);
-    } catch (err) {
-      setError(err?.message || t('userProfile.feedbackError'));
-    } finally {
-      setFeedbackSaving(false);
     }
   };
 
@@ -282,31 +261,6 @@ const UserProfile = () => {
                   </h3>
                   <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{t('userProfile.passwordUnsupported')}</p>
                 </div>
-              </div>
-
-              <div className="bg-white dark:bg-slate-900 p-10 rounded-[40px] border border-slate-50 dark:border-slate-800 shadow-sm">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
-                  <span className="size-8 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-[#4CAF50]">
-                    <span className="material-symbols-outlined text-sm">rate_review</span>
-                  </span>
-                  {t('userProfile.feedback.title')}
-                </h3>
-                <p className="mt-3 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">{t('userProfile.feedback.description')}</p>
-                <div className="mt-6 grid gap-4 md:grid-cols-[1fr_120px]">
-                  <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-                    {t('userProfile.feedback.message')}
-                    <textarea value={feedbackMessage} onChange={(event) => setFeedbackMessage(event.target.value)} rows={4} className="w-full rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-5 text-sm font-bold dark:text-white outline-none resize-none focus:ring-4 focus:ring-[#4CAF50]/5" />
-                  </label>
-                  <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-                    {t('userProfile.feedback.rating')}
-                    <select value={feedbackRating} onChange={(event) => setFeedbackRating(event.target.value)} className="h-14 w-full rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-5 text-sm font-bold dark:text-white outline-none focus:ring-4 focus:ring-[#4CAF50]/5">
-                      {[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating}</option>)}
-                    </select>
-                  </label>
-                </div>
-                <button type="button" onClick={handleFeedbackSubmit} disabled={feedbackSaving || !feedbackMessage.trim()} className="mt-4 inline-flex h-12 items-center justify-center rounded-2xl bg-[#4CAF50] px-6 text-xs font-black uppercase tracking-widest text-white disabled:cursor-not-allowed disabled:opacity-60">
-                  {feedbackSaving ? t('common.saving') : t('userProfile.feedback.submit')}
-                </button>
               </div>
             </div>
           </div>

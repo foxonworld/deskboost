@@ -10,7 +10,6 @@ const menuItems = [
   { labelKey: 'userSidebar.aiDiagnosis', icon: 'smart_toy', path: '/app/ai-analysis' },
   { labelKey: 'userSidebar.aiChat', icon: 'forum', path: '/app/ai-chat' },
   { labelKey: 'userSidebar.reminder', icon: 'notifications_active', path: '/app/settings' },
-  { labelKey: 'userSidebar.feedback', icon: 'rate_review', path: '/app/profile' },
   { labelKey: 'userSidebar.marketplace', icon: 'storefront', path: '/plants' },
   { labelKey: 'userSidebar.profile', icon: 'person', path: '/app/profile' },
 ];

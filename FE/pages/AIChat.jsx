@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import UserLayout from '../components/UserLayout';
-import { MY_PLANTS } from '../data/mockData';
 import { getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
+import { getMyPlants } from '../services/plantApi';
 import { EmptyState, Spinner, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -85,11 +85,14 @@ const AIChat = () => {
     () => promptSuggestionKeys.map((key) => t(key)),
     [t]
   );
-  const [selectedPlantId, setSelectedPlantId] = useState(MY_PLANTS[0]?.id || '');
+  const [plants, setPlants] = useState([]);
+  const [selectedPlantId, setSelectedPlantId] = useState('');
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState(starterMessages);
+  const [dialogHistory, setDialogHistory] = useState([]);
   const [typingMessageId, setTypingMessageId] = useState(null);
   const [isSending, setIsSending] = useState(false);
+  const [isPlantsLoading, setIsPlantsLoading] = useState(true);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const [fallbackNote, setFallbackNote] = useState('');
@@ -147,12 +150,29 @@ const AIChat = () => {
   useEffect(() => {
     let active = true;
 
+    const loadPlants = async () => {
+      setIsPlantsLoading(true);
+      try {
+        const data = await getMyPlants();
+        if (!active) return;
+        const items = data?.items || [];
+        setPlants(items);
+        setSelectedPlantId((current) => current || items[0]?.id || '');
+      } catch (err) {
+        if (!active) return;
+        setPlants([]);
+        setError(err?.message || t('aiChat.historyError'));
+      } finally {
+        if (active) setIsPlantsLoading(false);
+      }
+    };
+
     const loadHistory = async () => {
       setIsHistoryLoading(true);
-      setError('');
       try {
         const data = await getMyAiDialogs({ limit: 5 });
         if (!active) return;
+        setDialogHistory(data?.items || []);
         if (data?.source === 'mock-fallback') {
           setFallbackNote(t('aiChat.historyFallback'));
         }
@@ -164,6 +184,8 @@ const AIChat = () => {
       }
     };
 
+    setError('');
+    loadPlants();
     loadHistory();
     return () => {
       active = false;
@@ -171,10 +193,10 @@ const AIChat = () => {
   }, [t]);
 
   const selectedPlant = useMemo(
-    () => MY_PLANTS.find((plant) => plant.id === selectedPlantId),
-    [selectedPlantId]
+    () => plants.find((plant) => plant.id === selectedPlantId),
+    [plants, selectedPlantId]
   );
-  const hasPlants = MY_PLANTS.length > 0;
+  const hasPlants = plants.length > 0;
   const canSend = Boolean(input.trim() && selectedPlant && !isSending);
 
   const handleSubmit = async (event) => {
@@ -213,13 +235,6 @@ const AIChat = () => {
       }
     } catch (err) {
       setError(err?.message || t('aiChat.sendError'));
-      const assistantErrorMsg = {
-        id: `assistant-error-${Date.now()}`,
-        from: 'assistant',
-        text: t('aiChat.assistantError'),
-      };
-      setMessages((current) => [...current, assistantErrorMsg]);
-      setTypingMessageId(assistantErrorMsg.id);
     } finally {
       setIsSending(false);
     }
@@ -262,10 +277,15 @@ const AIChat = () => {
             </p>
 
             <div className="mt-5 space-y-3">
-              {!hasPlants ? (
+              {isPlantsLoading ? (
+                <div className="inline-flex items-center gap-3 rounded-2xl border border-[#E4EEE6] bg-white px-4 py-3 text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-300">
+                  <Spinner />
+                  Loading your plants...
+                </div>
+              ) : !hasPlants ? (
                 <EmptyState title={t('aiChat.noPlantsTitle')} description={t('aiChat.noPlantsDescription')} />
               ) : (
-                MY_PLANTS.map((plant) => {
+                plants.map((plant) => {
                   const active = plant.id === selectedPlantId;
                   return (
                     <button
@@ -290,6 +310,24 @@ const AIChat = () => {
                   );
                 })
               )}
+            </div>
+
+            <div className="mt-6 border-t border-[#E4EEE6] pt-5 dark:border-[#2A4532]">
+              <p className="text-xs font-bold text-primary">Recent dialogs</p>
+              <div className="mt-3 space-y-2">
+                {isHistoryLoading ? (
+                  <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.historyLoading')}</p>
+                ) : dialogHistory.length === 0 ? (
+                  <p className="text-xs font-bold text-text-secondary dark:text-slate-400">No saved AI dialogs yet.</p>
+                ) : (
+                  dialogHistory.map((dialog) => (
+                    <div key={dialog.id} className="rounded-2xl border border-[#E4EEE6] bg-white/70 px-3 py-2 dark:border-[#2A4532] dark:bg-white/5">
+                      <p className="truncate text-xs font-extrabold text-text-main dark:text-white">{dialog.plantName || dialog.title || 'AI dialog'}</p>
+                      <p className="mt-1 truncate text-[11px] font-semibold text-text-secondary dark:text-slate-400">{dialog.lastMessage || 'No preview'}</p>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </Card>
 

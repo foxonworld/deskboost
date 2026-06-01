@@ -274,3 +274,14 @@ Do not remember:
 - Phase 3C admin UI decisions: Admin Users, Plants, Marketplace, Overview, and AI pages render backend data when available and show explicit unavailable/blocker states when endpoints fail; they do not show mock users, plants, listings, stats, or AI logs as real.
 - Phase 3C feedback/admin blocker: `PATCH /api/feedback/{id}/verify` exists, but no admin feedback list/create endpoint exists, so admin feedback creation remains disabled with `Backend endpoint required` and no verification UI is wired.
 - Phase 3C boundaries preserved: no user-facing Marketplace core flow, MyPlants CRUD, Profile, Reminders, Upload, AI Diagnose user flow, or QR/Claim implementation was modified.
+
+## Current Sprint Memory - Post Phase 3B / June 2026
+
+- Current CTO decision: Ownership/QR/Claim refactor is deferred. Do not implement Ownership/Claim UI, claim pages, QR generation, scanner/NFC, or fake ownership logic until backend inventory/claim APIs exist.
+- Current sprint priority order: P1 Admin Marketplace CRUD; P2 Admin Marketplace Feedback lifecycle only when backend endpoint exists; P3 audit Admin Plants; P4 audit Admin AI; P5 Ownership/QR/Claim system.
+- Known working FE integrations: Auth login/register/me; public marketplace list/detail; MyPlants list/create/update/delete; Profile GET/PUT; avatar/image upload; Reminder CRUD, mark done, calendar and ICS export; verified feedback read; user feedback submit; Admin summary/users and backend-driven admin unavailable states.
+- Known issue intentionally deferred: `GET /api/my-plants/{id}` currently returns 500 in the user's current backend context; do not spend time fixing now because it is planned to be solved with the future Ownership/Claim refactor.
+- Admin Marketplace current state: list uses backend and fake admin metrics/reviews were removed; CRUD is the next high-priority FE task using existing admin marketplace endpoints.
+- Admin Marketplace Feedback current state: UI exists but remains blocked because backend admin feedback create/list endpoints are missing; do not save or show fake verified reviews.
+- Admin Plants and Admin AI current state: both need audit/verification against real backend data and endpoint usage before adding new behavior.
+- Durable rules: no fake admin metrics, no fake verified reviews, no fake ownership logic, no QR generation until backend inventory APIs exist, and use honest empty/unavailable states when backend functionality is unavailable.

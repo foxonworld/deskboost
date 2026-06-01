@@ -1,0 +1,6 @@
+- generic [ref=e3]:
+  - button "Home" [ref=e4] [cursor=pointer]:
+    - generic [ref=e5]: home
+  - button "Đổi chế độ sáng/tối" [ref=e6] [cursor=pointer]:
+    - generic [ref=e7]: dark_mode
+  - button "Đổi ngôn ngữ" [ref=e8] [cursor=pointer]: EN
