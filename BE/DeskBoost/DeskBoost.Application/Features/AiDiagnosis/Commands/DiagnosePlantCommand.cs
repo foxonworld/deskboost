@@ -7,4 +7,5 @@ public record DiagnosePlantCommand : IRequest<DiagnosisResultDto>
 {
     public required Stream ImageStream { get; init; }
     public Guid? PlantId { get; init; }
+    public Guid? UserId { get; init; }
 }

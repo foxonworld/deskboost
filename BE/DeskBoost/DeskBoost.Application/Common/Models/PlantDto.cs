@@ -2,7 +2,7 @@ namespace DeskBoost.Application.Common.Models;
 
 public record PlantDto(
     Guid Id,
-    Guid UserId,
+    Guid? UserId,
     Guid? PlantSpeciesId,
     string? SpeciesName,
     string? SpeciesVietnameseName,

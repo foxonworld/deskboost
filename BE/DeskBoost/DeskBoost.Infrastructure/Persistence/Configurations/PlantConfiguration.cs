@@ -21,6 +21,21 @@ public class PlantConfiguration : IEntityTypeConfiguration<Plant>
             .WithMany(s => s.Plants)
             .HasForeignKey(p => p.PlantSpeciesId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(p => p.MarketplaceListing)
+            .WithMany()
+            .HasForeignKey(p => p.MarketplaceItemId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne<PlantClaimCode>()
+            .WithMany()
+            .HasForeignKey(p => p.ClaimCodeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Unique ownership code (only enforced for non-null values)
+        builder.HasIndex(p => p.OwnershipCode)
+            .IsUnique()
+            .HasFilter("\"OwnershipCode\" IS NOT NULL");
     }
 
     private static PlantCondition ParseCondition(string v) =>

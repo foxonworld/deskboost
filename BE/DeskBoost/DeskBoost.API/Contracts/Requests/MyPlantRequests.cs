@@ -17,4 +17,12 @@ public class UpdateMyPlantRequest
     public string? ImageUrl { get; set; }
     public string? Status { get; set; }
     public string? Notes { get; set; }
+    public int? WateringCycleDays { get; set; }
+}
+
+public class ClaimPlantRequest
+{
+    public string Code { get; set; } = string.Empty;
+    public string? Nickname { get; set; }
+    public string? Location { get; set; }
 }

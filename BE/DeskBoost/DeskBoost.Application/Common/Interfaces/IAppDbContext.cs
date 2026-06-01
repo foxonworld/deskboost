@@ -12,7 +12,8 @@ public interface IAppDbContext
     DbSet<ChatHistory> ChatHistories { get; }
     DbSet<PlantSpecies> PlantSpecies { get; }
     DbSet<Reminder> Reminders { get; }
-    DbSet<MarketplacePlant> MarketplacePlants { get; }
+    DbSet<MarketplaceItem> MarketplaceItems { get; }
+    DbSet<PlantClaimCode> PlantClaimCodes { get; }
     DbSet<AiDialog> AiDialogs { get; }
     DbSet<AiMessage> AiMessages { get; }
     DbSet<Feedback> Feedbacks { get; }

@@ -14,7 +14,7 @@ public class DeletePlantCommandHandler : IRequestHandler<DeletePlantCommand>
     public async Task Handle(DeletePlantCommand request, CancellationToken ct)
     {
         var plant = await _db.Plants
-            .FirstOrDefaultAsync(p => p.Id == request.Id, ct)
+            .FirstOrDefaultAsync(p => p.Id == request.Id && p.UserId == request.UserId, ct)
             ?? throw new NotFoundException($"Không tìm thấy cây với ID {request.Id}");
 
         _db.Plants.Remove(plant);

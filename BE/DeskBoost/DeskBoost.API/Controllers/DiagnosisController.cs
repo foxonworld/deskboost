@@ -1,8 +1,13 @@
+// LEGACY — Thay thế bởi POST /api/ai/diagnose (AiController)
+// Giữ lại để tham khảo, không sử dụng trong production.
+
+/*
 using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.AiDiagnosis.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DeskBoost.API.Controllers;
 
@@ -24,12 +29,15 @@ public class DiagnosisController : ControllerBase
         if (request.Image is null || request.Image.Length == 0)
             return BadRequest(new { message = "Vui lòng cung cấp ảnh cây" });
 
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var result = await _sender.Send(new DiagnosePlantCommand
         {
             ImageStream = request.Image.OpenReadStream(),
-            PlantId = request.PlantId
+            PlantId = request.PlantId,
+            UserId = userId
         }, ct);
 
         return Ok(result);
     }
 }
+*/

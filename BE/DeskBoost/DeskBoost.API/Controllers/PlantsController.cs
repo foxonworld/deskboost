@@ -1,3 +1,8 @@
+// LEGACY — Thay thế bởi /api/my-plants (MyPlantsController)
+// Endpoint này yêu cầu plantSpeciesId hợp lệ trong DB và không hỗ trợ luồng claim.
+// Giữ lại để tham khảo, không sử dụng trong production.
+
+/*
 using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.Plants.Commands;
 using DeskBoost.Application.Features.Plants.Queries;
@@ -31,7 +36,8 @@ public class PlantsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _sender.Send(new GetPlantByIdQuery(id), ct);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _sender.Send(new GetPlantByIdQuery(id, userId), ct);
         if (result is null)
             throw new NotFoundException($"Không tìm thấy cây với ID {id}");
         return Ok(result);
@@ -65,9 +71,11 @@ public class PlantsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name))
             throw new ValidationException("Tên cây không được để trống.");
 
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var result = await _sender.Send(new UpdatePlantCommand
         {
             Id = id,
+            UserId = userId,
             Name = request.Name,
             ImageUrl = request.ImageUrl,
             Location = request.Location,
@@ -81,7 +89,9 @@ public class PlantsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
     {
-        await _sender.Send(new DeletePlantCommand(id), ct);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _sender.Send(new DeletePlantCommand(id, userId), ct);
         return NoContent();
     }
 }
+*/

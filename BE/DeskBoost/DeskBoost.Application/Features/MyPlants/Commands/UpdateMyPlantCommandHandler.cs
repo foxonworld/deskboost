@@ -1,4 +1,4 @@
-﻿using DeskBoost.Domain.Enums;
+using DeskBoost.Domain.Enums;
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Exceptions;
@@ -25,6 +25,8 @@ public class UpdateMyPlantCommandHandler : IRequestHandler<UpdateMyPlantCommand,
         if (request.ImageUrl is not null) plant.ImageUrl = request.ImageUrl;
         if (!string.IsNullOrWhiteSpace(request.Status)) plant.Status = request.Status.ToPlantStatus();
         if (request.Notes is not null) plant.Notes = request.Notes.Trim();
+        if (request.WateringCycleDays.HasValue && request.WateringCycleDays.Value > 0)
+            plant.WateringCycleDays = request.WateringCycleDays.Value;
         plant.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
@@ -36,6 +38,6 @@ public class UpdateMyPlantCommandHandler : IRequestHandler<UpdateMyPlantCommand,
             speciesName = species?.Name;
         }
 
-        return new MyPlantDto(plant.Id, plant.Name, speciesName, plant.Location, plant.ImageUrl, plant.Status.ToApiString(), plant.Notes, plant.CreatedAt, plant.UpdatedAt);
+        return CreateMyPlantCommandHandler.ToDto(plant, speciesName);
     }
 }

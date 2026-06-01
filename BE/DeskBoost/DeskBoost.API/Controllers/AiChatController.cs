@@ -1,3 +1,7 @@
+// LEGACY — Thay thế bởi POST /api/ai/chat (AiController)
+// Giữ lại để tham khảo, không sử dụng trong production.
+
+/*
 using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.AiChat.Commands;
 using MediatR;
@@ -43,3 +47,4 @@ public class AiChatController : ControllerBase
         }
     }
 }
+*/

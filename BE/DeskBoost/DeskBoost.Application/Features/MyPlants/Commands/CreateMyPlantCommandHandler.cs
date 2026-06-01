@@ -1,4 +1,4 @@
-﻿using DeskBoost.Domain.Enums;
+using DeskBoost.Domain.Enums;
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Entities;
@@ -22,12 +22,40 @@ public class CreateMyPlantCommandHandler : IRequestHandler<CreateMyPlantCommand,
             Location = request.Location?.Trim(),
             ImageUrl = request.ImageUrl,
             Notes = request.Notes?.Trim(),
-            Status = PlantStatus.Healthy
+            Status = PlantStatus.Healthy,
+            IsClaimed = true,
+            OwnershipStatus = OwnershipStatus.Claimed,
+            ClaimedAt = DateTime.UtcNow
         };
 
         _db.Plants.Add(plant);
         await _db.SaveChangesAsync(ct);
 
-        return new MyPlantDto(plant.Id, plant.Name, plant.SpeciesName, plant.Location, plant.ImageUrl, plant.Status.ToApiString(), plant.Notes, plant.CreatedAt, plant.UpdatedAt);
+        return ToDto(plant, plant.SpeciesName);
     }
+
+    internal static MyPlantDto ToDto(Plant p, string? speciesName) => new(
+        p.Id,
+        p.MarketplaceItemId,
+        p.ClaimCodeId,
+        p.Name,
+        p.Nickname,
+        speciesName,
+        p.PlantSpeciesId,
+        p.Location,
+        p.ImageUrl,
+        p.Status.ToApiString(),
+        p.CareLevel,
+        p.Light,
+        p.Water,
+        p.LastCondition.ToString(),
+        p.WateringCycleDays,
+        p.Notes,
+        p.OwnershipCode,
+        p.OwnershipStatus.ToString(),
+        p.IsClaimed,
+        p.ClaimedAt,
+        p.CreatedAt,
+        p.UpdatedAt
+    );
 }

@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.Admin.Commands;
 using DeskBoost.Application.Features.Admin.Queries;
+using DeskBoost.Application.Features.Feedback.Commands;
+using DeskBoost.Application.Features.Feedback.Queries;
 using DeskBoost.Application.Features.Marketplace.Commands;
 using DeskBoost.Application.Features.Marketplace.Queries;
 using MediatR;
@@ -58,7 +61,7 @@ public class AdminController : ControllerBase
         }
     }
 
-    // ── User Plants ───────────────────────────────────────────────────────────
+    // ── User Plants (claimed plants with owner) ───────────────────────────────
 
     /// <summary>GET /api/admin/user-plants</summary>
     [HttpGet("user-plants")]
@@ -91,53 +94,62 @@ public class AdminController : ControllerBase
         }
     }
 
-    // ── Marketplace Plants ────────────────────────────────────────────────────
+    // ── Plant Inventory (all physical plants, claimed + unclaimed) ────────────
 
-    /// <summary>GET /api/admin/marketplace-plants</summary>
-    [HttpGet("marketplace-plants")]
-    public async Task<IActionResult> GetMarketplacePlants([FromQuery] int page = 1, [FromQuery] int limit = 50, CancellationToken ct = default)
-        => Ok(await _sender.Send(new GetMarketplacePlantsQuery(page, limit), ct));
+    /// <summary>GET /api/admin/plant-inventory?status=unclaimed|claimed&marketplaceItemId=...</summary>
+    [HttpGet("plant-inventory")]
+    public async Task<IActionResult> GetPlantInventory(
+        [FromQuery] string? status,
+        [FromQuery] Guid? marketplaceItemId,
+        CancellationToken ct)
+        => Ok(new { items = await _sender.Send(new GetAdminPlantInventoryQuery(status, marketplaceItemId), ct) });
 
-    /// <summary>POST /api/admin/marketplace-plants</summary>
-    [HttpPost("marketplace-plants")]
-    public async Task<IActionResult> CreateMarketplacePlant([FromBody] MarketplacePlantUpsertRequest request, CancellationToken ct)
+    /// <summary>GET /api/admin/plant-inventory/{id}</summary>
+    [HttpGet("plant-inventory/{id:guid}")]
+    public async Task<IActionResult> GetPlantInventoryById(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetAdminPlantInventoryByIdQuery(id), ct);
+        if (result is null) return NotFound(new { message = "Không tìm thấy cây." });
+        return Ok(result);
+    }
+
+    /// <summary>POST /api/admin/plant-inventory</summary>
+    [HttpPost("plant-inventory")]
+    public async Task<IActionResult> CreatePlantInventory([FromBody] PlantInventoryUpsertRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest(new { message = "Tên cây không được để trống." });
 
-        var result = await _sender.Send(new CreateMarketplacePlantCommand
+        var result = await _sender.Send(new CreateAdminPlantInventoryCommand
         {
+            MarketplaceItemId = request.MarketplaceItemId,
+            PlantSpeciesId = request.PlantSpeciesId,
             Name = request.Name,
-            Description = request.Description,
+            SpeciesName = request.SpeciesName,
             ImageUrl = request.ImageUrl,
-            PriceText = request.PriceText,
-            CareLevel = request.CareLevel,
-            Light = request.Light,
-            Water = request.Water,
-            ContactUrl = request.ContactUrl,
-            Status = request.Status
+            Location = request.Location,
+            WateringCycleDays = request.WateringCycleDays,
+            Notes = request.Notes
         }, ct);
         return StatusCode(201, result);
     }
 
-    /// <summary>PUT /api/admin/marketplace-plants/{id}</summary>
-    [HttpPut("marketplace-plants/{id:guid}")]
-    public async Task<IActionResult> UpdateMarketplacePlant(Guid id, [FromBody] MarketplacePlantUpsertRequest request, CancellationToken ct)
+    /// <summary>PUT /api/admin/plant-inventory/{id}</summary>
+    [HttpPut("plant-inventory/{id:guid}")]
+    public async Task<IActionResult> UpdatePlantInventory(Guid id, [FromBody] PlantInventoryUpsertRequest request, CancellationToken ct)
     {
         try
         {
-            var result = await _sender.Send(new UpdateMarketplacePlantCommand
+            var result = await _sender.Send(new UpdateAdminPlantInventoryCommand
             {
-                Id = id,
+                PlantId = id,
+                MarketplaceItemId = request.MarketplaceItemId,
                 Name = request.Name,
-                Description = request.Description,
+                SpeciesName = request.SpeciesName,
                 ImageUrl = request.ImageUrl,
-                PriceText = request.PriceText,
-                CareLevel = request.CareLevel,
-                Light = request.Light,
-                Water = request.Water,
-                ContactUrl = request.ContactUrl,
-                Status = request.Status
+                Location = request.Location,
+                WateringCycleDays = request.WateringCycleDays,
+                Notes = request.Notes
             }, ct);
             return Ok(result);
         }
@@ -147,16 +159,249 @@ public class AdminController : ControllerBase
         }
     }
 
-    /// <summary>DELETE /api/admin/marketplace-plants/{id}</summary>
-    [HttpDelete("marketplace-plants/{id:guid}")]
-    public async Task<IActionResult> DeleteMarketplacePlant(Guid id, CancellationToken ct)
+    /// <summary>DELETE /api/admin/plant-inventory/{id}</summary>
+    [HttpDelete("plant-inventory/{id:guid}")]
+    public async Task<IActionResult> DeletePlantInventory(Guid id, CancellationToken ct)
     {
         try
         {
-            await _sender.Send(new DeleteMarketplacePlantCommand(id), ct);
+            await _sender.Send(new DeleteAdminPlantInventoryCommand(id), ct);
             return NoContent();
         }
         catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>POST /api/admin/plant-inventory/{id}/regenerate-code</summary>
+    [HttpPost("plant-inventory/{id:guid}/regenerate-code")]
+    public async Task<IActionResult> RegenerateOwnershipCode(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new RegenerateOwnershipCodeCommand(id), ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    // ── Marketplace Items ─────────────────────────────────────────────────────
+
+    /// <summary>GET /api/admin/marketplace-items — trả tất cả status</summary>
+    [HttpGet("marketplace-items")]
+    public async Task<IActionResult> GetMarketplaceItems([FromQuery] int page = 1, [FromQuery] int limit = 50, [FromQuery] string? category = null, CancellationToken ct = default)
+        => Ok(await _sender.Send(new GetMarketplaceItemsQuery(page, limit, IncludeAll: true, Category: category), ct));
+
+    /// <summary>GET /api/admin/marketplace-items/{id}</summary>
+    [HttpGet("marketplace-items/{id:guid}")]
+    public async Task<IActionResult> GetMarketplaceItemById(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetMarketplaceItemByIdQuery(id), ct);
+        if (result is null) return NotFound(new { message = $"Không tìm thấy item với ID {id}" });
+        return Ok(result);
+    }
+
+    /// <summary>POST /api/admin/marketplace-items</summary>
+    [HttpPost("marketplace-items")]
+    public async Task<IActionResult> CreateMarketplaceItem([FromBody] MarketplaceItemUpsertRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest(new { message = "Tên item không được để trống." });
+
+        var result = await _sender.Send(new CreateMarketplaceItemCommand
+        {
+            Name = request.Name,
+            Description = request.Description,
+            Category = request.Category,
+            ImageUrl = request.ImageUrl,
+            PriceText = request.PriceText,
+            ContactUrl = request.ContactUrl,
+            Status = request.Status,
+            CareLevel = request.CareLevel,
+            Light = request.Light,
+            Water = request.Water,
+            AttributesJson = request.AttributesJson
+        }, ct);
+        return StatusCode(201, result);
+    }
+
+    /// <summary>PUT /api/admin/marketplace-items/{id}</summary>
+    [HttpPut("marketplace-items/{id:guid}")]
+    public async Task<IActionResult> UpdateMarketplaceItem(Guid id, [FromBody] MarketplaceItemUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new UpdateMarketplaceItemCommand
+            {
+                Id = id,
+                Name = request.Name,
+                Description = request.Description,
+                Category = request.Category,
+                ImageUrl = request.ImageUrl,
+                PriceText = request.PriceText,
+                ContactUrl = request.ContactUrl,
+                Status = request.Status,
+                CareLevel = request.CareLevel,
+                Light = request.Light,
+                Water = request.Water,
+                AttributesJson = request.AttributesJson
+            }, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>DELETE /api/admin/marketplace-items/{id}</summary>
+    [HttpDelete("marketplace-items/{id:guid}")]
+    public async Task<IActionResult> DeleteMarketplaceItem(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(new DeleteMarketplaceItemCommand(id), ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // ── Plant Claim Codes ─────────────────────────────────────────────────────
+
+    /// <summary>GET /api/admin/plant-claim-codes?plantInventoryId=...&status=...</summary>
+    [HttpGet("plant-claim-codes")]
+    public async Task<IActionResult> GetPlantClaimCodes(
+        [FromQuery] Guid? plantInventoryId,
+        [FromQuery] string? status,
+        CancellationToken ct)
+        => Ok(new { items = await _sender.Send(new GetPlantClaimCodesQuery(plantInventoryId, status), ct) });
+
+    /// <summary>PUT /api/admin/plant-claim-codes/{id} — update buyerContact / note</summary>
+    [HttpPut("plant-claim-codes/{id:guid}")]
+    public async Task<IActionResult> UpdatePlantClaimCode(Guid id, [FromBody] UpdatePlantClaimCodeRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new UpdatePlantClaimCodeCommand
+            {
+                Id = id,
+                BuyerContact = request.BuyerContact,
+                Note = request.Note
+            }, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>PATCH /api/admin/plant-claim-codes/{id}/cancel</summary>
+    [HttpPatch("plant-claim-codes/{id:guid}/cancel")]
+    public async Task<IActionResult> CancelPlantClaimCode(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new CancelPlantClaimCodeCommand(id), ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    // ── Feedback ──────────────────────────────────────────────────────────────
+
+    /// <summary>GET /api/admin/feedback?marketplaceItemId=...&amp;isVerified=true&amp;channel=zalo</summary>
+    [HttpGet("feedback")]
+    public async Task<IActionResult> GetFeedback(
+        [FromQuery] Guid? marketplaceItemId,
+        [FromQuery] bool? isVerified,
+        [FromQuery] string? channel,
+        CancellationToken ct)
+        => Ok(new { items = await _sender.Send(new GetAdminFeedbackQuery(marketplaceItemId, isVerified, channel), ct) });
+
+    /// <summary>POST /api/admin/feedback</summary>
+    [HttpPost("feedback")]
+    public async Task<IActionResult> CreateFeedback([FromBody] AdminFeedbackUpsertRequest request, CancellationToken ct)
+    {
+        var adminId = GetCurrentUserId();
+        var result = await _sender.Send(new CreateFeedbackCommand
+        {
+            MarketplaceItemId = request.MarketplaceItemId,
+            CustomerAlias = request.CustomerAlias,
+            Rating = request.Rating,
+            Comment = request.Comment,
+            PurchaseChannel = request.PurchaseChannel,
+            PublicImageUrls = request.PublicImageUrls,
+            EvidenceImageUrls = request.EvidenceImageUrls,
+            EvidenceNote = request.EvidenceNote,
+            IsVerified = request.IsVerified,
+            SourceType = "admin_manual",
+            CreatedByAdminId = adminId
+        }, ct);
+        return StatusCode(201, result);
+    }
+
+    /// <summary>PUT /api/admin/feedback/{id}</summary>
+    [HttpPut("feedback/{id:guid}")]
+    public async Task<IActionResult> UpdateFeedback(Guid id, [FromBody] AdminFeedbackUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new UpdateFeedbackCommand
+            {
+                Id = id,
+                MarketplaceItemId = request.MarketplaceItemId,
+                CustomerAlias = request.CustomerAlias,
+                Rating = request.Rating,
+                Comment = request.Comment,
+                PurchaseChannel = request.PurchaseChannel,
+                PublicImageUrls = request.PublicImageUrls,
+                EvidenceImageUrls = request.EvidenceImageUrls,
+                EvidenceNote = request.EvidenceNote
+            }, ct);
+            return Ok(result);
+        }
+        catch (Exception ex) when (ex is DeskBoost.Domain.Exceptions.NotFoundException)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>PATCH /api/admin/feedback/{id}/verify</summary>
+    [HttpPatch("feedback/{id:guid}/verify")]
+    public async Task<IActionResult> VerifyFeedback(Guid id, [FromBody] VerifyFeedbackRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new VerifyFeedbackCommand(id, request.IsVerified), ct);
+            return Ok(result);
+        }
+        catch (Exception ex) when (ex is DeskBoost.Domain.Exceptions.NotFoundException)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>DELETE /api/admin/feedback/{id}</summary>
+    [HttpDelete("feedback/{id:guid}")]
+    public async Task<IActionResult> DeleteFeedback(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(new DeleteFeedbackCommand(id), ct);
+            return NoContent();
+        }
+        catch (Exception ex) when (ex is DeskBoost.Domain.Exceptions.NotFoundException)
         {
             return NotFound(new { message = ex.Message });
         }
@@ -184,4 +429,10 @@ public class AdminController : ControllerBase
     [HttpGet("ai-config/status")]
     public async Task<IActionResult> GetAiConfigStatus(CancellationToken ct)
         => Ok(await _sender.Send(new GetAdminAiConfigStatusQuery(), ct));
+
+    private Guid? GetCurrentUserId()
+    {
+        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(raw, out var id) ? id : null;
+    }
 }

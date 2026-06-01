@@ -12,14 +12,16 @@ public record MyPlantResponse(
     DateTime CreatedAt,
     DateTime? UpdatedAt);
 
-/// <summary>Response cho /api/marketplace-plants</summary>
-public record MarketplacePlantResponse(
+/// <summary>Response cho /api/marketplace-items</summary>
+public record MarketplaceItemResponse(
     Guid Id,
     string Name,
     string? Description,
+    string Category,
     string? ImageUrl,
     string? PriceText,
-    string? CareLevel,  // "easy" | "medium" | "hard"
+    string? ContactUrl,
+    string? CareLevel,
     string? Light,
     string? Water,
-    string? ContactUrl);
+    string? AttributesJson);

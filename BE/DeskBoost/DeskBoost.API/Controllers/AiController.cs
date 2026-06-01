@@ -64,11 +64,13 @@ public class AiController : ControllerBase
 
         try
         {
+            var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             using var stream = request.Image.OpenReadStream();
             var result = await _sender.Send(new DiagnosePlantCommand
             {
                 ImageStream = stream,
-                PlantId = request.PlantId
+                PlantId = request.PlantId,
+                UserId = userId
             }, ct);
             return Ok(result);
         }

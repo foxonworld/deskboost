@@ -1,14 +1,16 @@
 namespace DeskBoost.Application.Common.Models;
 
-public record MarketplacePlantDto(
+public record MarketplaceItemDto(
     Guid Id,
     string Name,
     string? Description,
+    string Category,
     string? ImageUrl,
     string? PriceText,
+    string? ContactUrl,
+    string Status,
     string? CareLevel,
     string? Light,
     string? Water,
-    string? ContactUrl,
-    string Status
+    string? AttributesJson
 );

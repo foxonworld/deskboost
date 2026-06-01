@@ -2,6 +2,7 @@ using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace DeskBoost.Application.Features.AiDiagnosis.Commands;
@@ -19,6 +20,14 @@ public class DiagnosePlantCommandHandler : IRequestHandler<DiagnosePlantCommand,
 
     public async Task<DiagnosisResultDto> Handle(DiagnosePlantCommand request, CancellationToken ct)
     {
+        if (request.PlantId.HasValue && request.UserId.HasValue)
+        {
+            var plantBelongsToUser = await _db.Plants
+                .AnyAsync(p => p.Id == request.PlantId.Value && p.UserId == request.UserId.Value, ct);
+            if (!plantBelongsToUser)
+                throw new InvalidOperationException("Không tìm thấy cây hoặc cây không thuộc người dùng này.");
+        }
+
         var result = await _orchestrator.DiagnoseAsync(request.ImageStream, ct);
 
         if (result.Success)

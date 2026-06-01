@@ -20,6 +20,14 @@ public class SendAiChatCommandHandler : IRequestHandler<SendAiChatCommand, AiCha
 
     public async Task<AiChatResponseDto> Handle(SendAiChatCommand request, CancellationToken ct)
     {
+        if (request.PlantId.HasValue)
+        {
+            var plantBelongsToUser = await _db.Plants
+                .AnyAsync(p => p.Id == request.PlantId.Value && p.UserId == request.UserId, ct);
+            if (!plantBelongsToUser)
+                throw new InvalidOperationException("Không tìm thấy cây hoặc cây không thuộc người dùng này.");
+        }
+
         AiDialog? dialog = null;
         if (request.PlantId.HasValue)
         {

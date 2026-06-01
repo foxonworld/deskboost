@@ -3,4 +3,4 @@ using MediatR;
 
 namespace DeskBoost.Application.Features.Marketplace.Queries;
 
-public record GetMarketplacePlantByIdQuery(Guid Id) : IRequest<MarketplacePlantDto?>;
+public record GetMarketplaceItemByIdQuery(Guid Id) : IRequest<MarketplaceItemDto?>;

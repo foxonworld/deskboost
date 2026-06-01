@@ -16,10 +16,14 @@ public class GetAdminUsersQueryHandler : IRequestHandler<GetAdminUsersQuery, Lis
 
     public async Task<List<AdminUserDto>> Handle(GetAdminUsersQuery request, CancellationToken ct)
     {
-        return await _db.Users
+        var rows = await _db.Users
             .OrderByDescending(u => u.CreatedAt)
-            .Select(u => new AdminUserDto(u.Id, u.FullName, u.Email, u.Role.ToApiString(), u.Status.ToApiString(), u.AvatarUrl, u.Phone, u.CreatedAt))
             .ToListAsync(ct);
+
+        return rows.Select(u => new AdminUserDto(
+            u.Id, u.FullName, u.Email, u.Role.ToApiString(), u.Status.ToApiString(),
+            u.AvatarUrl, u.Phone, u.CreatedAt
+        )).ToList();
     }
 }
 

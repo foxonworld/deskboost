@@ -37,6 +37,12 @@ public static class EnumExtensions
     public static string ToApiString(this MarketplaceStatus value) =>
         value.ToString().ToLowerInvariant();
 
+    public static string ToApiString(this MarketplaceCategory value) =>
+        PascalSplitter.Replace(value.ToString(), "-").ToLowerInvariant();
+
+    public static string ToApiString(this PlantClaimCodeStatus value) =>
+        value.ToString().ToLowerInvariant();
+
     public static string ToApiString(this MessageRole value) =>
         value.ToString().ToLowerInvariant();
 
@@ -88,6 +94,26 @@ public static class EnumExtensions
 
     public static MarketplaceStatus ToMarketplaceStatus(this string? value) =>
         value?.ToLowerInvariant() == "inactive" ? MarketplaceStatus.Inactive : MarketplaceStatus.Active;
+
+    public static MarketplaceCategory ToMarketplaceCategory(this string? value) =>
+        value?.ToLowerInvariant() switch
+        {
+            "fertilizer" => MarketplaceCategory.Fertilizer,
+            "pot"        => MarketplaceCategory.Pot,
+            "soil"       => MarketplaceCategory.Soil,
+            "accessory"  => MarketplaceCategory.Accessory,
+            "other"      => MarketplaceCategory.Other,
+            _            => MarketplaceCategory.Plant
+        };
+
+    public static PlantClaimCodeStatus ToPlantClaimCodeStatus(this string? value) =>
+        value?.ToLowerInvariant() switch
+        {
+            "claimed"   => PlantClaimCodeStatus.Claimed,
+            "cancelled" => PlantClaimCodeStatus.Cancelled,
+            "expired"   => PlantClaimCodeStatus.Expired,
+            _           => PlantClaimCodeStatus.Unclaimed
+        };
 
     public static UserRole ToUserRole(this string? value) =>
         value?.ToUpperInvariant() == "ADMIN" ? UserRole.ADMIN : UserRole.USER;

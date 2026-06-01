@@ -16,7 +16,7 @@ public class GetPlantByIdQueryHandler : IRequestHandler<GetPlantByIdQuery, Plant
     {
         return await _db.Plants
             .Include(p => p.Species)
-            .Where(p => p.Id == request.PlantId)
+            .Where(p => p.Id == request.PlantId && p.UserId == request.UserId)
             .Select(p => new PlantDto(
                 p.Id,
                 p.UserId,

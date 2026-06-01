@@ -6,18 +6,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DeskBoost.Application.Features.Feedback.Commands;
 
-public record VerifyFeedbackCommand(Guid FeedbackId, bool IsVerified) : IRequest<FeedbackDto>;
+public record VerifyFeedbackCommand(Guid FeedbackId, bool IsVerified) : IRequest<AdminFeedbackDto>;
 
-public class VerifyFeedbackCommandHandler : IRequestHandler<VerifyFeedbackCommand, FeedbackDto>
+public class VerifyFeedbackCommandHandler : IRequestHandler<VerifyFeedbackCommand, AdminFeedbackDto>
 {
     private readonly IAppDbContext _db;
 
     public VerifyFeedbackCommandHandler(IAppDbContext db) => _db = db;
 
-    public async Task<FeedbackDto> Handle(VerifyFeedbackCommand request, CancellationToken ct)
+    public async Task<AdminFeedbackDto> Handle(VerifyFeedbackCommand request, CancellationToken ct)
     {
         var feedback = await _db.Feedbacks
-            .Include(f => f.User)
             .FirstOrDefaultAsync(f => f.Id == request.FeedbackId, ct)
             ?? throw new NotFoundException("Feedback không tồn tại.");
 
@@ -27,16 +26,6 @@ public class VerifyFeedbackCommandHandler : IRequestHandler<VerifyFeedbackComman
 
         await _db.SaveChangesAsync(ct);
 
-        return new FeedbackDto(
-            feedback.Id,
-            feedback.UserId,
-            feedback.User?.FullName,
-            feedback.Message,
-            feedback.Rating,
-            feedback.IsVerified,
-            feedback.CatalogPlantId,
-            feedback.VerifiedAt,
-            feedback.CreatedAt
-        );
+        return CreateFeedbackCommandHandler.ToAdminDto(feedback);
     }
 }

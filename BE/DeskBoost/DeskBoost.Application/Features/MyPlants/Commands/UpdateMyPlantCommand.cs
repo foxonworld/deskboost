@@ -13,4 +13,5 @@ public record UpdateMyPlantCommand : IRequest<MyPlantDto>
     public string? ImageUrl { get; init; }
     public string? Status { get; init; }
     public string? Notes { get; init; }
+    public int? WateringCycleDays { get; init; }
 }

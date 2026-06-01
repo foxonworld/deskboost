@@ -22,9 +22,9 @@ public class GetAdminSummaryQueryHandler : IRequestHandler<GetAdminSummaryQuery,
     {
         var users = await _db.Users.CountAsync(ct);
         var userPlants = await _db.Plants.CountAsync(ct);
-        var marketplacePlants = await _db.MarketplacePlants.CountAsync(ct);
+        var marketplaceItems = await _db.MarketplaceItems.CountAsync(ct);
         var aiDialogs = await _db.AiDialogs.CountAsync(ct);
 
-        return new AdminSummaryDto(users, userPlants, marketplacePlants, aiDialogs, _aiConfig.IsConfigured);
+        return new AdminSummaryDto(users, userPlants, marketplaceItems, aiDialogs, _aiConfig.IsConfigured);
     }
 }

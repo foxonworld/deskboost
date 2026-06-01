@@ -1,6 +1,6 @@
-﻿using DeskBoost.Domain.Enums;
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Application.Features.MyPlants.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +27,6 @@ public class GetMyPlantByIdQueryHandler : IRequestHandler<GetMyPlantByIdQuery, M
             speciesName = species?.Name;
         }
 
-        return new MyPlantDto(p.Id, p.Name, speciesName, p.Location, p.ImageUrl, p.Status.ToApiString(), p.Notes, p.CreatedAt, p.UpdatedAt);
+        return CreateMyPlantCommandHandler.ToDto(p, speciesName);
     }
 }

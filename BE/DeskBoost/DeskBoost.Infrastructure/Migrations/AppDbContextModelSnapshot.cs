@@ -173,47 +173,76 @@ namespace DeskBoost.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("CatalogPlantId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("CreatedByAdminId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CustomerAlias")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("EvidenceImageUrlsJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("EvidenceNote")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Message")
-                        .IsRequired()
+                    b.Property<Guid?>("MarketplaceItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PublicImageUrlsJson")
                         .HasColumnType("text");
+
+                    b.Property<string>("PurchaseChannel")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("Rating")
                         .HasColumnType("integer");
 
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("user");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CatalogPlantId");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("MarketplaceItemId");
 
                     b.ToTable("Feedbacks");
                 });
 
-            modelBuilder.Entity("DeskBoost.Domain.Entities.MarketplacePlant", b =>
+            modelBuilder.Entity("DeskBoost.Domain.Entities.MarketplaceItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttributesJson")
+                        .HasColumnType("text");
+
                     b.Property<string>("CareLevel")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
@@ -255,7 +284,7 @@ namespace DeskBoost.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MarketplacePlants");
+                    b.ToTable("MarketplaceItems", (string)null);
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.Plant", b =>
@@ -263,6 +292,15 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<string>("CareLevel")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ClaimCodeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -278,11 +316,20 @@ namespace DeskBoost.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<string>("Light")
+                        .HasColumnType("text");
+
                     b.Property<string>("Location")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("MarketplaceItemId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Name")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Nickname")
                         .HasColumnType("text");
 
                     b.Property<string>("Notes")
@@ -308,17 +355,84 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Water")
+                        .HasColumnType("text");
 
                     b.Property<int>("WateringCycleDays")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ClaimCodeId");
+
+                    b.HasIndex("MarketplaceItemId");
+
+                    b.HasIndex("OwnershipCode")
+                        .IsUnique()
+                        .HasFilter("\"OwnershipCode\" IS NOT NULL");
+
                     b.HasIndex("PlantSpeciesId");
 
                     b.ToTable("Plants");
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.PlantClaimCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BuyerContact")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("ClaimedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ClaimedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ClaimedPlantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("MarketplaceItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("PlantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("MarketplaceItemId");
+
+                    b.HasIndex("PlantId");
+
+                    b.ToTable("PlantClaimCodes");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.PlantSpecies", b =>
@@ -558,29 +672,52 @@ namespace DeskBoost.Infrastructure.Migrations
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.Feedback", b =>
                 {
-                    b.HasOne("DeskBoost.Domain.Entities.PlantSpecies", "CatalogPlant")
+                    b.HasOne("DeskBoost.Domain.Entities.MarketplaceItem", "MarketplaceItem")
                         .WithMany()
-                        .HasForeignKey("CatalogPlantId");
+                        .HasForeignKey("MarketplaceItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("DeskBoost.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CatalogPlant");
-
-                    b.Navigation("User");
+                    b.Navigation("MarketplaceItem");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.Plant", b =>
                 {
+                    b.HasOne("DeskBoost.Domain.Entities.PlantClaimCode", null)
+                        .WithMany()
+                        .HasForeignKey("ClaimCodeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DeskBoost.Domain.Entities.MarketplaceItem", "MarketplaceListing")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("DeskBoost.Domain.Entities.PlantSpecies", "Species")
                         .WithMany("Plants")
                         .HasForeignKey("PlantSpeciesId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.Navigation("MarketplaceListing");
+
                     b.Navigation("Species");
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.PlantClaimCode", b =>
+                {
+                    b.HasOne("DeskBoost.Domain.Entities.MarketplaceItem", "MarketplaceItem")
+                        .WithMany()
+                        .HasForeignKey("MarketplaceItemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("DeskBoost.Domain.Entities.Plant", "Plant")
+                        .WithMany()
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("MarketplaceItem");
+
+                    b.Navigation("Plant");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.RefreshToken", b =>
