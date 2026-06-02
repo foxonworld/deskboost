@@ -27,13 +27,21 @@ const parsePrice = (priceText) => {
 
 export const normalizeMarketplacePlant = (plant = {}) => ({
   ...plant,
-  image: plant.image || plant.imageUrl,
-  imageUrl: plant.imageUrl || plant.image,
-  price: plant.price ?? parsePrice(plant.priceText),
-  priceText: plant.priceText,
-  category: plant.category || "Trong nhà",
-  tags: plant.tags || [plant.careLevel, plant.light].filter(Boolean),
-  difficulty: plant.difficulty || plant.careLevel,
+  id: firstValue(plant.id, plant.Id),
+  name: firstValue(plant.name, plant.Name),
+  description: firstValue(plant.description, plant.Description),
+  image: firstValue(plant.image, plant.imageUrl, plant.ImageUrl),
+  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl, plant.image),
+  price: plant.price ?? parsePrice(firstValue(plant.priceText, plant.PriceText)),
+  priceText: firstValue(plant.priceText, plant.PriceText),
+  category: firstValue(plant.category, plant.Category, "plant"),
+  careLevel: firstValue(plant.careLevel, plant.CareLevel),
+  light: firstValue(plant.light, plant.Light),
+  water: firstValue(plant.water, plant.Water),
+  attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
+  contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
+  tags: plant.tags || [firstValue(plant.careLevel, plant.CareLevel), firstValue(plant.light, plant.Light)].filter(Boolean),
+  difficulty: plant.difficulty || firstValue(plant.careLevel, plant.CareLevel),
   status: statusMap[String(plant.status || "active").toLowerCase()] || plant.status || "Active",
   ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
   ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
@@ -42,10 +50,14 @@ export const normalizeMarketplacePlant = (plant = {}) => ({
 
 export const normalizeMyPlant = (plant = {}) => ({
   ...plant,
-  nickname: plant.nickname || plant.name,
-  name: plant.name || plant.nickname,
-  image: plant.image || plant.imageUrl,
-  imageUrl: plant.imageUrl || plant.image,
+  id: firstValue(plant.id, plant.Id),
+  marketplaceItemId: firstValue(plant.marketplaceItemId, plant.MarketplaceItemId),
+  claimCodeId: firstValue(plant.claimCodeId, plant.ClaimCodeId),
+  nickname: plant.nickname || plant.Nickname || plant.name || plant.Name,
+  name: plant.name || plant.Name || plant.nickname || plant.Nickname,
+  species: firstValue(plant.species, plant.Species, plant.speciesName, plant.SpeciesName),
+  image: firstValue(plant.image, plant.imageUrl, plant.ImageUrl),
+  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl, plant.image),
   ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
   ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
   isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),
@@ -61,13 +73,13 @@ const toMyPlantPayload = (payload = {}) => ({
 });
 
 export const getMarketplacePlants = (params) =>
-  get("/marketplace-plants", params).then((data) => ({
+  get("/marketplace-items", params).then((data) => ({
     ...data,
     items: normalizeItems(data).map(normalizeMarketplacePlant),
   }));
 
 export const getMarketplacePlant = (id) =>
-  get(`/marketplace-plants/${id}`).then(normalizeMarketplacePlant);
+  get(`/marketplace-items/${id}`).then(normalizeMarketplacePlant);
 
 export const getCatalogPlants = getMarketplacePlants;
 export const getCatalogPlant = getMarketplacePlant;
@@ -83,6 +95,18 @@ export const getMyPlant = (id) => get(`/my-plants/${id}`).then(normalizeMyPlant)
 export const updateMyPlant = (id, payload) =>
   put(`/my-plants/${id}`, toMyPlantPayload(payload)).then(normalizeMyPlant);
 export const deleteMyPlant = (id) => del(`/my-plants/${id}`);
+export const getClaimPreview = (code) =>
+  get("/my-plants/claim-preview", { code }).then((data) => {
+    const marketplaceItem = firstValue(data?.marketplaceItem, data?.MarketplaceItem, null);
+    return {
+      ...data,
+      valid: Boolean(firstValue(data?.valid, data?.Valid, false)),
+      codeStatus: firstValue(data?.codeStatus, data?.CodeStatus),
+      marketplaceItem: marketplaceItem ? normalizeMarketplacePlant(marketplaceItem) : null,
+    };
+  });
+export const claimMyPlant = (payload) =>
+  post("/my-plants/claim", payload).then(normalizeMyPlant);
 
 // Backward-compatible aliases during MVP cleanup.
 export const apiGetPlants = getCatalogPlants;

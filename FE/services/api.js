@@ -97,6 +97,7 @@ export const request = async (path, options = {}) => {
 export const get = (path, params) => request(path, { params });
 export const post = (path, body) => request(path, { method: "POST", body });
 export const put = (path, body) => request(path, { method: "PUT", body });
+export const patch = (path, body) => request(path, { method: "PATCH", body });
 export const del = (path) => request(path, { method: "DELETE" });
 
 export const requestText = async (path, options = {}) => {

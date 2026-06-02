@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import {
+  createAdminFeedback,
   createAdminMarketplacePlant,
   deleteAdminMarketplacePlant,
+  deleteAdminFeedback,
+  getAdminFeedback,
   getAdminMarketplacePlants,
   updateAdminMarketplacePlant,
+  verifyAdminFeedback,
 } from '../../services/adminApi';
 import { uploadImage } from '../../services/uploadApi';
 
@@ -72,6 +76,13 @@ const AdminMarketplace = () => {
   const [uploading, setUploading] = useState(false);
   const [formError, setFormError] = useState('');
   const [notice, setNotice] = useState('');
+  const [feedbackItems, setFeedbackItems] = useState([]);
+  const [feedbackSaving, setFeedbackSaving] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(true);
+  const [feedbackActionId, setFeedbackActionId] = useState('');
+  const [feedbackUploading, setFeedbackUploading] = useState('');
+  const [feedbackNotice, setFeedbackNotice] = useState('');
+  const [feedbackError, setFeedbackError] = useState('');
   const [feedbackForm, setFeedbackForm] = useState({
     customerAlias: 'Customer from HCMC',
     rating: '5',
@@ -83,7 +94,6 @@ const AdminMarketplace = () => {
     evidenceNote: '',
     isVerified: true,
   });
-  const feedbackError = 'Backend endpoint required';
 
   const loadPlants = async () => {
     setLoading(true);
@@ -99,8 +109,23 @@ const AdminMarketplace = () => {
     }
   };
 
+  const loadFeedback = async () => {
+    setFeedbackLoading(true);
+    setFeedbackError('');
+    try {
+      const data = await getAdminFeedback();
+      setFeedbackItems(data?.items || []);
+    } catch (err) {
+      setFeedbackItems([]);
+      setFeedbackError(err?.message || 'Could not load admin feedback.');
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadPlants();
+    loadFeedback();
   }, []);
 
   const updateFeedbackField = (event) => {
@@ -111,6 +136,79 @@ const AdminMarketplace = () => {
 
   const handleCreateFeedback = async (event) => {
     event.preventDefault();
+    setFeedbackError('');
+    setFeedbackNotice('');
+    if (!feedbackForm.marketplaceItemId) {
+      setFeedbackError('Please select a marketplace item.');
+      return;
+    }
+    if (!feedbackForm.comment.trim()) {
+      setFeedbackError('Public comment is required.');
+      return;
+    }
+    setFeedbackSaving(true);
+    const parseUrls = (value) =>
+      value
+        .split(/\r?\n/)
+        .map((url) => url.trim())
+        .filter(Boolean);
+    try {
+      await createAdminFeedback({
+        marketplaceItemId: feedbackForm.marketplaceItemId,
+        customerAlias: feedbackForm.customerAlias.trim() || null,
+        rating: Number(feedbackForm.rating),
+        comment: feedbackForm.comment.trim(),
+        purchaseChannel: feedbackForm.purchaseChannel,
+        publicImageUrls: parseUrls(feedbackForm.publicImageUrls),
+        evidenceImageUrls: parseUrls(feedbackForm.evidenceImageUrls),
+        evidenceNote: feedbackForm.evidenceNote.trim() || null,
+        isVerified: feedbackForm.isVerified,
+      });
+      setFeedbackForm((current) => ({
+        ...current,
+        comment: '',
+        publicImageUrls: '',
+        evidenceImageUrls: '',
+        evidenceNote: '',
+      }));
+      setFeedbackNotice('Feedback created.');
+      await loadFeedback();
+    } catch (err) {
+      setFeedbackError(err?.message || 'Could not create feedback.');
+    } finally {
+      setFeedbackSaving(false);
+    }
+  };
+
+  const handleVerifyFeedback = async (feedback) => {
+    setFeedbackActionId(feedback.id);
+    setFeedbackError('');
+    setFeedbackNotice('');
+    try {
+      const updated = await verifyAdminFeedback(feedback.id, { isVerified: !feedback.isVerified });
+      setFeedbackItems((current) => current.map((item) => (item.id === updated.id ? updated : item)));
+      setFeedbackNotice(updated.isVerified ? 'Feedback verified.' : 'Feedback unverified.');
+    } catch (err) {
+      setFeedbackError(err?.message || 'Could not update feedback verification.');
+    } finally {
+      setFeedbackActionId('');
+    }
+  };
+
+  const handleDeleteFeedback = async (feedback) => {
+    if (!window.confirm('Delete this feedback?')) return;
+    setFeedbackActionId(feedback.id);
+    setFeedbackError('');
+    setFeedbackNotice('');
+    try {
+      await deleteAdminFeedback(feedback.id);
+      setFeedbackItems((current) => current.filter((item) => item.id !== feedback.id));
+      setFeedbackNotice('Feedback deleted.');
+    } catch (err) {
+      setFeedbackError(err?.message || 'Could not delete feedback.');
+    } finally {
+      setFeedbackActionId('');
+    }
   };
 
   const updateListingField = (event) => {
@@ -163,17 +261,45 @@ const AdminMarketplace = () => {
     }
   };
 
+  const handleUploadFeedbackImage = async (event, fieldName) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setFeedbackUploading(fieldName);
+    setFeedbackError('');
+    setFeedbackNotice('');
+    try {
+      const imageUrl = await uploadImage(file);
+      setFeedbackForm((current) => ({
+        ...current,
+        [fieldName]: [current[fieldName], imageUrl].filter(Boolean).join('\n'),
+      }));
+      setFeedbackNotice('Feedback image uploaded.');
+    } catch (err) {
+      setFeedbackError(err?.message || 'Feedback image upload failed.');
+    } finally {
+      setFeedbackUploading('');
+      event.target.value = '';
+    }
+  };
+
   const handleSubmitListing = async (event) => {
     event.preventDefault();
     setSaving(true);
     setFormError('');
     setNotice('');
     try {
+      const payload = {
+        ...form,
+        careLevel: isPlantCategory ? form.careLevel : null,
+        light: isPlantCategory ? form.light : null,
+        water: isPlantCategory ? form.water : null,
+        attributesJson: isPlantCategory ? null : form.attributesJson,
+      };
       if (editingId) {
-        await updateAdminMarketplacePlant(editingId, form);
+        await updateAdminMarketplacePlant(editingId, payload);
         setNotice('Marketplace listing updated.');
       } else {
-        await createAdminMarketplacePlant(form);
+        await createAdminMarketplacePlant(payload);
         setNotice('Marketplace listing created.');
       }
       setForm(emptyListingForm);
@@ -301,7 +427,7 @@ const AdminMarketplace = () => {
               <input type="checkbox" disabled className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50] disabled:opacity-50" />
               <span>
                 <span className="block">{isPlantCategory ? 'Generate ownership code after sale' : 'Ownership code not applicable for this category'}</span>
-                <span className="mt-1 block text-xs font-bold text-slate-400">Future feature - backend not available yet</span>
+                <span className="mt-1 block text-xs font-bold text-slate-400">{isPlantCategory ? 'Create physical inventory and claim code from the Plant Inventory page.' : 'Inventory and claim codes are only for plant items.'}</span>
               </span>
             </label>
           </div>
@@ -348,9 +474,10 @@ const AdminMarketplace = () => {
         <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Manually verified feedback</p>
         <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">Add feedback from social/manual sale</h2>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-          Backend blocker: this screen is held as architecture readiness only until an admin verified-feedback endpoint is available. No mock reviews are saved or published from here.
+          Admin-created feedback is attached to marketplace items. Public image URLs can be shown to customers; evidence URLs and notes stay admin-only.
         </p>
-        <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">{feedbackError}</p>
+        {feedbackError && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>}
+        {feedbackNotice && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{feedbackNotice}</p>}
 
         <form onSubmit={handleCreateFeedback} className="mt-6 grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
@@ -386,29 +513,64 @@ const AdminMarketplace = () => {
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
             Public image URLs
             <textarea name="publicImageUrls" value={feedbackForm.publicImageUrls} onChange={updateFeedbackField} rows={2} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="One image URL per line, visible to public later" />
+            <input type="file" accept="image/*" onChange={(event) => handleUploadFeedbackImage(event, 'publicImageUrls')} disabled={feedbackUploading === 'publicImageUrls'} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
           </label>
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
             Evidence image URLs
             <textarea name="evidenceImageUrls" value={feedbackForm.evidenceImageUrls} onChange={updateFeedbackField} rows={2} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="One private evidence URL per line, admin-only later" />
+            <input type="file" accept="image/*" onChange={(event) => handleUploadFeedbackImage(event, 'evidenceImageUrls')} disabled={feedbackUploading === 'evidenceImageUrls'} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
           </label>
           <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
             Private evidence note
             <textarea name="evidenceNote" value={feedbackForm.evidenceNote} onChange={updateFeedbackField} required rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Private note, e.g. Bought via Zalo chat on May 14" />
           </label>
           <label className="md:col-span-2 flex items-start gap-3 text-sm font-black text-slate-700 dark:text-slate-200">
-            <input type="checkbox" name="isVerified" checked={feedbackForm.isVerified} onChange={updateFeedbackField} disabled className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50] disabled:opacity-50" />
+            <input type="checkbox" name="isVerified" checked={feedbackForm.isVerified} onChange={updateFeedbackField} className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50]" />
             <span>
               <span className="block">Create as verified</span>
-              <span className="mt-1 block text-xs font-bold text-slate-400">Future field for POST /api/admin/feedback.</span>
+              <span className="mt-1 block text-xs font-bold text-slate-400">Verified feedback appears in the public verified feedback API.</span>
             </span>
           </label>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
-            <button type="submit" disabled className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
-              Backend endpoint required
+            <button type="submit" disabled={feedbackSaving || Boolean(feedbackUploading)} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
+              {feedbackSaving ? 'Saving feedback...' : 'Create feedback'}
             </button>
-            <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">Blocked until API exists</span>
+            {feedbackUploading && <span className="text-xs font-black text-slate-400">Uploading feedback image...</span>}
           </div>
         </form>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {feedbackLoading ? (
+            <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">Loading admin feedback...</p>
+          ) : feedbackItems.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">No feedback created yet.</p>
+          ) : (
+            feedbackItems.map((feedback) => (
+              <article key={feedback.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-slate-900 dark:text-white">{feedback.customerAlias || 'Customer'}</p>
+                    <p className="mt-1 text-xs font-bold text-slate-400">{feedback.purchaseChannel || 'manual'} - {feedback.rating || 0}/5</p>
+                  </div>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${feedback.isVerified ? 'bg-[#4CAF50]/10 text-[#4CAF50]' : 'bg-amber-100 text-amber-700'}`}>
+                    {feedback.isVerified ? 'Verified' : 'Draft'}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{feedback.comment}</p>
+                {feedback.publicImageUrls?.length > 0 && <p className="mt-2 text-xs font-bold text-slate-400">Public images: {feedback.publicImageUrls.length}</p>}
+                {feedback.evidenceImageUrls?.length > 0 && <p className="mt-1 text-xs font-bold text-slate-400">Evidence images: {feedback.evidenceImageUrls.length}</p>}
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <button type="button" onClick={() => handleVerifyFeedback(feedback)} disabled={feedbackActionId === feedback.id} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-300">
+                    {feedback.isVerified ? 'Unverify' : 'Verify'}
+                  </button>
+                  <button type="button" onClick={() => handleDeleteFeedback(feedback)} disabled={feedbackActionId === feedback.id} className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-950/50 dark:text-red-300">
+                    Delete
+                  </button>
+                </div>
+              </article>
+            ))
+          )}
+        </div>
       </section>
     </AdminLayout>
   );

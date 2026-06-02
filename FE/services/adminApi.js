@@ -1,4 +1,4 @@
-import { del, get, post, put } from "./api";
+import { del, get, patch, post, put } from "./api";
 
 const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || data?.data || []);
 const firstValue = (...values) =>
@@ -7,7 +7,7 @@ const firstValue = (...values) =>
 export const normalizeAdminSummary = (summary = {}) => ({
   users: Number(firstValue(summary.users, summary.Users, 0)),
   userPlants: Number(firstValue(summary.userPlants, summary.UserPlants, 0)),
-  marketplacePlants: Number(firstValue(summary.marketplacePlants, summary.MarketplacePlants, 0)),
+  marketplacePlants: Number(firstValue(summary.marketplaceItems, summary.MarketplaceItems, summary.marketplacePlants, summary.MarketplacePlants, 0)),
   aiDialogs: Number(firstValue(summary.aiDialogs, summary.AiDialogs, 0)),
   aiConfigured: Boolean(firstValue(summary.aiConfigured, summary.AiConfigured, false)),
   source: "backend",
@@ -31,11 +31,25 @@ export const normalizeAdminUserPlant = (plant = {}) => ({
   userId: firstValue(plant.userId, plant.UserId),
   userEmail: firstValue(plant.userEmail, plant.UserEmail),
   userName: firstValue(plant.userName, plant.UserName, plant.userEmail, plant.UserEmail),
+  marketplaceItemId: firstValue(plant.marketplaceItemId, plant.MarketplaceItemId),
+  marketplaceItemName: firstValue(plant.marketplaceItemName, plant.MarketplaceItemName),
+  claimCodeId: firstValue(plant.claimCodeId, plant.ClaimCodeId),
+  claimCode: firstValue(plant.claimCode, plant.ClaimCode),
   name: firstValue(plant.name, plant.Name),
-  species: firstValue(plant.species, plant.Species),
+  nickname: firstValue(plant.nickname, plant.Nickname),
+  species: firstValue(plant.species, plant.Species, plant.speciesName, plant.SpeciesName),
   location: firstValue(plant.location, plant.Location),
   status: firstValue(plant.status, plant.Status),
+  careLevel: firstValue(plant.careLevel, plant.CareLevel),
+  light: firstValue(plant.light, plant.Light),
+  water: firstValue(plant.water, plant.Water),
+  notes: firstValue(plant.notes, plant.Notes),
+  ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode),
+  ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus),
+  isClaimed: Boolean(firstValue(plant.isClaimed, plant.IsClaimed, false)),
+  claimedAt: firstValue(plant.claimedAt, plant.ClaimedAt),
   createdAt: firstValue(plant.createdAt, plant.CreatedAt),
+  updatedAt: firstValue(plant.updatedAt, plant.UpdatedAt),
 });
 
 export const normalizeAdminAiDialog = (dialog = {}) => ({
@@ -62,6 +76,48 @@ export const normalizeAdminMarketplacePlant = (plant = {}) => ({
   attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
   contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
   status: firstValue(plant.status, plant.Status),
+});
+
+export const normalizeAdminPlantInventory = (plant = {}) => ({
+  ...plant,
+  id: firstValue(plant.id, plant.Id),
+  marketplaceItemId: firstValue(plant.marketplaceItemId, plant.MarketplaceItemId),
+  plantSpeciesId: firstValue(plant.plantSpeciesId, plant.PlantSpeciesId),
+  name: firstValue(plant.name, plant.Name),
+  speciesName: firstValue(plant.speciesName, plant.SpeciesName),
+  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl),
+  location: firstValue(plant.location, plant.Location),
+  wateringCycleDays: Number(firstValue(plant.wateringCycleDays, plant.WateringCycleDays, 0)),
+  notes: firstValue(plant.notes, plant.Notes),
+  ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode),
+  ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus),
+  isClaimed: Boolean(firstValue(plant.isClaimed, plant.IsClaimed, false)),
+  claimedAt: firstValue(plant.claimedAt, plant.ClaimedAt),
+  userId: firstValue(plant.userId, plant.UserId),
+  userEmail: firstValue(plant.userEmail, plant.UserEmail),
+  qrClaimUrl: firstValue(plant.qrClaimUrl, plant.QrClaimUrl),
+  claimCodeId: firstValue(plant.claimCodeId, plant.ClaimCodeId),
+  claimCodeStatus: firstValue(plant.claimCodeStatus, plant.ClaimCodeStatus),
+  createdAt: firstValue(plant.createdAt, plant.CreatedAt),
+  updatedAt: firstValue(plant.updatedAt, plant.UpdatedAt),
+});
+
+export const normalizeAdminFeedback = (feedback = {}) => ({
+  ...feedback,
+  id: firstValue(feedback.id, feedback.Id),
+  marketplaceItemId: firstValue(feedback.marketplaceItemId, feedback.MarketplaceItemId),
+  customerAlias: firstValue(feedback.customerAlias, feedback.CustomerAlias),
+  rating: Number(firstValue(feedback.rating, feedback.Rating, 0)),
+  comment: firstValue(feedback.comment, feedback.Comment),
+  purchaseChannel: firstValue(feedback.purchaseChannel, feedback.PurchaseChannel),
+  publicImageUrls: firstValue(feedback.publicImageUrls, feedback.PublicImageUrls, []),
+  evidenceImageUrls: firstValue(feedback.evidenceImageUrls, feedback.EvidenceImageUrls, []),
+  evidenceNote: firstValue(feedback.evidenceNote, feedback.EvidenceNote),
+  isVerified: Boolean(firstValue(feedback.isVerified, feedback.IsVerified, false)),
+  verifiedAt: firstValue(feedback.verifiedAt, feedback.VerifiedAt),
+  sourceType: firstValue(feedback.sourceType, feedback.SourceType),
+  createdAt: firstValue(feedback.createdAt, feedback.CreatedAt),
+  updatedAt: firstValue(feedback.updatedAt, feedback.UpdatedAt),
 });
 
 export const normalizeAdminAiConfigStatus = (status = {}) => ({
@@ -103,26 +159,62 @@ export const updateAdminUserPlantStatus = (id, payload) =>
   );
 
 export const getAdminMarketplacePlants = (params) =>
-  get("/admin/marketplace-plants", params).then((data) => ({
+  get("/admin/marketplace-items", params).then((data) => ({
     ...data,
     items: normalizeItems(data).map(normalizeAdminMarketplacePlant),
     source: "backend",
   }));
 
 export const createAdminMarketplacePlant = (payload) =>
-  post("/admin/marketplace-plants", payload).then(normalizeAdminMarketplacePlant);
+  post("/admin/marketplace-items", payload).then(normalizeAdminMarketplacePlant);
 
 export const updateAdminMarketplacePlant = (id, payload) =>
-  put(`/admin/marketplace-plants/${id}`, payload).then(normalizeAdminMarketplacePlant);
+  put(`/admin/marketplace-items/${id}`, payload).then(normalizeAdminMarketplacePlant);
 
 export const deleteAdminMarketplacePlant = (id) =>
-  del(`/admin/marketplace-plants/${id}`);
+  del(`/admin/marketplace-items/${id}`);
 
-export const createAdminFeedback = () =>
-  Promise.reject(new Error("Backend endpoint required"));
+export const getAdminPlantInventory = (params) =>
+  get("/admin/plant-inventory", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminPlantInventory),
+    source: "backend",
+  }));
 
-export const getAdminFeedback = () =>
-  Promise.resolve({ items: [], source: "backend-blocked", supported: false });
+export const getAdminPlantInventoryItem = (id) =>
+  get(`/admin/plant-inventory/${id}`).then(normalizeAdminPlantInventory);
+
+export const createAdminPlantInventory = (payload) =>
+  post("/admin/plant-inventory", payload).then(normalizeAdminPlantInventory);
+
+export const updateAdminPlantInventory = (id, payload) =>
+  put(`/admin/plant-inventory/${id}`, payload).then(normalizeAdminPlantInventory);
+
+export const deleteAdminPlantInventory = (id) =>
+  del(`/admin/plant-inventory/${id}`);
+
+export const regenerateAdminPlantInventoryCode = (id) =>
+  post(`/admin/plant-inventory/${id}/regenerate-code`).then(normalizeAdminPlantInventory);
+
+export const createAdminFeedback = (payload) =>
+  post("/admin/feedback", payload).then(normalizeAdminFeedback);
+
+export const getAdminFeedback = (params) =>
+  get("/admin/feedback", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizeAdminFeedback),
+    source: "backend",
+    supported: true,
+  }));
+
+export const updateAdminFeedback = (id, payload) =>
+  put(`/admin/feedback/${id}`, payload).then(normalizeAdminFeedback);
+
+export const verifyAdminFeedback = (id, payload) =>
+  patch(`/admin/feedback/${id}/verify`, payload).then(normalizeAdminFeedback);
+
+export const deleteAdminFeedback = (id) =>
+  del(`/admin/feedback/${id}`);
 
 export const getAdminAiDialogs = (params) =>
   get("/admin/ai-dialogs", params).then((data) => ({
