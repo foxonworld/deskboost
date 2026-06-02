@@ -31,12 +31,15 @@ public class AdminFeedbackUpsertRequest
 
 public class PlantInventoryUpsertRequest
 {
-    public Guid? MarketplaceItemId { get; set; }
+    public Guid MarketplaceItemId { get; set; }
     public Guid? PlantSpeciesId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? SpeciesName { get; set; }
     public string? ImageUrl { get; set; }
     public string? Location { get; set; }
+    public string? CareLevel { get; set; }
+    public string? Light { get; set; }
+    public string? Water { get; set; }
     public int WateringCycleDays { get; set; } = 3;
     public string? Notes { get; set; }
 }

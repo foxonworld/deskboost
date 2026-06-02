@@ -10,12 +10,15 @@ namespace DeskBoost.Application.Features.Admin.Commands;
 
 public record CreateAdminPlantInventoryCommand : IRequest<AdminPlantInventoryDto>
 {
-    public Guid? MarketplaceItemId { get; init; }
+    public Guid MarketplaceItemId { get; init; }
     public Guid? PlantSpeciesId { get; init; }
     public string Name { get; init; } = string.Empty;
     public string? SpeciesName { get; init; }
     public string? ImageUrl { get; init; }
     public string? Location { get; init; }
+    public string? CareLevel { get; init; }
+    public string? Light { get; init; }
+    public string? Water { get; init; }
     public int WateringCycleDays { get; init; } = 3;
     public string? Notes { get; init; }
 }
@@ -28,6 +31,23 @@ public class CreateAdminPlantInventoryCommandHandler : IRequestHandler<CreateAdm
 
     public async Task<AdminPlantInventoryDto> Handle(CreateAdminPlantInventoryCommand request, CancellationToken ct)
     {
+        // 1. Validate BEFORE any DB writes
+        var item = await _db.MarketplaceItems.FindAsync(new object[] { request.MarketplaceItemId }, ct)
+            ?? throw new InvalidOperationException("Không tìm thấy sản phẩm marketplace.");
+
+        if (item.Category != MarketplaceCategory.Plant)
+            throw new InvalidOperationException("Sản phẩm này không phải loại cây (category phải là plant).");
+
+        // Validate PlantSpeciesId nếu được gửi, và lấy VietnameseName làm fallback cho SpeciesName
+        string? speciesNameFallback = request.SpeciesName;
+        if (request.PlantSpeciesId.HasValue)
+        {
+            var species = await _db.PlantSpecies.FindAsync(new object[] { request.PlantSpeciesId.Value }, ct)
+                ?? throw new InvalidOperationException("Không tìm thấy loài cây (PlantSpeciesId không hợp lệ).");
+            speciesNameFallback ??= species.VietnameseName;
+        }
+
+        // 2. Generate unique code
         string code;
         do
         {
@@ -35,15 +55,19 @@ public class CreateAdminPlantInventoryCommandHandler : IRequestHandler<CreateAdm
         } while (await _db.Plants.AnyAsync(p => p.OwnershipCode == code, ct)
               || await _db.PlantClaimCodes.AnyAsync(c => c.Code == code, ct));
 
+        // 3. Create plant without ClaimCodeId yet (will be linked after claimCode is saved)
         var plant = new Plant
         {
             UserId = null,
             MarketplaceItemId = request.MarketplaceItemId,
             PlantSpeciesId = request.PlantSpeciesId,
             Name = request.Name.Trim(),
-            SpeciesName = request.SpeciesName?.Trim(),
+            SpeciesName = speciesNameFallback?.Trim(),
             ImageUrl = request.ImageUrl,
             Location = request.Location?.Trim(),
+            CareLevel = request.CareLevel ?? item.CareLevel,
+            Light = request.Light ?? item.Light,
+            Water = request.Water ?? item.Water,
             WateringCycleDays = request.WateringCycleDays,
             Notes = request.Notes?.Trim(),
             OwnershipCode = code,
@@ -52,29 +76,36 @@ public class CreateAdminPlantInventoryCommandHandler : IRequestHandler<CreateAdm
             Status = PlantStatus.Healthy
         };
 
-        _db.Plants.Add(plant);
-        await _db.SaveChangesAsync(ct);
-
-        // Auto-create claim code only when a Plant-category marketplace item is linked
-        PlantClaimCode? claimCode = null;
-        if (request.MarketplaceItemId.HasValue)
+        // 4. Explicit transaction: Plant -> ClaimCode -> link back -> commit
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        try
         {
-            var item = await _db.MarketplaceItems.FindAsync(new object[] { request.MarketplaceItemId.Value }, ct);
-            if (item?.Category == MarketplaceCategory.Plant)
-            {
-                claimCode = new PlantClaimCode
-                {
-                    Code = code,
-                    MarketplaceItemId = request.MarketplaceItemId.Value,
-                    PlantId = plant.Id,
-                    Status = PlantClaimCodeStatus.Unclaimed
-                };
-                _db.PlantClaimCodes.Add(claimCode);
-                await _db.SaveChangesAsync(ct);
-            }
-        }
+            _db.Plants.Add(plant);
+            await _db.SaveChangesAsync(ct);
 
-        return GetAdminPlantInventoryQueryHandler.ToDto(plant, null, claimCode);
+            var claimCode = new PlantClaimCode
+            {
+                Code = code,
+                MarketplaceItemId = request.MarketplaceItemId,
+                PlantId = plant.Id,
+                Status = PlantClaimCodeStatus.Unclaimed
+            };
+            _db.PlantClaimCodes.Add(claimCode);
+            await _db.SaveChangesAsync(ct);
+
+            plant.ClaimCodeId = claimCode.Id;
+            plant.UpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+
+            await tx.CommitAsync(ct);
+
+            return GetAdminPlantInventoryQueryHandler.ToDto(plant, null, claimCode);
+        }
+        catch
+        {
+            await tx.RollbackAsync(ct);
+            throw;
+        }
     }
 
     private static string GenerateCode()

@@ -1,10 +1,12 @@
 using DeskBoost.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DeskBoost.Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
+    DatabaseFacade Database { get; }
     DbSet<User> Users { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<DiagnosisResult> DiagnosisResults { get; }

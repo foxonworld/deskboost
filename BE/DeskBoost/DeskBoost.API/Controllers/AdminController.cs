@@ -6,6 +6,8 @@ using DeskBoost.Application.Features.Feedback.Commands;
 using DeskBoost.Application.Features.Feedback.Queries;
 using DeskBoost.Application.Features.Marketplace.Commands;
 using DeskBoost.Application.Features.Marketplace.Queries;
+using DeskBoost.Application.Features.PlantSpecies.Commands;
+using DeskBoost.Application.Features.PlantSpecies.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -120,18 +122,31 @@ public class AdminController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest(new { message = "Tên cây không được để trống." });
 
-        var result = await _sender.Send(new CreateAdminPlantInventoryCommand
+        if (request.MarketplaceItemId == Guid.Empty)
+            return BadRequest(new { message = "marketplaceItemId là bắt buộc." });
+
+        try
         {
-            MarketplaceItemId = request.MarketplaceItemId,
-            PlantSpeciesId = request.PlantSpeciesId,
-            Name = request.Name,
-            SpeciesName = request.SpeciesName,
-            ImageUrl = request.ImageUrl,
-            Location = request.Location,
-            WateringCycleDays = request.WateringCycleDays,
-            Notes = request.Notes
-        }, ct);
-        return StatusCode(201, result);
+            var result = await _sender.Send(new CreateAdminPlantInventoryCommand
+            {
+                MarketplaceItemId = request.MarketplaceItemId,
+                PlantSpeciesId = request.PlantSpeciesId,
+                Name = request.Name,
+                SpeciesName = request.SpeciesName,
+                ImageUrl = request.ImageUrl,
+                Location = request.Location,
+                CareLevel = request.CareLevel,
+                Light = request.Light,
+                Water = request.Water,
+                WateringCycleDays = request.WateringCycleDays,
+                Notes = request.Notes
+            }, ct);
+            return StatusCode(201, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>PUT /api/admin/plant-inventory/{id}</summary>
@@ -148,6 +163,9 @@ public class AdminController : ControllerBase
                 SpeciesName = request.SpeciesName,
                 ImageUrl = request.ImageUrl,
                 Location = request.Location,
+                CareLevel = request.CareLevel,
+                Light = request.Light,
+                Water = request.Water,
                 WateringCycleDays = request.WateringCycleDays,
                 Notes = request.Notes
             }, ct);
@@ -402,6 +420,84 @@ public class AdminController : ControllerBase
             return NoContent();
         }
         catch (Exception ex) when (ex is DeskBoost.Domain.Exceptions.NotFoundException)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    // ── Plant Species ─────────────────────────────────────────────────────────
+
+    /// <summary>GET /api/admin/plant-species — tất cả loài cây (kể cả inactive)</summary>
+    [HttpGet("plant-species")]
+    public async Task<IActionResult> GetPlantSpecies(CancellationToken ct)
+        => Ok(await _sender.Send(new GetPlantSpeciesQuery(IsActive: null), ct));
+
+    /// <summary>GET /api/admin/plant-species/{id}</summary>
+    [HttpGet("plant-species/{id:guid}")]
+    public async Task<IActionResult> GetPlantSpeciesById(Guid id, CancellationToken ct)
+    {
+        var result = await _sender.Send(new GetPlantSpeciesByIdQuery(id), ct);
+        if (result is null) return NotFound(new { message = "Không tìm thấy loài cây." });
+        return Ok(result);
+    }
+
+    /// <summary>POST /api/admin/plant-species</summary>
+    [HttpPost("plant-species")]
+    public async Task<IActionResult> CreatePlantSpecies([FromBody] PlantSpeciesUpsertRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest(new { message = "Tên loài không được để trống." });
+        if (string.IsNullOrWhiteSpace(request.VietnameseName))
+            return BadRequest(new { message = "Tên tiếng Việt không được để trống." });
+
+        var result = await _sender.Send(new CreatePlantSpeciesCommand
+        {
+            Name = request.Name,
+            VietnameseName = request.VietnameseName,
+            Description = request.Description,
+            CareInstructions = request.CareInstructions,
+            CommonDiseases = request.CommonDiseases,
+            ImageUrl = request.ImageUrl,
+            IsActive = request.IsActive
+        }, ct);
+        return StatusCode(201, result);
+    }
+
+    /// <summary>PUT /api/admin/plant-species/{id}</summary>
+    [HttpPut("plant-species/{id:guid}")]
+    public async Task<IActionResult> UpdatePlantSpecies(Guid id, [FromBody] PlantSpeciesUpsertRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new UpdatePlantSpeciesCommand
+            {
+                Id = id,
+                Name = request.Name,
+                VietnameseName = request.VietnameseName,
+                Description = request.Description,
+                CareInstructions = request.CareInstructions,
+                CommonDiseases = request.CommonDiseases,
+                ImageUrl = request.ImageUrl,
+                IsActive = request.IsActive
+            }, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>DELETE /api/admin/plant-species/{id}</summary>
+    [HttpDelete("plant-species/{id:guid}")]
+    public async Task<IActionResult> DeletePlantSpecies(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(new DeletePlantSpeciesCommand(id), ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
         {
             return NotFound(new { message = ex.Message });
         }

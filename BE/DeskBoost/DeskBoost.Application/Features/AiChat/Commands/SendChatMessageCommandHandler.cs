@@ -47,6 +47,7 @@ public class SendChatMessageCommandHandler : IRequestHandler<SendChatMessageComm
             }
 
             systemPrompt = BuildPlantSystemPrompt(plant, plant.Species, lastDiagnosis);
+
         }
         else
         {
@@ -86,9 +87,11 @@ public class SendChatMessageCommandHandler : IRequestHandler<SendChatMessageComm
         return new ChatMessageResponse(assistantContent);
     }
 
-    private static string BuildPlantSystemPrompt(Plant plant, PlantSpecies species, DiagnosisResult? lastDiagnosis)
+    private static string BuildPlantSystemPrompt(Plant plant, DeskBoost.Domain.Entities.PlantSpecies? species, DiagnosisResult? lastDiagnosis)
     {
         var diagnosisSection = BuildDiagnosisSection(lastDiagnosis);
+        var displayName = species?.VietnameseName ?? plant.SpeciesName ?? "không rõ loài";
+        var careInstructions = species?.CareInstructions ?? "không có";
 
         return $"""
             Bạn là trợ lý chăm sóc cây trồng.
@@ -101,10 +104,10 @@ public class SendChatMessageCommandHandler : IRequestHandler<SendChatMessageComm
             - Nếu không đủ thông tin, trả lời: "Không đủ dữ liệu để đưa ra kết luận."
 
             Thông tin cây:
-            - Tên: {plant.Name} ({species.VietnameseName})
+            - Tên: {plant.Name} ({displayName})
             - Vị trí đặt: {plant.Location ?? "không rõ"}
             - Chu kỳ tưới: mỗi {plant.WateringCycleDays} ngày
-            - Hướng dẫn chăm sóc: {species.CareInstructions ?? "không có"}
+            - Hướng dẫn chăm sóc: {careInstructions}
 
             {diagnosisSection}
             """;
