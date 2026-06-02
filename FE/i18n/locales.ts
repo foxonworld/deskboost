@@ -116,7 +116,7 @@ const vi = {
   "myPlants.status.thriving": "phát triển tốt",
   "myPlants.status.needsWater": "cần tưới",
   "myPlants.status.recovering": "đang phục hồi",
-  "addPlant.title": "Nhận nuôi cây mới",
+  "addPlant.title": "Nhận Chăm sóc cây mới",
   "addPlant.description": "Thêm cây mới vào khu chăm sóc số của bạn.",
   "addPlant.previewAlt": "Xem trước cây",
   "addPlant.visualIdentity": "Nhận diện hình ảnh",
@@ -156,11 +156,11 @@ const vi = {
   "plantProfile.status": "Trạng thái",
   "plantProfile.nextWatering": "Lần tưới tiếp theo",
   "plantProfile.bioScan": "Bio Scan",
-  "plantProfile.ownership.title": "Định danh sở hữu",
+  "plantProfile.ownership.title": "Mã claim cây",
   "plantProfile.ownership.description":
-    "Khu vực chuẩn bị cho mã sở hữu và QR thật. Frontend chỉ đọc DTO nếu backend trả về, không tạo mã giả.",
-  "plantProfile.ownership.code": "Mã sở hữu",
-  "plantProfile.ownership.status": "Trạng thái",
+    "Mã admin gửi sau khi khách mua cây. Trang này chỉ hiển thị dữ liệu claim thật từ backend.",
+  "plantProfile.ownership.code": "Mã claim",
+  "plantProfile.ownership.status": "Trạng thái claim",
   "plantProfile.ownership.claimed": "Đã claim",
   "userProfile.title": "Hồ sơ người dùng",
   "userProfile.description": "Nâng tầm nghệ thuật chăm sóc cây cảnh trong nhà.",
@@ -191,10 +191,10 @@ const vi = {
     "Backend hiện chưa có endpoint đổi mật khẩu, nên trang này chỉ cập nhật thông tin hồ sơ.",
   "userProfile.claimedPlants": "Cây đã claim",
   "userProfile.claimEntry.badge": "Claim Plant",
-  "userProfile.claimEntry.title": "Claim cây bằng QR",
+  "userProfile.claimEntry.title": "Thêm cây bằng mã code",
   "userProfile.claimEntry.description":
-    "Điểm vào tương lai cho cây có mã sở hữu thật. Chức năng đang chờ backend claim/validate.",
-  "userProfile.claimEntry.cta": "Chưa khả dụng",
+    "Nhập mã claim admin gửi sau khi mua cây để thêm cây vào My Plants.",
+  "userProfile.claimEntry.cta": "Đi tới Add Plant",
   "userProfile.feedback.title": "Gửi feedback",
   "userProfile.feedback.description":
     "Feedback này gửi tới backend qua POST /api/feedback. Nó chưa được hiển thị công khai như phản hồi đã xác minh.",
@@ -237,8 +237,7 @@ const vi = {
   "careBell.urgency.today": "Hôm nay",
   "careBell.urgency.upcoming": "Sắp tới",
   "careBell.loading": "Đang tải nhắc chăm cây...",
-  "reminders.error.load":
-    "Không tải được nhắc nhở từ backend.",
+  "reminders.error.load": "Không tải được nhắc nhở từ backend.",
   "reminders.notice.opening":
     "Đang mở {count} nhắc nhở đang bật để thêm một lần vào lịch.",
   "reminders.notice.downloaded":
@@ -273,6 +272,7 @@ const vi = {
   "reminders.type.watering": "tưới nước",
   "reminders.type.fertilizing": "bón phân",
   "reminders.type.check_leaves": "kiểm tra lá",
+  "reminders.frequency.none": "Không lặp",
   "reminders.frequency.daily": "Hằng ngày",
   "reminders.frequency.every2Days": "Mỗi 2 ngày",
   "reminders.frequency.every3Days": "Mỗi 3 ngày",
@@ -383,26 +383,36 @@ const vi = {
   "home.footer.marketplace": "Marketplace",
   "home.footer.aiCare": "AI care",
   "home.trust.feature.1.title": "AI Diagnosis",
-  "home.trust.feature.1.desc": "Chẩn đoán bệnh cây qua ảnh chụp tức thì với khuyến nghị rõ ràng, an toàn.",
+  "home.trust.feature.1.desc":
+    "Chẩn đoán bệnh cây qua ảnh chụp tức thì với khuyến nghị rõ ràng, an toàn.",
   "home.trust.feature.2.title": "Plant Profiles",
-  "home.trust.feature.2.desc": "Hồ sơ số hóa lưu trữ thông số ánh sáng, độ ẩm và ghi chú riêng cho từng chậu cây.",
+  "home.trust.feature.2.desc":
+    "Hồ sơ số hóa lưu trữ thông số ánh sáng, độ ẩm và ghi chú riêng cho từng chậu cây.",
   "home.trust.feature.3.title": "Smart Reminders",
-  "home.trust.feature.3.desc": "Lên lịch nhắc nước, phân bón và theo dõi sức khỏe cây bàn làm việc theo chu kỳ thực tế.",
+  "home.trust.feature.3.desc":
+    "Lên lịch nhắc nước, phân bón và theo dõi sức khỏe cây bàn làm việc theo chu kỳ thực tế.",
   "home.trust.feature.4.title": "Verified Marketplace",
-  "home.trust.feature.4.desc": "Chợ cây cảnh thu nhỏ kết nối trực tiếp, tư vấn trước mua và feedback xác minh thủ công.",
+  "home.trust.feature.4.desc":
+    "Chợ cây cảnh thu nhỏ kết nối trực tiếp, tư vấn trước mua và feedback xác minh thủ công.",
   "home.roadmap.badge": "Future Roadmap",
   "home.roadmap.title": "DeskBoost Future Vision",
-  "home.roadmap.description": "Lộ trình mở rộng các tính năng bổ trợ niềm tin và tự động hóa giúp hỗ trợ tốt hơn cho việc chăm cây bàn làm việc dài hạn mà không ảnh hưởng tới triết lý MVP tinh gọn.",
-  "home.roadmap.step1.title": "QR Plant Identity",
-  "home.roadmap.step1.desc": "Mỗi cây được cấp một mã QR định danh duy nhất dán trực tiếp trên chậu cây vật lý.",
-  "home.roadmap.step2.title": "Claim Ownership",
-  "home.roadmap.step2.desc": "Quét QR để nhận quyền sở hữu và kích hoạt hồ sơ theo dõi cây ngay lập tức.",
+  "home.roadmap.description":
+    "Lộ trình mở rộng các tính năng bổ trợ niềm tin và tự động hóa giúp hỗ trợ tốt hơn cho việc chăm cây bàn làm việc dài hạn mà không ảnh hưởng tới triết lý MVP tinh gọn.",
+  "home.roadmap.step1.title": "Plant Claim Code",
+  "home.roadmap.step1.desc":
+    "Admin tạo mã claim cho từng cây vật lý sau khi khách mua, rồi gửi mã đó cho người dùng.",
+  "home.roadmap.step2.title": "Claim Plant Profile",
+  "home.roadmap.step2.desc":
+    "Người dùng nhập mã claim để thêm cây vào My Plants và theo dõi hồ sơ chăm sóc.",
   "home.roadmap.step3.title": "AI Context Memory",
-  "home.roadmap.step3.desc": "Bộ nhớ AI thông minh giúp ghi nhớ lịch sử bệnh trạng để đưa ra chẩn đoán chính xác hơn theo thời gian.",
+  "home.roadmap.step3.desc":
+    "Bộ nhớ AI thông minh giúp ghi nhớ lịch sử bệnh trạng để đưa ra chẩn đoán chính xác hơn theo thời gian.",
   "home.roadmap.step4.title": "Weather Integration",
-  "home.roadmap.step4.desc": "Tự động điều chỉnh tần suất nhắc tưới dựa theo chỉ số thời tiết và nhiệt độ phòng.",
+  "home.roadmap.step4.desc":
+    "Tự động điều chỉnh tần suất nhắc tưới dựa theo chỉ số thời tiết và nhiệt độ phòng.",
   "home.roadmap.step5.title": "IoT Monitoring",
-  "home.roadmap.step5.desc": "Tích hợp các cảm biến đất và ánh sáng IoT siêu nhỏ để gửi cảnh báo tự động về máy tính.",
+  "home.roadmap.step5.desc":
+    "Tích hợp các cảm biến đất và ánh sáng IoT siêu nhỏ để gửi cảnh báo tự động về máy tính.",
   "home.stats.badge": "Số liệu DeskBoost",
   "home.stats.title": "Góc xanh được bảo vệ bằng dữ liệu",
   "home.stats.diagnoses.val": "1,250+",
@@ -532,17 +542,6 @@ const vi = {
   "detail.feedback.ratingAria": "{rating} trên 5 sao",
   "detail.feedback.offApp": "Liên hệ ngoài app",
   "detail.feedback.manualVerified": "Xác minh thủ công",
-  "detail.qr.badge": "QR readiness",
-  "detail.qr.title": "Định danh QR cho cây",
-  "detail.qr.description":
-    "Nền tảng frontend đã có chỗ hiển thị mã sở hữu, trạng thái claim và QR thật khi backend cung cấp.",
-  "detail.qr.claimed": "Đã claim",
-  "detail.qr.notReady": "Chưa có QR thật",
-  "detail.qr.code": "Mã sở hữu",
-  "detail.qr.status": "Trạng thái sở hữu",
-  "detail.qr.identity": "QR định danh",
-  "detail.qr.noQr": "Chưa tạo QR giả",
-  "detail.qr.unavailable": "Chưa có dữ liệu",
   "detail.mobileContact": "Liên hệ tư vấn",
   "detail.alert.facebook": "Đang chuyển hướng tới Facebook để nhắn tin...",
   "detail.alert.zalo": "Đang chuyển hướng tới Zalo để nhắn tin...",
@@ -551,7 +550,7 @@ const vi = {
     "Hỏi DeskBoost AI như một trợ lý chăm cây riêng cho bàn làm việc.",
   "aiChat.description":
     "AI chỉ trả lời trong phạm vi chăm cây: nước, ánh sáng, đất, lá, thói quen chăm sóc và ghi chú của cây đang chọn.",
-  "aiChat.signal.noClaim": "Không cần QR/Claim để dùng AI",
+  "aiChat.signal.noClaim": "Không cần claim code để dùng AI",
   "aiChat.signal.notGeneral": "Không phải chatbot tổng quát",
   "aiChat.historyFallback":
     "Đang dùng lịch sử AI mẫu trong khi backend chưa sẵn sàng.",
@@ -571,7 +570,7 @@ const vi = {
     "Việc chọn cây chỉ giúp câu trả lời cụ thể hơn; AI vẫn là tính năng chăm cây mở, không khóa bằng claim.",
   "aiChat.noPlantsTitle": "Chưa có cây để chọn",
   "aiChat.noPlantsDescription":
-    "Bạn có thể thêm cây sau; AI không yêu cầu QR/Claim trong MVP.",
+    "Bạn có thể thêm cây sau; AI không yêu cầu claim code trong MVP.",
   "aiChat.consultingFor": "Đang tư vấn cho",
   "aiChat.choosePlant": "Chọn một cây",
   "aiChat.selectedPlantContext":
@@ -839,11 +838,11 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "plantProfile.status": "Status",
   "plantProfile.nextWatering": "Next Watering",
   "plantProfile.bioScan": "Bio Scan",
-  "plantProfile.ownership.title": "Ownership identity",
+  "plantProfile.ownership.title": "Plant claim code",
   "plantProfile.ownership.description":
-    "Prepared for real ownership codes and QR data. The frontend only reads DTO fields from the backend and does not generate fake codes.",
-  "plantProfile.ownership.code": "Ownership code",
-  "plantProfile.ownership.status": "Status",
+    "The code sent by admin after purchase. This page only displays real claim data returned by the backend.",
+  "plantProfile.ownership.code": "Claim code",
+  "plantProfile.ownership.status": "Claim status",
   "plantProfile.ownership.claimed": "Claimed",
   "userProfile.title": "User profile",
   "userProfile.description": "Elevate the art of indoor plant care.",
@@ -874,10 +873,10 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
     "The backend does not currently expose a password-change endpoint, so this page only updates profile information.",
   "userProfile.claimedPlants": "Claimed plants",
   "userProfile.claimEntry.badge": "Claim Plant",
-  "userProfile.claimEntry.title": "Claim a plant by QR",
+  "userProfile.claimEntry.title": "Add plant by code",
   "userProfile.claimEntry.description":
-    "Future entry point for plants with real ownership codes. This is waiting for backend claim/validate support.",
-  "userProfile.claimEntry.cta": "Not available yet",
+    "Enter the claim code sent by admin after purchase to add the plant to My Plants.",
+  "userProfile.claimEntry.cta": "Go to Add Plant",
   "userProfile.feedback.title": "Send feedback",
   "userProfile.feedback.description":
     "This sends feedback to the backend through POST /api/feedback. It is not displayed publicly as verified feedback.",
@@ -920,8 +919,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "careBell.urgency.today": "Today",
   "careBell.urgency.upcoming": "Upcoming",
   "careBell.loading": "Loading care reminders...",
-  "reminders.error.load":
-    "Could not load reminders from the backend.",
+  "reminders.error.load": "Could not load reminders from the backend.",
   "reminders.notice.opening":
     "Opening {count} enabled reminder(s) for one-time calendar add.",
   "reminders.notice.downloaded":
@@ -930,7 +928,8 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
     "Added reminder in app. Calendar is manual add/export only.",
   "reminders.notice.updated": "Reminder updated.",
   "reminders.error.save": "Could not save reminder.",
-  "reminders.error.calendar": "Could not create calendar data for this reminder.",
+  "reminders.error.calendar":
+    "Could not create calendar data for this reminder.",
   "reminders.title": "Care Reminders",
   "reminders.description":
     "In-app reminders with one-time Add to Calendar / .ics export.",
@@ -956,6 +955,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "reminders.type.watering": "watering",
   "reminders.type.fertilizing": "fertilizing",
   "reminders.type.check_leaves": "check leaves",
+  "reminders.frequency.none": "Does not repeat",
   "reminders.frequency.daily": "Daily",
   "reminders.frequency.every2Days": "Every 2 days",
   "reminders.frequency.every3Days": "Every 3 days",
@@ -1067,26 +1067,36 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "home.footer.marketplace": "Marketplace",
   "home.footer.aiCare": "AI care",
   "home.trust.feature.1.title": "AI Diagnosis",
-  "home.trust.feature.1.desc": "Instant plant disease diagnosis via photo with clear, safe care recommendations.",
+  "home.trust.feature.1.desc":
+    "Instant plant disease diagnosis via photo with clear, safe care recommendations.",
   "home.trust.feature.2.title": "Plant Profiles",
-  "home.trust.feature.2.desc": "Digital profiles storing light, moisture and customized care notes for each desk plant.",
+  "home.trust.feature.2.desc":
+    "Digital profiles storing light, moisture and customized care notes for each desk plant.",
   "home.trust.feature.3.title": "Smart Reminders",
-  "home.trust.feature.3.desc": "Schedule water, fertilizer and health check reminders based on real desk conditions.",
+  "home.trust.feature.3.desc":
+    "Schedule water, fertilizer and health check reminders based on real desk conditions.",
   "home.trust.feature.4.title": "Verified Marketplace",
-  "home.trust.feature.4.desc": "Boutique plant catalog with direct contact channels and manually verified customer feedback.",
+  "home.trust.feature.4.desc":
+    "Boutique plant catalog with direct contact channels and manually verified customer feedback.",
   "home.roadmap.badge": "Future Roadmap",
   "home.roadmap.title": "DeskBoost Future Vision",
-  "home.roadmap.description": "Our long-term roadmap for expanding trust layers and digital care systems while maintaining a lightweight, focused MVP.",
-  "home.roadmap.step1.title": "QR Plant Identity",
-  "home.roadmap.step1.desc": "Each desk plant receives a unique physical QR identity tag placed directly on its pot.",
-  "home.roadmap.step2.title": "Claim Ownership",
-  "home.roadmap.step2.desc": "Scan the QR tag to claim digital ownership and activate your plant profile in seconds.",
+  "home.roadmap.description":
+    "Our long-term roadmap for expanding trust layers and digital care systems while maintaining a lightweight, focused MVP.",
+  "home.roadmap.step1.title": "Plant Claim Code",
+  "home.roadmap.step1.desc":
+    "Admin creates a claim code for each physical plant after purchase, then sends that code to the user.",
+  "home.roadmap.step2.title": "Claim Plant Profile",
+  "home.roadmap.step2.desc":
+    "The user enters the claim code to add the plant to My Plants and track its care profile.",
   "home.roadmap.step3.title": "AI Context Memory",
-  "home.roadmap.step3.desc": "AI learns and remembers past diagnostic history to give highly accurate, customized advice.",
+  "home.roadmap.step3.desc":
+    "AI learns and remembers past diagnostic history to give highly accurate, customized advice.",
   "home.roadmap.step4.title": "Weather Integration",
-  "home.roadmap.step4.desc": "Auto-adjust care reminder frequencies based on local weather forecasts and indoor parameters.",
+  "home.roadmap.step4.desc":
+    "Auto-adjust care reminder frequencies based on local weather forecasts and indoor parameters.",
   "home.roadmap.step5.title": "IoT Monitoring",
-  "home.roadmap.step5.desc": "Integrate ultra-compact soil and light sensors to send automatic health alerts directly to your dashboard.",
+  "home.roadmap.step5.desc":
+    "Integrate ultra-compact soil and light sensors to send automatic health alerts directly to your dashboard.",
   "home.stats.badge": "DeskBoost Impact",
   "home.stats.title": "Your office green space, backed by data",
   "home.stats.diagnoses.val": "1,250+",
@@ -1217,17 +1227,6 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "detail.feedback.ratingAria": "{rating} out of 5 stars",
   "detail.feedback.offApp": "Off-app contact",
   "detail.feedback.manualVerified": "Manually verified",
-  "detail.qr.badge": "QR readiness",
-  "detail.qr.title": "Plant QR identity",
-  "detail.qr.description":
-    "The frontend now has a place to show ownership code, claim status, and real QR data when the backend provides them.",
-  "detail.qr.claimed": "Claimed",
-  "detail.qr.notReady": "No real QR yet",
-  "detail.qr.code": "Ownership code",
-  "detail.qr.status": "Ownership status",
-  "detail.qr.identity": "QR identity",
-  "detail.qr.noQr": "No fake QR generated",
-  "detail.qr.unavailable": "No data yet",
   "detail.mobileContact": "Ask for advice",
   "detail.alert.facebook": "Redirecting to Facebook Messenger...",
   "detail.alert.zalo": "Redirecting to Zalo...",
@@ -1236,7 +1235,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
     "Ask DeskBoost AI like a personal plant-care assistant for your desk.",
   "aiChat.description":
     "AI only answers within plant care: water, light, soil, leaves, care habits, and notes for the selected plant.",
-  "aiChat.signal.noClaim": "No QR/Claim required to use AI",
+  "aiChat.signal.noClaim": "No claim code required to use AI",
   "aiChat.signal.notGeneral": "Not a general chatbot",
   "aiChat.historyFallback":
     "Using sample AI history while the backend is not ready.",
@@ -1257,7 +1256,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
     "Choosing a plant only makes answers more specific; AI stays open for plant care and is not locked by claims.",
   "aiChat.noPlantsTitle": "No plants to choose yet",
   "aiChat.noPlantsDescription":
-    "You can add plants later; AI does not require QR/Claim in the MVP.",
+    "You can add plants later; AI does not require a claim code in the MVP.",
   "aiChat.consultingFor": "Consulting for",
   "aiChat.choosePlant": "Choose a plant",
   "aiChat.selectedPlantContext":

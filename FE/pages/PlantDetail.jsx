@@ -225,33 +225,6 @@ const PlantDetail = () => {
           ))}
         </section>
 
-        <section className="mt-8" aria-labelledby="qr-foundation-heading">
-          <Card radius="hero" variant="subtle">
-            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
-              <div>
-                <Badge tone="neutral" icon="qr_code_2" className="mb-4">{t('detail.qr.badge')}</Badge>
-                <h2 id="qr-foundation-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.qr.title')}</h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{t('detail.qr.description')}</p>
-              </div>
-              <Badge tone="neutral" size="md">{plant.isClaimed ? t('detail.qr.claimed') : t('detail.qr.notReady')}</Badge>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.code')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{plant.ownershipCode || t('detail.qr.unavailable')}</p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.status')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{plant.ownershipStatus || t('detail.qr.unavailable')}</p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.identity')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{t('detail.qr.noQr')}</p>
-              </div>
-            </div>
-          </Card>
-        </section>
-
         <section className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <Card radius="hero" variant="subtle" aria-labelledby="workspace-fit-heading">
             <Badge tone="primary" icon="desk" className="mb-4">{t('detail.workspace.badge')}</Badge>

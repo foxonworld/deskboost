@@ -113,7 +113,6 @@ export const normalizeAdminPlantInventory = (plant = {}) => ({
   claimedAt: firstValue(plant.claimedAt, plant.ClaimedAt),
   userId: firstValue(plant.userId, plant.UserId),
   userEmail: firstValue(plant.userEmail, plant.UserEmail),
-  qrClaimUrl: firstValue(plant.qrClaimUrl, plant.QrClaimUrl),
   claimCodeId: firstValue(plant.claimCodeId, plant.ClaimCodeId),
   claimCodeStatus: firstValue(plant.claimCodeStatus, plant.ClaimCodeStatus),
   createdAt: firstValue(plant.createdAt, plant.CreatedAt),

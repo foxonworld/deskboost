@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { LoadingState, StateNotice } from '../components/UiState';
 import { getMe, updateMe } from '../services/userApi';
@@ -208,16 +209,16 @@ const UserProfile = () => {
 
               <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-50 dark:border-slate-800 shadow-sm">
                 <div className="flex items-start gap-4">
-                  <span className="material-symbols-outlined text-3xl text-[#4CAF50]" aria-hidden="true">qr_code_scanner</span>
+                  <span className="material-symbols-outlined text-3xl text-[#4CAF50]" aria-hidden="true">key</span>
                   <div>
                     <p className="text-xs font-black uppercase tracking-widest text-[#4CAF50]">{t('userProfile.claimEntry.badge')}</p>
                     <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-white">{t('userProfile.claimEntry.title')}</h3>
                     <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">{t('userProfile.claimEntry.description')}</p>
                   </div>
                 </div>
-                <button type="button" disabled className="mt-5 w-full rounded-2xl border border-dashed border-slate-200 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-400 dark:border-slate-700">
+                <Link to="/app/add-plant" className="mt-5 inline-flex w-full justify-center rounded-2xl border border-slate-200 px-5 py-3 text-xs font-black uppercase tracking-widest text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300">
                   {t('userProfile.claimEntry.cta')}
-                </button>
+                </Link>
               </div>
             </div>
 

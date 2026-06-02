@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import Navbar from '../components/Navbar';
-import ChatbotWidget from '../components/ChatbotWidget';
 import { useCare } from '../context/CareContext';
 import { getMarketplacePlants } from '../services/plantApi';
 import Button from '../components/Button';
@@ -389,7 +388,7 @@ const Home = () => {
             </div>
             <div className="relative border-l-2 border-primary/20 dark:border-primary/10 ml-4 md:ml-10 pl-6 md:pl-10 space-y-8">
               {[
-                { titleKey: 'home.roadmap.step1.title', descKey: 'home.roadmap.step1.desc', icon: 'qr_code_2', inMvp: true },
+                { titleKey: 'home.roadmap.step1.title', descKey: 'home.roadmap.step1.desc', icon: 'key', inMvp: true },
                 { titleKey: 'home.roadmap.step2.title', descKey: 'home.roadmap.step2.desc', icon: 'assignment_ind', inMvp: false },
                 { titleKey: 'home.roadmap.step3.title', descKey: 'home.roadmap.step3.desc', icon: 'memory', inMvp: false },
                 { titleKey: 'home.roadmap.step4.title', descKey: 'home.roadmap.step4.desc', icon: 'cloudy_snowing', inMvp: false },
@@ -437,7 +436,6 @@ const Home = () => {
         </div>
       </footer>
 
-      <ChatbotWidget />
     </div>
   );
 };

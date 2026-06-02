@@ -15,6 +15,16 @@ const recurrenceRules = {
   monthly: "FREQ=MONTHLY",
 };
 
+const normalizeRepeatRule = (value) => {
+  const rule = String(value || "").toLowerCase();
+  return rule && rule !== "none" ? rule : "none";
+};
+
+const toApiRepeatRule = (value, clearToken = null) => {
+  const rule = normalizeRepeatRule(value);
+  return rule === "none" ? clearToken : rule;
+};
+
 const repeatIntervals = {
   daily: { days: 1 },
   "every-2-days": { days: 2 },
@@ -72,7 +82,7 @@ export const getReminderTypeLabel = (type) =>
 
 export const normalizeReminder = (reminder = {}) => {
   const rawDueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
-  const repeatRule = reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily";
+  const repeatRule = normalizeRepeatRule(reminder.repeatRule || reminder.repeat_rule || reminder.frequency);
   const status = reminder.status || (reminder.completed || reminder.done ? "done" : "pending");
   const completedAt =
     reminder.completedAt ||
@@ -123,12 +133,12 @@ const normalizeList = (data) => {
   return items.map(normalizeReminder);
 };
 
-export const toReminderPayload = (payload = {}) => ({
+export const toReminderPayload = (payload = {}, clearRepeatToken = null) => ({
   plantId: payload.plantId,
   title: payload.title || getReminderTypeLabel(payload.careType || payload.type),
   careType: payload.careType || payload.type || "watering",
   dueAt: buildDueAt(payload),
-  repeatRule: payload.repeatRule || payload.frequency || "daily",
+  repeatRule: toApiRepeatRule(payload.repeatRule || payload.frequency, clearRepeatToken),
   notes: payload.notes || "",
 });
 
@@ -139,7 +149,7 @@ export const createReminder = (payload) =>
   post("/reminders", toReminderPayload(payload)).then(normalizeReminder);
 
 export const updateReminder = (id, payload) =>
-  put(`/reminders/${id}`, toReminderPayload(payload)).then(normalizeReminder);
+  put(`/reminders/${id}`, toReminderPayload(payload, "")).then(normalizeReminder);
 
 export const deleteReminder = (id) => del(`/reminders/${id}`);
 

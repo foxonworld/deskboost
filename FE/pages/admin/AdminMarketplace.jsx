@@ -281,15 +281,6 @@ const AdminMarketplace = () => {
             Contact URL
             <input name="contactUrl" value={form.contactUrl} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="https://zalo.me/..." />
           </label>
-          <div className="md:col-span-2 rounded-2xl border border-dashed border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950">
-            <label className="flex items-start gap-3 text-sm font-black text-slate-700 dark:text-slate-200">
-              <input type="checkbox" disabled className="mt-1 h-4 w-4 rounded border-slate-300 text-[#4CAF50] disabled:opacity-50" />
-              <span>
-                <span className="block">{isPlantCategory ? 'Generate ownership code after sale' : 'Ownership code not applicable for this category'}</span>
-                <span className="mt-1 block text-xs font-bold text-slate-400">{isPlantCategory ? 'Create physical inventory and claim code from the Plant Inventory page.' : 'Inventory and claim codes are only for plant items.'}</span>
-              </span>
-            </label>
-          </div>
           <div className="md:col-span-2 flex flex-wrap items-center gap-3">
             <button type="submit" disabled={saving || uploading} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
               {saving ? 'Saving...' : editingId ? 'Save changes' : 'Create listing'}
