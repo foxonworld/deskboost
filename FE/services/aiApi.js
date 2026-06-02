@@ -63,9 +63,46 @@ const toDiagnoseFormData = ({ imageFile, plantId, question } = {}) => {
   return formData;
 };
 
+const formatConfidence = (confidence) => {
+  if (typeof confidence !== "number") return null;
+  return `${Math.round(confidence * 100)}%`;
+};
+
+const normalizeDiagnosisResult = (result) => {
+  if (!result || result.source === "mock-fallback") return result;
+
+  const confidenceText = formatConfidence(result.confidence);
+  const summaryParts = [];
+  if (result.message) summaryParts.push(result.message);
+  if (result.disease) summaryParts.push(`Detected: ${result.disease}`);
+  if (confidenceText) summaryParts.push(`Confidence: ${confidenceText}`);
+  if (result.severity) summaryParts.push(`Severity: ${result.severity}`);
+
+  const recommendations = [
+    result.cause ? `Cause: ${result.cause}` : null,
+    result.treatment ? `Treatment: ${result.treatment}` : null,
+    result.prevention ? `Prevention: ${result.prevention}` : null,
+  ].filter(Boolean);
+
+  if (!recommendations.length && Array.isArray(result.suggestions)) {
+    result.suggestions.slice(0, 3).forEach((item) => {
+      const itemConfidence = formatConfidence(item.probability);
+      recommendations.push(
+        itemConfidence ? `${item.name} (${itemConfidence})` : item.name,
+      );
+    });
+  }
+
+  return {
+    ...result,
+    summary: summaryParts.join(" · "),
+    recommendations,
+  };
+};
+
 export const diagnosePlant = (payload = {}) =>
   requestOrExplicitMock(
-    () => post("/ai/diagnose", toDiagnoseFormData(payload)),
+    async () => normalizeDiagnosisResult(await post("/ai/diagnose", toDiagnoseFormData(payload))),
     () => ({
       diagnosisId: `diag_mock_${Date.now()}`,
       plantId: payload?.plantId,

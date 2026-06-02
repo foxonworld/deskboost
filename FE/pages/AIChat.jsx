@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import UserLayout from '../components/UserLayout';
-import { getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
+import { getMyAiDialog, getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
 import { getMyPlants } from '../services/plantApi';
 import { EmptyState, Spinner, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
@@ -94,6 +94,7 @@ const AIChat = () => {
   const [isSending, setIsSending] = useState(false);
   const [isPlantsLoading, setIsPlantsLoading] = useState(true);
   const [isHistoryLoading, setIsHistoryLoading] = useState(true);
+  const [isDialogLoading, setIsDialogLoading] = useState(false);
   const [error, setError] = useState('');
   const [fallbackNote, setFallbackNote] = useState('');
   const rootRef = useRef(null);
@@ -199,6 +200,25 @@ const AIChat = () => {
   const hasPlants = plants.length > 0;
   const canSend = Boolean(input.trim() && selectedPlant && !isSending);
 
+  const handleOpenDialog = async (dialogId) => {
+    setIsDialogLoading(true);
+    setError('');
+    try {
+      const dialog = await getMyAiDialog(dialogId);
+      const nextMessages = (dialog?.messages || []).map((message) => ({
+        id: message.id,
+        from: message.role === 'user' ? 'user' : 'assistant',
+        text: message.content,
+      }));
+      setMessages(nextMessages.length ? nextMessages : starterMessages);
+      if (dialog?.plantId) setSelectedPlantId(dialog.plantId);
+    } catch (err) {
+      setError(err?.message || t('aiChat.historyError'));
+    } finally {
+      setIsDialogLoading(false);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const text = input.trim();
@@ -211,10 +231,12 @@ const AIChat = () => {
     setError('');
 
     try {
-      const history = messages.map((message) => ({
-        role: message.from === 'user' ? 'user' : 'assistant',
-        content: message.text,
-      }));
+      const history = messages
+        .filter((message) => message.id !== 'starter-1')
+        .map((message) => ({
+          role: message.from === 'user' ? 'user' : 'assistant',
+          content: message.text,
+        }));
       const result = await sendPlantContextChatMessage({
         plantId: selectedPlant.id,
         message: text,
@@ -321,10 +343,16 @@ const AIChat = () => {
                   <p className="text-xs font-bold text-text-secondary dark:text-slate-400">No saved AI dialogs yet.</p>
                 ) : (
                   dialogHistory.map((dialog) => (
-                    <div key={dialog.id} className="rounded-2xl border border-[#E4EEE6] bg-white/70 px-3 py-2 dark:border-[#2A4532] dark:bg-white/5">
+                    <button
+                      key={dialog.id}
+                      type="button"
+                      onClick={() => handleOpenDialog(dialog.id)}
+                      disabled={isDialogLoading}
+                      className="w-full rounded-2xl border border-[#E4EEE6] bg-white/70 px-3 py-2 text-left transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#2A4532] dark:bg-white/5"
+                    >
                       <p className="truncate text-xs font-extrabold text-text-main dark:text-white">{dialog.plantName || dialog.title || 'AI dialog'}</p>
                       <p className="mt-1 truncate text-[11px] font-semibold text-text-secondary dark:text-slate-400">{dialog.lastMessage || 'No preview'}</p>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>
@@ -355,6 +383,12 @@ const AIChat = () => {
                 <div className="inline-flex items-center gap-3 rounded-3xl border border-[#E4EEE6] bg-white px-5 py-4 text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-300">
                   <Spinner />
                   {t('aiChat.historyLoading')}
+                </div>
+              )}
+              {isDialogLoading && (
+                <div className="inline-flex items-center gap-3 rounded-3xl border border-[#E4EEE6] bg-white px-5 py-4 text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-300">
+                  <Spinner />
+                  Loading dialog...
                 </div>
               )}
               {!isHistoryLoading && messages.length === 0 && (

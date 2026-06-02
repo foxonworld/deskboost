@@ -8,6 +8,7 @@ const adminItems = [
   { label: 'Plants', hint: 'User plants later', icon: 'potted_plant', path: '/admin/plants' },
   { label: 'Plant Inventory', hint: 'Future codes', icon: 'inventory_2', path: '/admin/plant-inventory' },
   { label: 'Marketplace', hint: 'Contact listings', icon: 'storefront', path: '/admin/marketplace' },
+  { label: 'Feedback', hint: 'Manual reviews', icon: 'rate_review', path: '/admin/feedback' },
   { label: 'AI', hint: 'Chat status later', icon: 'smart_toy', path: '/admin/ai' },
 ];
 
