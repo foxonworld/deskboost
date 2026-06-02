@@ -55,11 +55,29 @@ export const normalizeAdminUserPlant = (plant = {}) => ({
 export const normalizeAdminAiDialog = (dialog = {}) => ({
   ...dialog,
   id: firstValue(dialog.id, dialog.Id),
+  userId: firstValue(dialog.userId, dialog.UserId),
+  userName: firstValue(dialog.userName, dialog.UserName, dialog.fullName, dialog.FullName),
+  userEmail: firstValue(dialog.userEmail, dialog.UserEmail, dialog.email, dialog.Email),
   plantId: firstValue(dialog.plantId, dialog.PlantId),
   plantName: firstValue(dialog.plantName, dialog.PlantName),
   title: firstValue(dialog.title, dialog.Title),
   lastMessage: firstValue(dialog.lastMessage, dialog.LastMessage),
   createdAt: firstValue(dialog.createdAt, dialog.CreatedAt),
+  updatedAt: firstValue(dialog.updatedAt, dialog.UpdatedAt),
+});
+
+export const normalizePlantSpecies = (species = {}) => ({
+  ...species,
+  id: firstValue(species.id, species.Id),
+  name: firstValue(species.name, species.Name),
+  vietnameseName: firstValue(species.vietnameseName, species.VietnameseName),
+  description: firstValue(species.description, species.Description),
+  careInstructions: firstValue(species.careInstructions, species.CareInstructions),
+  commonDiseases: firstValue(species.commonDiseases, species.CommonDiseases),
+  imageUrl: firstValue(species.imageUrl, species.ImageUrl),
+  isActive: Boolean(firstValue(species.isActive, species.IsActive, true)),
+  createdAt: firstValue(species.createdAt, species.CreatedAt),
+  updatedAt: firstValue(species.updatedAt, species.UpdatedAt),
 });
 
 export const normalizeAdminMarketplacePlant = (plant = {}) => ({
@@ -195,6 +213,29 @@ export const deleteAdminPlantInventory = (id) =>
 
 export const regenerateAdminPlantInventoryCode = (id) =>
   post(`/admin/plant-inventory/${id}/regenerate-code`).then(normalizeAdminPlantInventory);
+
+export const getPlantSpecies = (params) =>
+  get("/plant-species", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizePlantSpecies),
+    source: "backend",
+  }));
+
+export const getAdminPlantSpecies = (params) =>
+  get("/admin/plant-species", params).then((data) => ({
+    ...data,
+    items: normalizeItems(data).map(normalizePlantSpecies),
+    source: "backend",
+  }));
+
+export const createAdminPlantSpecies = (payload) =>
+  post("/admin/plant-species", payload).then(normalizePlantSpecies);
+
+export const updateAdminPlantSpecies = (id, payload) =>
+  put(`/admin/plant-species/${id}`, payload).then(normalizePlantSpecies);
+
+export const deleteAdminPlantSpecies = (id) =>
+  del(`/admin/plant-species/${id}`);
 
 export const createAdminFeedback = (payload) =>
   post("/admin/feedback", payload).then(normalizeAdminFeedback);

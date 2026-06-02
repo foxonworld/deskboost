@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getReminderTypeLabel, getReminders, markReminderDone } from '../services/reminderApi';
+import { useAuth } from '../hooks/useAuth';
 
 const CareContext = createContext(null);
 
@@ -39,12 +40,21 @@ const reminderToTask = (reminder) => ({
 });
 
 export const CareProvider = ({ children }) => {
+  const { isAuthenticated, isBootstrapping } = useAuth();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [notificationOpen, setNotificationOpen] = useState(false);
 
   const refreshTasks = useCallback(async () => {
+    if (isBootstrapping) return;
+    if (!isAuthenticated) {
+      setTasks([]);
+      setError('');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -56,7 +66,7 @@ export const CareProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, isBootstrapping]);
 
   useEffect(() => {
     refreshTasks();

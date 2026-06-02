@@ -24,9 +24,35 @@ const typeConfig = {
 
 const frequencyLabels = {
   daily: 'reminders.frequency.daily',
+  'every-2-days': 'reminders.frequency.every2Days',
+  'every-3-days': 'reminders.frequency.every3Days',
   weekly: 'reminders.frequency.weekly',
   biweekly: 'reminders.frequency.biweekly',
   monthly: 'reminders.frequency.monthly',
+};
+
+const frequencyOptions = [
+  'daily',
+  'every-2-days',
+  'every-3-days',
+  'weekly',
+  'biweekly',
+  'monthly',
+];
+
+const getPlantWateringDays = (plant) => {
+  const value = Number(plant?.wateringCycleDays ?? plant?.WateringCycleDays);
+  return Number.isFinite(value) && value > 0 ? value : null;
+};
+
+const getSuggestedFrequency = (plant) => {
+  const days = getPlantWateringDays(plant);
+  if (days === 2) return 'every-2-days';
+  if (days === 3) return 'every-3-days';
+  if (days === 7) return 'weekly';
+  if (days === 14) return 'biweekly';
+  if (days && days >= 28 && days <= 31) return 'monthly';
+  return 'daily';
 };
 
 const todayKey = new Date().toISOString().slice(0, 10);
@@ -55,11 +81,11 @@ const openCalendarUrls = (urls = []) => {
   });
 };
 
-const getDefaultForm = (plantId = '') => ({
+const getDefaultForm = (plantId = '', frequency = 'daily') => ({
   plantId,
   title: '',
   type: 'watering',
-  frequency: 'daily',
+  frequency,
   dueDate: new Date().toISOString().slice(0, 10),
   time: '08:00',
   notes: '',
@@ -86,7 +112,11 @@ const RemindersSettings = () => {
       const nextPlants = plantData.items || [];
       setReminders(nextReminders);
       setPlants(nextPlants);
-      setForm((prev) => (prev.plantId ? prev : getDefaultForm(nextPlants[0]?.id || '')));
+      setForm((prev) => {
+        if (prev.plantId) return prev;
+        const firstPlant = nextPlants[0];
+        return getDefaultForm(firstPlant?.id || '', getSuggestedFrequency(firstPlant));
+      });
     } catch (err) {
       setError(err?.message || t('reminders.error.load'));
     } finally {
@@ -107,6 +137,8 @@ const RemindersSettings = () => {
   const filteredReminders = reminders.filter((item) => activeFilter === 'all' || getBucket(item) === activeFilter);
   const calendarExport = useMemo(() => generateCombinedCalendarExport(reminders), [reminders]);
   const exportableCount = calendarExport.reminders.length;
+  const selectedPlant = plants.find((plant) => plant.id === form.plantId);
+  const selectedPlantWateringDays = getPlantWateringDays(selectedPlant);
 
   const handleAddAllToCalendar = () => {
     if (!exportableCount) return;
@@ -137,7 +169,7 @@ const RemindersSettings = () => {
         setReminders((prev) => [created, ...prev]);
         setNotice(t('reminders.notice.added'));
       }
-      setForm(getDefaultForm(plants[0]?.id || ''));
+      setForm(getDefaultForm(plants[0]?.id || '', getSuggestedFrequency(plants[0])));
       setTimeout(() => setNotice(''), 2500);
     } catch (err) {
       setError(err?.message || t('reminders.error.save'));
@@ -185,7 +217,16 @@ const RemindersSettings = () => {
 
   const handleCancelEdit = () => {
     setEditingId('');
-    setForm(getDefaultForm(plants[0]?.id || ''));
+    setForm(getDefaultForm(plants[0]?.id || '', getSuggestedFrequency(plants[0])));
+  };
+
+  const handlePlantChange = (plantId) => {
+    const plant = plants.find((item) => item.id === plantId);
+    setForm((prev) => ({
+      ...prev,
+      plantId,
+      frequency: prev.type === 'watering' && !editingId ? getSuggestedFrequency(plant) : prev.frequency,
+    }));
   };
 
   const handleAddToCalendar = (reminder) =>
@@ -263,12 +304,17 @@ const RemindersSettings = () => {
                 {editingId ? t('reminders.editTitle') : t('reminders.settingsTitle')}
               </h2>
               <p className="text-xs text-slate-500 mt-1">{t('reminders.settingsDesc')}</p>
+              {selectedPlantWateringDays && form.type === 'watering' && !editingId && (
+                <p className="text-xs font-semibold text-[#2E7D32] mt-1">
+                  {t('reminders.plantSuggestion', { days: selectedPlantWateringDays })}
+                </p>
+              )}
             </div>
             <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">{t('reminders.showAll')}</button>
           </div>
 
           <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-6 gap-3 border-b border-slate-50 dark:border-slate-800">
-            <select value={form.plantId} onChange={(event) => setForm((prev) => ({ ...prev, plantId: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
+            <select value={form.plantId} onChange={(event) => handlePlantChange(event.target.value)} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
               {plants.length === 0 && <option value="">{t('reminders.noPlants')}</option>}
               {plants.map((plant) => (
                 <option key={plant.id} value={plant.id}>{plant.nickname || plant.name}</option>
@@ -280,13 +326,21 @@ const RemindersSettings = () => {
               <option value="check_leaves">{t('reminders.type.check_leaves')}</option>
             </select>
             <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
-              <option value="daily">{t('reminders.frequency.daily')}</option>
-              <option value="weekly">{t('reminders.frequency.weekly')}</option>
-              <option value="biweekly">{t('reminders.frequency.biweekly')}</option>
-              <option value="monthly">{t('reminders.frequency.monthly')}</option>
+              {frequencyOptions.map((frequency) => (
+                <option key={frequency} value={frequency}>{t(frequencyLabels[frequency])}</option>
+              ))}
             </select>
-            <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
-            <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
+            <label className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.startDateLabel')}</span>
+              <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="mt-1 w-full bg-transparent text-sm font-bold dark:text-white outline-none" />
+            </label>
+            <label className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.timeLabel')}</span>
+              <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="mt-1 w-full bg-transparent text-sm font-bold dark:text-white outline-none" />
+            </label>
+            <p className="md:col-span-6 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {t('reminders.repeatHint')}
+            </p>
             <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.titlePlaceholder')} />
             <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className="md:col-span-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.notesPlaceholder')} />
             <div className="flex gap-2">

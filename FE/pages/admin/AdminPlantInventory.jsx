@@ -5,6 +5,7 @@ import {
   deleteAdminPlantInventory,
   getAdminMarketplacePlants,
   getAdminPlantInventory,
+  getPlantSpecies,
   regenerateAdminPlantInventoryCode,
 } from '../../services/adminApi';
 
@@ -22,6 +23,7 @@ const padSequence = (value) => String(value).padStart(3, '0');
 const AdminPlantInventory = () => {
   const [items, setItems] = useState([]);
   const [inventory, setInventory] = useState([]);
+  const [speciesOptions, setSpeciesOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState('');
@@ -31,6 +33,7 @@ const AdminPlantInventory = () => {
   const [draft, setDraft] = useState({
     name: '',
     imageUrl: '',
+    plantSpeciesId: '',
     speciesName: '',
     location: defaultLocation,
     wateringCycleDays: '3',
@@ -48,15 +51,18 @@ const AdminPlantInventory = () => {
     setLoading(true);
     setError('');
     try {
-      const [itemData, inventoryData] = await Promise.all([
+      const [itemData, inventoryData, speciesData] = await Promise.all([
         getAdminMarketplacePlants({ limit: 100, category: 'plant' }),
         getAdminPlantInventory(),
+        getPlantSpecies().catch(() => ({ items: [] })),
       ]);
       setItems(itemData?.items || []);
       setInventory(inventoryData?.items || []);
+      setSpeciesOptions(speciesData?.items || []);
     } catch (err) {
       setItems([]);
       setInventory([]);
+      setSpeciesOptions([]);
       setError(err?.message || 'Could not load plant inventory.');
     } finally {
       setLoading(false);
@@ -72,13 +78,28 @@ const AdminPlantInventory = () => {
     return `${item.name} #${padSequence(count)}`;
   };
 
+  const getSpeciesLabel = (species) =>
+    species?.vietnameseName || species?.name || '';
+
+  const findDefaultSpecies = (item) => {
+    const itemName = String(item?.name || '').trim().toLowerCase();
+    if (!itemName) return null;
+    return speciesOptions.find((species) =>
+      [species.name, species.vietnameseName]
+        .filter(Boolean)
+        .some((name) => String(name).trim().toLowerCase() === itemName),
+    ) || null;
+  };
+
   const openGenerateModal = (item) => {
+    const defaultSpecies = findDefaultSpecies(item);
     setSelectedItem(item);
     setGeneratedPlant(null);
     setDraft({
       name: getNextName(item),
       imageUrl: item.imageUrl || '',
-      speciesName: item.name || '',
+      plantSpeciesId: defaultSpecies?.id || '',
+      speciesName: getSpeciesLabel(defaultSpecies) || item.name || '',
       location: defaultLocation,
       wateringCycleDays: String(parseWateringCycleDays(item.water)),
       notes: '',
@@ -93,6 +114,7 @@ const AdminPlantInventory = () => {
     setDraft({
       name: '',
       imageUrl: '',
+      plantSpeciesId: '',
       speciesName: '',
       location: defaultLocation,
       wateringCycleDays: '3',
@@ -104,7 +126,17 @@ const AdminPlantInventory = () => {
     const { name, value } = event.target;
     setError('');
     setNotice('');
-    setDraft((current) => ({ ...current, [name]: value }));
+    setDraft((current) => {
+      if (name === 'plantSpeciesId') {
+        const species = speciesOptions.find((item) => item.id === value);
+        return {
+          ...current,
+          plantSpeciesId: value,
+          speciesName: species ? getSpeciesLabel(species) : current.speciesName,
+        };
+      }
+      return { ...current, [name]: value };
+    });
   };
 
   const handleGenerateCode = async (event) => {
@@ -121,10 +153,14 @@ const AdminPlantInventory = () => {
     try {
       const result = await createAdminPlantInventory({
         marketplaceItemId: selectedItem.id,
+        plantSpeciesId: draft.plantSpeciesId || null,
         name: draft.name.trim(),
         speciesName: draft.speciesName.trim() || selectedItem.name,
         imageUrl: draft.imageUrl.trim() || selectedItem.imageUrl || null,
         location: draft.location.trim() || defaultLocation,
+        careLevel: selectedItem.careLevel || null,
+        light: selectedItem.light || null,
+        water: selectedItem.water || null,
         wateringCycleDays: Number(draft.wateringCycleDays || 3),
         notes: draft.notes.trim() || null,
       });
@@ -343,6 +379,19 @@ const AdminPlantInventory = () => {
                   Location
                   <input name="location" value={draft.location} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
                 </label>
+                {speciesOptions.length > 0 && (
+                  <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                    Plant species
+                    <select name="plantSpeciesId" value={draft.plantSpeciesId} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+                      <option value="">No species selected</option>
+                      {speciesOptions.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {getSpeciesLabel(species)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
                   Species name
                   <input name="speciesName" value={draft.speciesName} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />

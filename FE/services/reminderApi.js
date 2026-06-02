@@ -6,6 +6,15 @@ const typeLabels = {
   check_leaves: "check leaves",
 };
 
+const recurrenceRules = {
+  daily: "FREQ=DAILY",
+  "every-2-days": "FREQ=DAILY;INTERVAL=2",
+  "every-3-days": "FREQ=DAILY;INTERVAL=3",
+  weekly: "FREQ=WEEKLY",
+  biweekly: "FREQ=WEEKLY;INTERVAL=2",
+  monthly: "FREQ=MONTHLY",
+};
+
 const isDoneStatus = (status) =>
   ["done", "completed", "complete"].includes(String(status || "").toLowerCase());
 
@@ -63,6 +72,8 @@ export const normalizeReminder = (reminder = {}) => {
     completedAt:
       reminder.completedAt ||
       reminder.completed_at ||
+      reminder.lastDoneAt ||
+      reminder.last_done_at ||
       reminder.doneAt ||
       (completed ? reminder.updatedAt || reminder.updated_at || null : null),
   };
@@ -115,6 +126,7 @@ const getCalendarEvent = (reminder) => {
   const start = parseReminderDate(normalized);
   const end = new Date(start.getTime() + 30 * 60 * 1000);
   const label = getReminderTypeLabel(normalized.type);
+  const recurrenceRule = recurrenceRules[normalized.frequency] || "";
 
   return {
     id: normalized.id,
@@ -127,6 +139,7 @@ const getCalendarEvent = (reminder) => {
       .join("\n"),
     start,
     end,
+    recurrenceRule,
   };
 };
 
@@ -157,6 +170,7 @@ const buildCalendar = (events) => {
       `DTEND:${toCalendarDate(event.end)}`,
       `SUMMARY:${escapeText(event.title)}`,
       `DESCRIPTION:${escapeText(event.description)}`,
+      ...(event.recurrenceRule ? [`RRULE:${event.recurrenceRule}`] : []),
       "END:VEVENT",
     ]),
     "END:VCALENDAR",
@@ -171,6 +185,7 @@ export const generateGoogleCalendarUrl = (reminder) => {
     details: event.description,
     dates: `${toCalendarDate(event.start)}/${toCalendarDate(event.end)}`,
   });
+  if (event.recurrenceRule) params.set("recur", `RRULE:${event.recurrenceRule}`);
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 };
 

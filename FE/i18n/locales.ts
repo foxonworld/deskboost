@@ -264,7 +264,7 @@ const vi = {
   "reminders.settingsTitle": "Cài đặt nhắc nhở",
   "reminders.editTitle": "Sửa nhắc nhở",
   "reminders.settingsDesc":
-    "Cấu hình cây, loại, tần suất, ngày, giờ và ghi chú.",
+    "Ngày là ngày bắt đầu hoặc lần nhắc kế tiếp; nhắc có lặp sẽ tự chuyển sang lần sau khi đánh dấu xong.",
   "reminders.showAll": "Hiện tất cả",
   "reminders.plantPlaceholder": "Cây",
   "reminders.noPlants": "Chưa có cây trong My Plants",
@@ -274,9 +274,17 @@ const vi = {
   "reminders.type.fertilizing": "bón phân",
   "reminders.type.check_leaves": "kiểm tra lá",
   "reminders.frequency.daily": "Hằng ngày",
+  "reminders.frequency.every2Days": "Mỗi 2 ngày",
+  "reminders.frequency.every3Days": "Mỗi 3 ngày",
   "reminders.frequency.weekly": "Hằng tuần",
   "reminders.frequency.biweekly": "Mỗi 2 tuần",
   "reminders.frequency.monthly": "Hằng tháng",
+  "reminders.startDateLabel": "Ngày bắt đầu",
+  "reminders.timeLabel": "Giờ nhắc",
+  "reminders.repeatHint":
+    "Ví dụ: chọn Hằng ngày + hôm nay 08:00 thì sau khi đánh dấu xong, lần nhắc tiếp theo sẽ là ngày mai lúc 08:00.",
+  "reminders.plantSuggestion":
+    "Gợi ý theo cây này: tưới mỗi {days} ngày một lần.",
   "reminders.loading": "Đang tải nhắc nhở...",
   "reminders.emptyTitle": "Chưa có nhắc nhở",
   "reminders.emptyDescription":
@@ -935,7 +943,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "reminders.settingsTitle": "Reminder settings",
   "reminders.editTitle": "Edit reminder",
   "reminders.settingsDesc":
-    "Configure plant, type, frequency, date, time, and notes.",
+    "The date is the start date or next reminder date; repeating reminders move to the next occurrence when marked done.",
   "reminders.showAll": "Show all",
   "reminders.plantPlaceholder": "Plant",
   "reminders.noPlants": "No plants in My Plants yet",
@@ -945,9 +953,17 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "reminders.type.fertilizing": "fertilizing",
   "reminders.type.check_leaves": "check leaves",
   "reminders.frequency.daily": "Daily",
+  "reminders.frequency.every2Days": "Every 2 days",
+  "reminders.frequency.every3Days": "Every 3 days",
   "reminders.frequency.weekly": "Weekly",
   "reminders.frequency.biweekly": "Every 2 weeks",
   "reminders.frequency.monthly": "Monthly",
+  "reminders.startDateLabel": "Start date",
+  "reminders.timeLabel": "Reminder time",
+  "reminders.repeatHint":
+    "Example: Daily + today at 08:00 moves to tomorrow at 08:00 after you mark it done.",
+  "reminders.plantSuggestion":
+    "Suggested from this plant: water every {days} day(s).",
   "reminders.loading": "Loading reminders...",
   "reminders.emptyTitle": "No reminders yet",
   "reminders.emptyDescription":

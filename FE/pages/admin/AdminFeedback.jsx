@@ -27,6 +27,13 @@ const parseUrls = (value) =>
     .map((url) => url.trim())
     .filter(Boolean);
 
+const formatDate = (value) => {
+  if (!value) return 'Not set';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+};
+
 const AdminFeedback = () => {
   const [marketplaceItems, setMarketplaceItems] = useState([]);
   const [feedbackItems, setFeedbackItems] = useState([]);
@@ -171,6 +178,9 @@ const AdminFeedback = () => {
     }
   };
 
+  const getMarketplaceItem = (feedback) =>
+    marketplaceItems.find((item) => item.id === feedback.marketplaceItemId);
+
   return (
     <AdminLayout>
       <section className="rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
@@ -244,37 +254,106 @@ const AdminFeedback = () => {
       </section>
 
       <section className="mt-6 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-        <h2 className="text-xl font-black text-slate-900 dark:text-white">Feedback list</h2>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white">Feedback list</h2>
+            <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
+              Review where each feedback is published, what evidence is attached, and whether it is verified.
+            </p>
+          </div>
+          <span className="w-fit rounded-full bg-[#4CAF50]/10 px-3 py-1 text-xs font-black text-[#4CAF50]">
+            {feedbackItems.length} records
+          </span>
+        </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {feedbackLoading ? (
             <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">Loading admin feedback...</p>
           ) : feedbackItems.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">No feedback created yet.</p>
           ) : (
-            feedbackItems.map((feedback) => (
-              <article key={feedback.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-black text-slate-900 dark:text-white">{feedback.customerAlias || 'Customer'}</p>
-                    <p className="mt-1 text-xs font-bold text-slate-400">{feedback.purchaseChannel || 'manual'} - {feedback.rating || 0}/5</p>
+            feedbackItems.map((feedback) => {
+              const item = getMarketplaceItem(feedback);
+              return (
+                <article key={feedback.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-black text-slate-900 dark:text-white">{feedback.customerAlias || 'Customer'}</p>
+                      <p className="mt-1 text-xs font-bold text-yellow-500">{'★'.repeat(feedback.rating || 0)}{'☆'.repeat(Math.max(0, 5 - (feedback.rating || 0)))}</p>
+                      <p className="mt-1 text-xs font-bold text-slate-400">{feedback.purchaseChannel || 'manual'} channel</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${feedback.isVerified ? 'bg-[#4CAF50]/10 text-[#4CAF50]' : 'bg-amber-100 text-amber-700'}`}>
+                      {feedback.isVerified ? 'Verified' : 'Draft'}
+                    </span>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${feedback.isVerified ? 'bg-[#4CAF50]/10 text-[#4CAF50]' : 'bg-amber-100 text-amber-700'}`}>
-                    {feedback.isVerified ? 'Verified' : 'Draft'}
-                  </span>
-                </div>
-                <p className="mt-3 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{feedback.comment}</p>
-                {feedback.publicImageUrls?.length > 0 && <p className="mt-2 text-xs font-bold text-slate-400">Public images: {feedback.publicImageUrls.length}</p>}
-                {feedback.evidenceImageUrls?.length > 0 && <p className="mt-1 text-xs font-bold text-slate-400">Evidence images: {feedback.evidenceImageUrls.length}</p>}
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => handleVerifyFeedback(feedback)} disabled={actionId === feedback.id} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-300">
-                    {feedback.isVerified ? 'Unverify' : 'Verify'}
-                  </button>
-                  <button type="button" onClick={() => handleDeleteFeedback(feedback)} disabled={actionId === feedback.id} className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-950/50 dark:text-red-300">
-                    Delete
-                  </button>
-                </div>
-              </article>
-            ))
+
+                  <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/40">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">Marketplace item</p>
+                    <div className="mt-2 flex gap-3">
+                      {item?.imageUrl ? <img src={item.imageUrl} alt={item.name} className="h-14 w-14 rounded-xl object-cover" /> : null}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-slate-900 dark:text-white">{item?.name || 'Unknown item'}</p>
+                        <p className="mt-1 text-xs font-bold text-slate-400">{item?.category || 'unknown'} · {item?.priceText || 'No price'}</p>
+                        {feedback.marketplaceItemId && <p className="mt-1 truncate text-[11px] font-bold text-slate-400">ID: {feedback.marketplaceItemId}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="mt-4 rounded-2xl bg-white text-sm font-semibold leading-6 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                    {feedback.comment}
+                  </p>
+
+                  <div className="mt-4 grid gap-3 text-xs font-bold text-slate-500 sm:grid-cols-2 dark:text-slate-400">
+                    <p className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-950/40">Created: {formatDate(feedback.createdAt)}</p>
+                    <p className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-950/40">Verified: {formatDate(feedback.verifiedAt)}</p>
+                    <p className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-950/40">Public images: {feedback.publicImageUrls?.length || 0}</p>
+                    <p className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-950/40">Evidence images: {feedback.evidenceImageUrls?.length || 0}</p>
+                  </div>
+
+                  {feedback.publicImageUrls?.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-xs font-black text-slate-500 dark:text-slate-400">Public images</p>
+                      <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                        {feedback.publicImageUrls.map((url) => (
+                          <a key={url} href={url} target="_blank" rel="noreferrer" className="block shrink-0">
+                            <img src={url} alt="Public feedback evidence" className="h-20 w-20 rounded-xl object-cover" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {(feedback.evidenceImageUrls?.length > 0 || feedback.evidenceNote) && (
+                    <details className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-950/40">
+                      <summary className="cursor-pointer text-xs font-black text-slate-600 dark:text-slate-300">Admin evidence</summary>
+                      {feedback.evidenceNote && <p className="mt-3 text-sm font-semibold leading-6 text-slate-600 dark:text-slate-300">{feedback.evidenceNote}</p>}
+                      {feedback.evidenceImageUrls?.length > 0 && (
+                        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+                          {feedback.evidenceImageUrls.map((url) => (
+                            <a key={url} href={url} target="_blank" rel="noreferrer" className="block shrink-0">
+                              <img src={url} alt="Private feedback evidence" className="h-20 w-20 rounded-xl object-cover" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
+                    </details>
+                  )}
+
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button type="button" onClick={() => handleVerifyFeedback(feedback)} disabled={actionId === feedback.id} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-300">
+                      {feedback.isVerified ? 'Unverify' : 'Verify'}
+                    </button>
+                    {feedback.marketplaceItemId && (
+                      <a href={`#/plants/${feedback.marketplaceItemId}`} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300">
+                        View public item
+                      </a>
+                    )}
+                    <button type="button" onClick={() => handleDeleteFeedback(feedback)} disabled={actionId === feedback.id} className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-950/50 dark:text-red-300">
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              );
+            })
           )}
         </div>
       </section>
