@@ -17,14 +17,15 @@ const MyPlants = () => {
 
   const tabs = [
     { value: 'All', labelKey: 'myPlants.tab.all' },
-    { value: 'Thriving', labelKey: 'myPlants.tab.thriving' },
-    { value: 'Needs Water', labelKey: 'myPlants.tab.needsWater' },
-    { value: 'Recovering', labelKey: 'myPlants.tab.recovering' },
+    { value: 'healthy', labelKey: 'myPlants.tab.healthy' },
+    { value: 'needs-water', labelKey: 'myPlants.tab.needsWater' },
+    { value: 'issue', labelKey: 'myPlants.tab.issue' },
   ];
-  const getStatusLabel = (status = 'thriving') => {
-    const key = `myPlants.status.${status.replace(/-([a-z])/g, (_, c) => c.toUpperCase())}`;
+  const getStatusLabel = (status = 'healthy') => {
+    const value = String(status || 'healthy');
+    const key = `myPlants.status.${value.replace(/-([a-z])/g, (_, c) => c.toUpperCase())}`;
     const label = t(key);
-    return label === key ? status.replace('-', ' ') : label;
+    return label === key ? value.replace('-', ' ') : label;
   };
 
   useEffect(() => {
@@ -50,7 +51,7 @@ const MyPlants = () => {
   }, [t]);
 
   const filteredPlants = useMemo(() => plants.filter(plant =>
-    (activeTab === 'All' || plant.status === activeTab.toLowerCase().replace(' ', '-')) &&
+    (activeTab === 'All' || plant.status === activeTab) &&
     (`${plant.nickname || ''} ${plant.species || ''}`.toLowerCase().includes(searchTerm.toLowerCase()))
   ), [plants, activeTab, searchTerm]);
 

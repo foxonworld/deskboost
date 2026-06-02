@@ -10,6 +10,7 @@ import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
 import { formatVND } from '../utils/currency';
+import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
 
 const PlantDetail = () => {
@@ -52,10 +53,13 @@ const PlantDetail = () => {
   const category = String(plant?.category || '').toLowerCase();
   const isPlant = !['pot', 'soil', 'fertilizer', 'accessory'].includes(category);
   const feedbackMarketplaceItemId = plant?.marketplaceItemId || plant?.id;
+  const lightDisplay = getCareScaleDisplay('light', plant?.light, t);
+  const waterDisplay = getCareScaleDisplay('water', plant?.water, t);
+  const careDisplay = getCareScaleDisplay('care', plant?.difficulty, t);
   const careHighlights = [
-    { icon: 'wb_sunny', label: t('detail.care.light'), value: plant?.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
-    { icon: 'water_drop', label: t('detail.care.water'), value: plant?.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
-    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: plant?.difficulty || t('detail.care.difficultyFallback'), tone: 'text-primary' },
+    { icon: 'wb_sunny', label: t('detail.care.light'), value: lightDisplay.value || t('detail.care.lightFallback'), hint: lightDisplay.hint, tone: 'text-amber-500' },
+    { icon: 'water_drop', label: t('detail.care.water'), value: waterDisplay.value || t('detail.care.waterFallback'), hint: waterDisplay.hint, tone: 'text-sky-500' },
+    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: careDisplay.value || t('detail.care.difficultyFallback'), hint: careDisplay.hint, tone: 'text-primary' },
   ];
   const trustStats = [
     ['verified', t('detail.trust.feedback'), t('detail.trust.records', { count: feedbackItems.length })],
@@ -177,6 +181,7 @@ const PlantDetail = () => {
                   <span className={`material-symbols-outlined text-2xl ${item.tone}`} aria-hidden="true">{item.icon}</span>
                   <p className="mt-2 text-[11px] font-extrabold text-text-secondary dark:text-slate-400">{item.label}</p>
                   <p className="mt-1 text-xs font-bold leading-5 text-[#111813] dark:text-white">{item.value}</p>
+                  {item.hint && <p className="mt-1 text-[11px] font-semibold leading-4 text-text-secondary dark:text-slate-400">{item.hint}</p>}
                 </Card>
               ))}
             </div>
@@ -232,7 +237,7 @@ const PlantDetail = () => {
             <div className="mt-5 space-y-4">
               {[
                 [t('detail.workspace.position'), isPlant ? t('detail.workspace.positionPlant') : t('detail.workspace.positionAccessory')],
-                [t('detail.workspace.careLevel'), plant.difficulty || t('detail.workspace.careLevelFallback')],
+                [t('detail.workspace.careLevel'), careDisplay.value || t('detail.workspace.careLevelFallback')],
                 [t('detail.workspace.askSeller'), t('detail.workspace.askSellerDesc')],
               ].map(([title, desc]) => (
                 <div key={title} className="rounded-2xl border border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
@@ -252,6 +257,7 @@ const PlantDetail = () => {
                 <div key={item.label} className="rounded-2xl bg-primary/5 p-4 dark:bg-primary/10">
                   <p className="text-xs font-extrabold text-primary dark:text-green-200">{item.label}</p>
                   <p className="mt-1 text-sm font-bold leading-6 text-[#111813] dark:text-white">{item.value}</p>
+                  {item.hint && <p className="mt-1 text-xs font-medium leading-5 text-text-secondary dark:text-slate-300">{item.hint}</p>}
                 </div>
               ))}
             </div>

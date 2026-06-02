@@ -13,6 +13,22 @@ const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || da
 const firstValue = (...values) =>
   values.find((value) => value !== undefined && value !== null) ?? "";
 
+const healthStatusMap = {
+  healthy: "healthy",
+  needswater: "needs-water",
+  "needs-water": "needs-water",
+  needs_water: "needs-water",
+  warning: "needs-water",
+  issue: "issue",
+  critical: "issue",
+};
+
+const normalizeHealthStatus = (...values) => {
+  const raw = firstValue(...values);
+  const key = String(raw || "healthy").trim().toLowerCase();
+  return healthStatusMap[key] || key || "healthy";
+};
+
 const parseBoolean = (value) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "string") return value.toLowerCase() === "true";
@@ -56,8 +72,20 @@ export const normalizeMyPlant = (plant = {}) => ({
   nickname: plant.nickname || plant.Nickname || plant.name || plant.Name,
   name: plant.name || plant.Name || plant.nickname || plant.Nickname,
   species: firstValue(plant.species, plant.Species, plant.speciesName, plant.SpeciesName),
+  location: firstValue(plant.location, plant.Location),
   image: firstValue(plant.image, plant.imageUrl, plant.ImageUrl),
   imageUrl: firstValue(plant.imageUrl, plant.ImageUrl, plant.image),
+  status: normalizeHealthStatus(plant.status, plant.Status, plant.lastCondition, plant.LastCondition),
+  statusSource: firstValue(plant.statusSource, plant.StatusSource, "unknown"),
+  statusUpdatedAt: firstValue(plant.statusUpdatedAt, plant.StatusUpdatedAt),
+  lastWateredAt: firstValue(plant.lastWateredAt, plant.LastWateredAt),
+  lastDiagnosisAt: firstValue(plant.lastDiagnosisAt, plant.LastDiagnosisAt),
+  careLevel: firstValue(plant.careLevel, plant.CareLevel),
+  light: firstValue(plant.light, plant.Light),
+  water: firstValue(plant.water, plant.Water),
+  lastCondition: firstValue(plant.lastCondition, plant.LastCondition),
+  wateringCycleDays: Number(firstValue(plant.wateringCycleDays, plant.WateringCycleDays, 0)),
+  notes: firstValue(plant.notes, plant.Notes),
   ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
   ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
   isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),

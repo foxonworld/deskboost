@@ -9,6 +9,7 @@ import Card from '../components/Card';
 import { Badge, Chip } from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
 import { formatVND } from '../utils/currency';
+import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
@@ -147,6 +148,12 @@ const PlantList = () => {
     return translated === key ? plant[field] : translated;
   };
 
+  const getTagDisplay = (tag, index) => {
+    const metricType = index === 0 ? 'care' : index === 1 ? 'light' : '';
+    const metricDisplay = metricType ? getCareScaleDisplay(metricType, tag, t) : null;
+    return metricDisplay?.value || getDisplayValue(tag);
+  };
+
   const sortedAndFilteredPlants = useMemo(() => plants
     .filter(p => p.status === 'Active' || p.status === 'Out of Stock')
     .filter(plant => {
@@ -272,7 +279,7 @@ const PlantList = () => {
                   </div>
                   <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{getProductDisplay(plant, 'description')}</p>
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {plant.tags?.slice(0, 3).map(tag => <Badge key={tag} tone="neutral">{getDisplayValue(tag)}</Badge>)}
+                    {plant.tags?.slice(0, 3).map((tag, index) => <Badge key={`${tag}-${index}`} tone="neutral">{getTagDisplay(tag, index)}</Badge>)}
                   </div>
                   <div className="mt-auto rounded-2xl border border-primary/15 bg-primary/5 p-3 dark:border-primary/20 dark:bg-primary/10">
                     <p className="text-xs font-bold leading-5 text-primary dark:text-green-200">{t('market.card.contactOnly')}</p>

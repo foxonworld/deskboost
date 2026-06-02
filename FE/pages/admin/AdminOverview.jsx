@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
 import { getAdminSummary } from '../../services/adminApi';
+import { useI18n } from '../../i18n';
 
 const cards = [
-  { key: 'users', label: 'Users', icon: 'group', note: 'Basic account review only.' },
-  { key: 'userPlants', label: 'User plants', icon: 'potted_plant', note: 'Care status review only.' },
-  { key: 'marketplacePlants', label: 'Marketplace', icon: 'storefront', note: 'Contact-only listings.' },
-  { key: 'aiDialogs', label: 'AI dialogs', icon: 'smart_toy', note: 'Plant-context history only.' },
+  { key: 'users', labelKey: 'admin.overview.card.users', icon: 'group', noteKey: 'admin.overview.card.usersNote' },
+  { key: 'userPlants', labelKey: 'admin.overview.card.userPlants', icon: 'potted_plant', noteKey: 'admin.overview.card.userPlantsNote' },
+  { key: 'marketplacePlants', labelKey: 'admin.overview.card.marketplace', icon: 'storefront', noteKey: 'admin.overview.card.marketplaceNote' },
+  { key: 'aiDialogs', labelKey: 'admin.overview.card.aiDialogs', icon: 'smart_toy', noteKey: 'admin.overview.card.aiDialogsNote' },
 ];
 
 const AdminOverview = () => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { t } = useI18n();
 
   useEffect(() => {
     let active = true;
@@ -24,10 +26,10 @@ const AdminOverview = () => {
       try {
         const data = await getAdminSummary();
         const hasSummaryFields = cards.every((card) => Object.prototype.hasOwnProperty.call(data || {}, card.key));
-        if (!hasSummaryFields) throw new Error('Admin summary response was incomplete.');
+        if (!hasSummaryFields) throw new Error(t('admin.overview.error.incomplete'));
         if (active) setSummary(data);
       } catch (err) {
-        if (active) setError(err?.message || 'Could not load admin summary.');
+        if (active) setError(err?.message || t('admin.overview.error.load'));
       } finally {
         if (active) setLoading(false);
       }
@@ -37,20 +39,20 @@ const AdminOverview = () => {
     return () => {
       active = false;
     };
-  }, []);
+  }, [t]);
 
   return (
     <AdminLayout>
       <div className="space-y-5">
         <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Overview</p>
-          <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">Admin MVP status</h1>
+          <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.overview.badge')}</p>
+          <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{t('admin.overview.title')}</h1>
           <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-            Lightweight service-driven admin. No charts, analytics, enterprise dashboard widgets, or ecommerce flows.
+            {t('admin.overview.description')}
           </p>
           {error && (
             <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-              Admin summary unavailable. Backend endpoint required: GET /api/admin/summary.
+              {t('admin.overview.error.backend')}
             </p>
           )}
         </section>
@@ -64,7 +66,7 @@ const AdminOverview = () => {
             ))
           ) : error || !summary ? (
             <article className="rounded-[28px] border border-dashed border-slate-200 bg-white p-6 text-sm font-bold text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 sm:col-span-2 xl:col-span-4">
-              Dashboard metrics are unavailable because the real admin summary API did not return usable data. No mock stats are shown.
+              {t('admin.overview.emptyMetrics')}
             </article>
           ) : (
             cards.map((card) => (
@@ -73,11 +75,11 @@ const AdminOverview = () => {
                   <span className="rounded-2xl bg-[#4CAF50]/10 p-3 text-[#4CAF50]">
                     <span className="material-symbols-outlined">{card.icon}</span>
                   </span>
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-slate-400">Phase 2 prep</span>
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-slate-400">{t('admin.overview.phase')}</span>
                 </div>
-                <h2 className="mt-4 text-sm font-black uppercase tracking-widest text-slate-400">{card.label}</h2>
+                <h2 className="mt-4 text-sm font-black uppercase tracking-widest text-slate-400">{t(card.labelKey)}</h2>
                 <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{summary[card.key]}</p>
-                <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{card.note}</p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-slate-500 dark:text-slate-400">{t(card.noteKey)}</p>
               </article>
             ))
           )}

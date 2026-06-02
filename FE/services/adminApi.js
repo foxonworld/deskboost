@@ -4,6 +4,22 @@ const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || da
 const firstValue = (...values) =>
   values.find((value) => value !== undefined && value !== null) ?? "";
 
+const healthStatusMap = {
+  healthy: "healthy",
+  needswater: "needs-water",
+  "needs-water": "needs-water",
+  needs_water: "needs-water",
+  warning: "needs-water",
+  issue: "issue",
+  critical: "issue",
+};
+
+const normalizeHealthStatus = (...values) => {
+  const raw = firstValue(...values);
+  const key = String(raw || "healthy").trim().toLowerCase();
+  return healthStatusMap[key] || key || "healthy";
+};
+
 export const normalizeAdminSummary = (summary = {}) => ({
   users: Number(firstValue(summary.users, summary.Users, 0)),
   userPlants: Number(firstValue(summary.userPlants, summary.UserPlants, 0)),
@@ -38,11 +54,19 @@ export const normalizeAdminUserPlant = (plant = {}) => ({
   name: firstValue(plant.name, plant.Name),
   nickname: firstValue(plant.nickname, plant.Nickname),
   species: firstValue(plant.species, plant.Species, plant.speciesName, plant.SpeciesName),
+  image: firstValue(plant.image, plant.Image, plant.imageUrl, plant.ImageUrl),
+  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl),
   location: firstValue(plant.location, plant.Location),
-  status: firstValue(plant.status, plant.Status),
+  status: normalizeHealthStatus(plant.status, plant.Status, plant.lastCondition, plant.LastCondition),
+  statusSource: firstValue(plant.statusSource, plant.StatusSource, "unknown"),
+  statusUpdatedAt: firstValue(plant.statusUpdatedAt, plant.StatusUpdatedAt),
+  lastWateredAt: firstValue(plant.lastWateredAt, plant.LastWateredAt),
+  lastDiagnosisAt: firstValue(plant.lastDiagnosisAt, plant.LastDiagnosisAt),
+  lastCondition: firstValue(plant.lastCondition, plant.LastCondition),
   careLevel: firstValue(plant.careLevel, plant.CareLevel),
   light: firstValue(plant.light, plant.Light),
   water: firstValue(plant.water, plant.Water),
+  wateringCycleDays: Number(firstValue(plant.wateringCycleDays, plant.WateringCycleDays, 0)),
   notes: firstValue(plant.notes, plant.Notes),
   ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode),
   ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus),

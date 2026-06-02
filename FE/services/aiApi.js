@@ -6,6 +6,23 @@ const delay = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const now = () => new Date().toISOString();
 
+const defaultQuota = () => ({
+  hasVerifiedPlant: false,
+  chat: {
+    limit: 5,
+    used: 0,
+    remaining: 5,
+    resetAt: null,
+  },
+  diagnosis: {
+    limit: 2,
+    used: 0,
+    remaining: 2,
+    resetAt: null,
+  },
+  source: "local-fallback",
+});
+
 const mockDialogs = [
   {
     id: "dlg_mock_001",
@@ -123,8 +140,17 @@ export const sendPlantContextChatMessage = ({
   message,
   history = [],
   plantContext,
+  diagnosisResultId,
+  diagnosisContext,
 }) => {
-  const payload = { plantId, message, history, plantContext };
+  const payload = {
+    plantId,
+    message,
+    history,
+    plantContext,
+    diagnosisResultId,
+    diagnosisContext,
+  };
   return requestOrExplicitMock(
     () => post("/ai/chat", payload),
     () => makePlantReply(payload),
@@ -154,6 +180,19 @@ export const getAiConfigStatus = () =>
       mode: "mock-fallback",
       lastCheckedAt: now(),
     }),
+  );
+
+export const getAiQuota = () =>
+  requestOrExplicitMock(
+    async () => {
+      try {
+        return await get("/ai/quota");
+      } catch (err) {
+        if (err?.status === 404) return defaultQuota();
+        throw err;
+      }
+    },
+    defaultQuota,
   );
 
 // Backward-compatible aliases during MVP cleanup.

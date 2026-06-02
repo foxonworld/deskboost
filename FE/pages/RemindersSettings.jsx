@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import {
@@ -106,6 +107,11 @@ const getDefaultForm = (plantId = '', frequency = 'daily') => ({
 
 const RemindersSettings = () => {
   const { t } = useI18n();
+  const location = useLocation();
+  const routePlantId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return location.state?.selectedPlantId || params.get('plantId') || '';
+  }, [location.search, location.state]);
   const [reminders, setReminders] = useState([]);
   const [plants, setPlants] = useState([]);
   const [form, setForm] = useState(getDefaultForm());
@@ -127,7 +133,7 @@ const RemindersSettings = () => {
       setPlants(nextPlants);
       setForm((prev) => {
         if (prev.plantId) return prev;
-        const firstPlant = nextPlants[0];
+        const firstPlant = nextPlants.find((plant) => plant.id === routePlantId) || nextPlants[0];
         return getDefaultForm(firstPlant?.id || '', getSuggestedFrequency(firstPlant));
       });
     } catch (err) {
@@ -139,7 +145,7 @@ const RemindersSettings = () => {
 
   useEffect(() => {
     loadReminders();
-  }, [t]);
+  }, [t, routePlantId]);
 
   const grouped = useMemo(() => ({
     today: reminders.filter((item) => getBucket(item) === 'today'),

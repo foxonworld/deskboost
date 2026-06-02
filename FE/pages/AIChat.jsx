@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { getMyAiDialog, getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
+import { getAiQuota, getMyAiDialog, getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
 import { getMyPlants } from '../services/plantApi';
 import { EmptyState, Spinner, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
@@ -12,6 +13,8 @@ import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../util
 import { useI18n } from '../i18n';
 
 gsap.registerPlugin(useGSAP);
+
+const DIAGNOSIS_CONTEXT_STORAGE_KEY = 'deskboost.aiDiagnosisContext';
 
 const promptSuggestionKeys = [
   'aiChat.prompt.water',
@@ -44,6 +47,53 @@ const normalizePlantContext = (plant) => ({
   notes: plant.notes,
 });
 
+const splitInlineMarkdown = (text) =>
+  text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={`${part}-${index}`} className="font-extrabold text-text-main dark:text-white">{part.slice(2, -2)}</strong>;
+    }
+    return <React.Fragment key={`${part}-${index}`}>{part}</React.Fragment>;
+  });
+
+const normalizeAiText = (text = '') => text
+  .replace(/\s+(\d+\.\s+\*\*)/g, '\n$1')
+  .replace(/\s+(\*\s+\*\*)/g, '\n$1')
+  .replace(/\s+(\*\s+)/g, '\n$1')
+  .trim();
+
+const AIFormattedText = ({ text }) => {
+  const lines = normalizeAiText(text).split('\n').map((line) => line.trim()).filter(Boolean);
+
+  return (
+    <div className="space-y-3 font-medium leading-7">
+      {lines.map((line, index) => {
+        const numbered = line.match(/^(\d+)\.\s+(.*)$/);
+        const bullet = line.match(/^\*\s+(.*)$/);
+
+        if (numbered) {
+          return (
+            <div key={`${line}-${index}`} className="flex gap-3">
+              <span className="mt-0.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-extrabold text-primary">{numbered[1]}</span>
+              <p className="min-w-0 flex-1">{splitInlineMarkdown(numbered[2])}</p>
+            </div>
+          );
+        }
+
+        if (bullet) {
+          return (
+            <div key={`${line}-${index}`} className="flex gap-3 pl-2">
+              <span className="mt-3 h-1.5 w-1.5 rounded-full bg-primary" />
+              <p className="min-w-0 flex-1">{splitInlineMarkdown(bullet[1])}</p>
+            </div>
+          );
+        }
+
+        return <p key={`${line}-${index}`}>{splitInlineMarkdown(line)}</p>;
+      })}
+    </div>
+  );
+};
+
 const TypedText = ({ text, onComplete, speed = 15 }) => {
   const reducedMotion = usePrefersReducedMotion();
   const [displayText, setDisplayText] = useState(reducedMotion ? text : '');
@@ -69,11 +119,16 @@ const TypedText = ({ text, onComplete, speed = 15 }) => {
     return () => clearInterval(interval);
   }, [text, speed, reducedMotion]);
 
-  return <span className="font-semibold">{displayText}</span>;
+  return <AIFormattedText text={displayText} />;
 };
 
 const AIChat = () => {
   const { t } = useI18n();
+  const location = useLocation();
+  const routePlantId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return location.state?.selectedPlantId || params.get('plantId') || '';
+  }, [location.search, location.state]);
   const starterMessages = useMemo(() => [
     {
       id: 'starter-1',
@@ -90,6 +145,8 @@ const AIChat = () => {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState(starterMessages);
   const [dialogHistory, setDialogHistory] = useState([]);
+  const [quota, setQuota] = useState(null);
+  const [diagnosisContext, setDiagnosisContext] = useState(null);
   const [typingMessageId, setTypingMessageId] = useState(null);
   const [isSending, setIsSending] = useState(false);
   const [isPlantsLoading, setIsPlantsLoading] = useState(true);
@@ -158,7 +215,10 @@ const AIChat = () => {
         if (!active) return;
         const items = data?.items || [];
         setPlants(items);
-        setSelectedPlantId((current) => current || items[0]?.id || '');
+        setSelectedPlantId((current) => {
+          if (current) return current;
+          return items.some((plant) => plant.id === routePlantId) ? routePlantId : '';
+        });
       } catch (err) {
         if (!active) return;
         setPlants([]);
@@ -185,20 +245,66 @@ const AIChat = () => {
       }
     };
 
+    const loadQuota = async () => {
+      try {
+        const data = await getAiQuota();
+        if (active) setQuota(data);
+      } catch {
+        if (active) setQuota(null);
+      }
+    };
+
     setError('');
     loadPlants();
     loadHistory();
+    loadQuota();
     return () => {
       active = false;
     };
-  }, [t]);
+  }, [t, routePlantId]);
+
+  useEffect(() => {
+    const stateContext = location.state?.aiDiagnosisContext;
+    let storedContext = null;
+
+    if (!stateContext) {
+      try {
+        storedContext = JSON.parse(sessionStorage.getItem(DIAGNOSIS_CONTEXT_STORAGE_KEY) || 'null');
+      } catch {
+        storedContext = null;
+      }
+    }
+
+    const nextContext = stateContext || storedContext;
+    if (!nextContext) return;
+
+    setDiagnosisContext(nextContext);
+    if (nextContext.plantId) setSelectedPlantId(nextContext.plantId);
+    setMessages((current) => {
+      if (current.some((message) => message.id === 'diagnosis-context')) return current;
+      return [
+        ...current,
+        {
+          id: 'diagnosis-context',
+          from: 'assistant',
+          text: t('aiChat.diagnosisContextMessage', {
+            summary: nextContext.summary || t('aiAnalysis.summaryFallback'),
+          }),
+        },
+      ];
+    });
+  }, [location.state, t]);
 
   const selectedPlant = useMemo(
     () => plants.find((plant) => plant.id === selectedPlantId),
     [plants, selectedPlantId]
   );
   const hasPlants = plants.length > 0;
-  const canSend = Boolean(input.trim() && selectedPlant && !isSending);
+  const chatQuota = quota?.chat;
+  const chatRemaining = typeof chatQuota?.remaining === 'number' ? chatQuota.remaining : null;
+  const chatLimit = typeof chatQuota?.limit === 'number' ? chatQuota.limit : 5;
+  const isChatQuotaExhausted = chatRemaining !== null && chatRemaining <= 0;
+  const canSend = Boolean(input.trim() && !isSending && !isChatQuotaExhausted);
 
   const handleOpenDialog = async (dialogId) => {
     setIsDialogLoading(true);
@@ -237,11 +343,22 @@ const AIChat = () => {
           role: message.from === 'user' ? 'user' : 'assistant',
           content: message.text,
         }));
+      const diagnosisHistory = diagnosisContext
+        ? [{
+            role: 'assistant',
+            content: t('aiChat.diagnosisHistoryContext', {
+              summary: diagnosisContext.summary || t('aiAnalysis.summaryFallback'),
+              recommendations: (diagnosisContext.recommendations || []).join('; ') || t('aiChat.noDiagnosisRecommendations'),
+            }),
+          }]
+        : [];
       const result = await sendPlantContextChatMessage({
-        plantId: selectedPlant.id,
+        plantId: selectedPlant?.id,
         message: text,
-        history,
-        plantContext: normalizePlantContext(selectedPlant),
+        history: [...diagnosisHistory, ...history],
+        plantContext: selectedPlant ? normalizePlantContext(selectedPlant) : undefined,
+        diagnosisResultId: diagnosisContext?.diagnosisId,
+        diagnosisContext,
       });
 
       const assistantMessage = {
@@ -255,8 +372,17 @@ const AIChat = () => {
       if (result?.source === 'mock-fallback') {
         setFallbackNote(t('aiChat.replyFallbackNote'));
       }
+      if (diagnosisContext) {
+        sessionStorage.removeItem(DIAGNOSIS_CONTEXT_STORAGE_KEY);
+        setDiagnosisContext(null);
+      }
     } catch (err) {
-      setError(err?.message || t('aiChat.sendError'));
+      if (err?.status === 429) {
+        setError(err?.message || t('aiChat.quotaExhausted'));
+        setQuota((current) => current ? { ...current, chat: { ...(current.chat || {}), remaining: 0 } } : current);
+      } else {
+        setError(err?.message || t('aiChat.sendError'));
+      }
     } finally {
       setIsSending(false);
     }
@@ -282,6 +408,11 @@ const AIChat = () => {
             </div>
           </div>
           {fallbackNote && <StateNotice tone="warning" className="mt-5 text-xs">{fallbackNote}</StateNotice>}
+          <StateNotice tone="info" className="mt-5 text-xs">
+            {chatRemaining === null
+              ? t('aiChat.quotaFallback')
+              : t('aiChat.quotaStatus', { remaining: chatRemaining, limit: chatLimit })}
+          </StateNotice>
           {error && <StateNotice tone="error" className="mt-5 text-xs">{error}</StateNotice>}
         </Card>
 
@@ -307,7 +438,27 @@ const AIChat = () => {
               ) : !hasPlants ? (
                 <EmptyState title={t('aiChat.noPlantsTitle')} description={t('aiChat.noPlantsDescription')} />
               ) : (
-                plants.map((plant) => {
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlantId('')}
+                    aria-pressed={!selectedPlantId}
+                    className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all focus:outline-none focus:ring-4 focus:ring-primary/20 ${
+                      !selectedPlantId
+                        ? 'border-primary bg-primary/10 shadow-sm'
+                        : 'border-[#E4EEE6] bg-white hover:border-primary/40 dark:border-[#2A4532] dark:bg-white/5'
+                    }`}
+                  >
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                      <span className="material-symbols-outlined" aria-hidden="true">psychiatry</span>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-extrabold text-text-main dark:text-white">{t('aiChat.generalModeTitle')}</span>
+                      <span className="block truncate text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.generalModeDescription')}</span>
+                    </span>
+                    {!selectedPlantId && <span className="material-symbols-outlined text-lg text-primary" aria-hidden="true">check_circle</span>}
+                  </button>
+                  {plants.map((plant) => {
                   const active = plant.id === selectedPlantId;
                   return (
                     <button
@@ -330,7 +481,8 @@ const AIChat = () => {
                       {active && <span className="material-symbols-outlined text-lg text-primary" aria-hidden="true">check_circle</span>}
                     </button>
                   );
-                })
+                  })}
+                </>
               )}
             </div>
 
@@ -364,9 +516,9 @@ const AIChat = () => {
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.consultingFor')}</p>
-                  <h2 className="mt-1 truncate text-xl font-extrabold text-text-main dark:text-white">{selectedPlant?.nickname || t('aiChat.choosePlant')}</h2>
+                  <h2 className="mt-1 truncate text-xl font-extrabold text-text-main dark:text-white">{selectedPlant?.nickname || t('aiChat.generalModeTitle')}</h2>
                   <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                    {selectedPlant ? t('aiChat.selectedPlantContext', { species: selectedPlant.species, status: getPlantDisplayValue(selectedPlant.status) }) : t('aiChat.choosePlantPrompt')}
+                    {selectedPlant ? t('aiChat.selectedPlantContext', { species: selectedPlant.species, status: getPlantDisplayValue(selectedPlant.status) }) : t('aiChat.generalModePrompt')}
                   </p>
                 </div>
                 {selectedPlant && (
@@ -432,7 +584,11 @@ const AIChat = () => {
                           onComplete={() => setTypingMessageId(null)}
                         />
                       ) : (
-                        <p className="font-semibold">{message.id === 'starter-1' ? t('aiChat.description') : message.text}</p>
+                        user ? (
+                          <p className="font-semibold leading-6">{message.text}</p>
+                        ) : (
+                          <AIFormattedText text={message.id === 'starter-1' ? t('aiChat.description') : message.text} />
+                        )
                       )}
                     </div>
                   </div>
@@ -455,7 +611,7 @@ const AIChat = () => {
                   id="ai-care-question"
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  disabled={!selectedPlant || isSending}
+                  disabled={isSending || isChatQuotaExhausted}
                   placeholder={selectedPlant ? t('aiChat.placeholderWithPlant', { plant: selectedPlant.nickname }) : t('aiChat.placeholderNoPlant')}
                   className="min-h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-bold text-text-main outline-none placeholder:text-text-secondary disabled:cursor-not-allowed disabled:opacity-60 dark:text-white dark:placeholder:text-slate-400"
                 />
