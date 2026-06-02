@@ -63,6 +63,8 @@ const getBucket = (reminder) => {
   return 'upcoming';
 };
 
+const isRecurringReminder = (reminder) => Boolean(frequencyLabels[reminder.frequency]);
+
 const downloadIcsContent = (content, filename) => {
   const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -313,37 +315,37 @@ const RemindersSettings = () => {
             <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">{t('reminders.showAll')}</button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-6 gap-3 border-b border-slate-50 dark:border-slate-800">
-            <select value={form.plantId} onChange={(event) => handlePlantChange(event.target.value)} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
+          <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-12 gap-3 border-b border-slate-50 dark:border-slate-800">
+            <select value={form.plantId} onChange={(event) => handlePlantChange(event.target.value)} className="md:col-span-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
               {plants.length === 0 && <option value="">{t('reminders.noPlants')}</option>}
               {plants.map((plant) => (
                 <option key={plant.id} value={plant.id}>{plant.nickname || plant.name}</option>
               ))}
             </select>
-            <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
+            <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
               <option value="watering">{t('reminders.type.watering')}</option>
               <option value="fertilizing">{t('reminders.type.fertilizing')}</option>
               <option value="check_leaves">{t('reminders.type.check_leaves')}</option>
             </select>
-            <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
+            <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
               {frequencyOptions.map((frequency) => (
                 <option key={frequency} value={frequency}>{t(frequencyLabels[frequency])}</option>
               ))}
             </select>
-            <label className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
+            <label className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
               <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.startDateLabel')}</span>
               <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="mt-1 w-full bg-transparent text-sm font-bold dark:text-white outline-none" />
             </label>
-            <label className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
+            <label className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 px-4 py-2">
               <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.timeLabel')}</span>
               <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="mt-1 w-full bg-transparent text-sm font-bold dark:text-white outline-none" />
             </label>
-            <p className="md:col-span-6 text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <p className="md:col-span-12 text-xs font-semibold text-slate-500 dark:text-slate-400">
               {t('reminders.repeatHint')}
             </p>
-            <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.titlePlaceholder')} />
-            <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className="md:col-span-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.notesPlaceholder')} />
-            <div className="flex gap-2">
+            <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="md:col-span-4 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.titlePlaceholder')} />
+            <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className="md:col-span-6 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.notesPlaceholder')} />
+            <div className="md:col-span-2 flex gap-2">
               {editingId && (
                 <button type="button" onClick={handleCancelEdit} className="px-4 py-3 rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 text-xs font-black">
                   {t('common.cancel')}
@@ -363,6 +365,7 @@ const RemindersSettings = () => {
             {!loading && filteredReminders.map((reminder) => {
               const cfg = typeConfig[reminder.type] || typeConfig.watering;
               const bucket = getBucket(reminder);
+              const recurring = isRecurringReminder(reminder);
               return (
                 <article key={reminder.id} className={`rounded-3xl border p-4 transition-all ${reminder.completed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-80' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md'}`}>
                   <div className="flex items-start gap-4">
@@ -372,6 +375,8 @@ const RemindersSettings = () => {
                         <h3 className="font-black text-slate-900 dark:text-white">{reminder.plantName}</h3>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${reminder.enabled ? 'bg-[#F0FDF4] text-[#2E7D32]' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>{reminder.enabled ? t('common.enabled') : t('common.disabled')}</span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">{t(`reminders.stats.${bucket}`)}</span>
+                        {recurring && <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 dark:bg-blue-900/20">{t('reminders.recurringBadge')}</span>}
+                        {reminder.repeatedLastDone && <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20">{t('reminders.lastDoneBadge')}</span>}
                       </div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap text-xs font-bold text-slate-500">
                         <span className={`${cfg.color} flex items-center gap-1`}><span className="material-symbols-outlined text-sm">{cfg.icon}</span>{t(cfg.labelKey)}</span>
@@ -380,6 +385,11 @@ const RemindersSettings = () => {
                         <span>·</span>
                         <span>{t('reminders.dueAt', { date: reminder.dueDate, time: reminder.time })}</span>
                       </div>
+                      {reminder.completedAt && recurring && (
+                        <p className="mt-2 text-xs font-semibold text-[#2E7D32]">
+                          {t('reminders.lastDoneAt', { time: new Date(reminder.completedAt).toLocaleString('vi-VN') })}
+                        </p>
+                      )}
                       {reminder.notes && <p className="mt-2 text-xs font-semibold text-slate-400">{reminder.notes}</p>}
                     </div>
                   </div>
@@ -387,7 +397,7 @@ const RemindersSettings = () => {
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
                     {!reminder.completed && (
                       <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
-                        {t('reminders.markDone')}
+                        {recurring ? t('reminders.completeOccurrence') : t('reminders.markDone')}
                       </button>
                     )}
                     <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-60">

@@ -1,5 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +30,8 @@ public class GetReminderCalendarQueryHandler : IRequestHandler<GetReminderCalend
             reminder.DueAt,
             reminder.DueAt.AddMinutes(15),
             "Asia/Ho_Chi_Minh",
-            icsUrl
+            icsUrl,
+            reminder.RepeatRule.ToApiString()
         );
     }
 }

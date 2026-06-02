@@ -29,10 +29,16 @@ public static class EnumExtensions
         value.ToString().ToLowerInvariant();
 
     public static string ToApiString(this RepeatRule value) =>
-        value.ToString().ToLowerInvariant();
+        value switch
+        {
+            RepeatRule.Every2Days => "every-2-days",
+            RepeatRule.Every3Days => "every-3-days",
+            RepeatRule.Biweekly => "biweekly",
+            _ => value.ToString().ToLowerInvariant()
+        };
 
     public static string? ToApiString(this RepeatRule? value) =>
-        value?.ToString().ToLowerInvariant();
+        value.HasValue ? value.Value.ToApiString() : null;
 
     public static string ToApiString(this MarketplaceStatus value) =>
         value.ToString().ToLowerInvariant();
@@ -86,10 +92,16 @@ public static class EnumExtensions
     public static RepeatRule? ToRepeatRule(this string? value) =>
         value?.ToLowerInvariant() switch
         {
-            "daily"   => RepeatRule.Daily,
-            "weekly"  => RepeatRule.Weekly,
-            "monthly" => RepeatRule.Monthly,
-            _         => null
+            "daily"        => RepeatRule.Daily,
+            "every-2-days" => RepeatRule.Every2Days,
+            "2-days"       => RepeatRule.Every2Days,
+            "every-3-days" => RepeatRule.Every3Days,
+            "3-days"       => RepeatRule.Every3Days,
+            "weekly"       => RepeatRule.Weekly,
+            "biweekly"     => RepeatRule.Biweekly,
+            "every-14-days" => RepeatRule.Biweekly,
+            "monthly"      => RepeatRule.Monthly,
+            _              => null
         };
 
     public static MarketplaceStatus ToMarketplaceStatus(this string? value) =>

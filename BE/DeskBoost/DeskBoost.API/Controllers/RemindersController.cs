@@ -141,7 +141,20 @@ public class RemindersController : ControllerBase
         DTEND:{dto.EndsAt:yyyyMMddTHHmmssZ}
         SUMMARY:{dto.Title}
         DESCRIPTION:{dto.Description}
+        {BuildRecurrenceLine(dto.RepeatRule)}
         END:VEVENT
         END:VCALENDAR
         """;
+
+    private static string BuildRecurrenceLine(string? repeatRule) =>
+        repeatRule?.ToLowerInvariant() switch
+        {
+            "daily" => "RRULE:FREQ=DAILY",
+            "every-2-days" => "RRULE:FREQ=DAILY;INTERVAL=2",
+            "every-3-days" => "RRULE:FREQ=DAILY;INTERVAL=3",
+            "weekly" => "RRULE:FREQ=WEEKLY",
+            "biweekly" => "RRULE:FREQ=WEEKLY;INTERVAL=2",
+            "monthly" => "RRULE:FREQ=MONTHLY",
+            _ => string.Empty
+        };
 }

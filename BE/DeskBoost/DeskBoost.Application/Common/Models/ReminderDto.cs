@@ -22,5 +22,6 @@ public record ReminderCalendarDto(
     DateTime StartsAt,
     DateTime EndsAt,
     string Timezone,
-    string IcsUrl
+    string IcsUrl,
+    string? RepeatRule
 );

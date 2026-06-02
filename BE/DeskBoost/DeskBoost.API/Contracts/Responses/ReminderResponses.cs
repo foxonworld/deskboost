@@ -7,7 +7,7 @@ public record ReminderResponse(
     string Title,
     string CareType,    // "watering" | "fertilizing" | "repotting" | "other"
     DateTime DueAt,
-    string? RepeatRule, // "daily" | "weekly" | "monthly" | null
+    string? RepeatRule, // "daily" | "every-2-days" | "every-3-days" | "weekly" | "biweekly" | "monthly" | null
     string Status,      // "pending" | "done"
     DateTime? LastDoneAt,
     string? Notes,
@@ -21,4 +21,5 @@ public record ReminderCalendarResponse(
     DateTime StartsAt,
     DateTime EndsAt,
     string Timezone,
-    string IcsUrl);
+    string IcsUrl,
+    string? RepeatRule);

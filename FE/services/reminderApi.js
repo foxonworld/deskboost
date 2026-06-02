@@ -15,6 +15,15 @@ const recurrenceRules = {
   monthly: "FREQ=MONTHLY",
 };
 
+const repeatIntervals = {
+  daily: { days: 1 },
+  "every-2-days": { days: 2 },
+  "every-3-days": { days: 3 },
+  weekly: { days: 7 },
+  biweekly: { days: 14 },
+  monthly: { months: 1 },
+};
+
 const isDoneStatus = (status) =>
   ["done", "completed", "complete"].includes(String(status || "").toLowerCase());
 
@@ -37,14 +46,47 @@ const buildDueAt = (payload = {}) => {
   return new Date(`${dueDate}T${time}:00`).toISOString();
 };
 
+const addRepeatInterval = (date, repeatRule) => {
+  const interval = repeatIntervals[repeatRule] || repeatIntervals.daily;
+  const next = new Date(date);
+  if (interval.months) next.setMonth(next.getMonth() + interval.months);
+  else next.setDate(next.getDate() + interval.days);
+  return next;
+};
+
+const getNextRepeatedDueAt = (dueAt, repeatRule, completedAt) => {
+  const start = new Date(dueAt || Date.now());
+  const completed = new Date(completedAt || Date.now());
+  if (Number.isNaN(start.getTime())) return dueAt || new Date().toISOString();
+  if (Number.isNaN(completed.getTime())) return start.toISOString();
+
+  let next = addRepeatInterval(start, repeatRule);
+  while (next <= completed) {
+    next = addRepeatInterval(next, repeatRule);
+  }
+  return next.toISOString();
+};
+
 export const getReminderTypeLabel = (type) =>
   typeLabels[type] || type || "watering";
 
 export const normalizeReminder = (reminder = {}) => {
-  const dueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
-  const { dueDate, time } = toLocalDateParts(dueAt);
+  const rawDueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
+  const repeatRule = reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily";
   const status = reminder.status || (reminder.completed || reminder.done ? "done" : "pending");
-  const completed = isDoneStatus(status) || Boolean(reminder.completed || reminder.done);
+  const completedAt =
+    reminder.completedAt ||
+    reminder.completed_at ||
+    reminder.lastDoneAt ||
+    reminder.last_done_at ||
+    reminder.doneAt ||
+    (isDoneStatus(status) ? reminder.updatedAt || reminder.updated_at || null : null);
+  const isRepeatedDone = isDoneStatus(status) && Boolean(recurrenceRules[repeatRule]);
+  const dueAt = isRepeatedDone
+    ? getNextRepeatedDueAt(rawDueAt, repeatRule, completedAt)
+    : rawDueAt;
+  const { dueDate, time } = toLocalDateParts(dueAt);
+  const completed = !isRepeatedDone && (isDoneStatus(status) || Boolean(reminder.completed || reminder.done));
 
   return {
     ...reminder,
@@ -60,22 +102,17 @@ export const normalizeReminder = (reminder = {}) => {
     title: reminder.title || getReminderTypeLabel(reminder.careType || reminder.type),
     type: reminder.careType || reminder.care_type || reminder.type || "watering",
     careType: reminder.careType || reminder.care_type || reminder.type || "watering",
-    frequency: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
-    repeatRule: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
+    frequency: repeatRule,
+    repeatRule,
     notes: reminder.notes || "",
     dueAt: dueAt || new Date().toISOString(),
     dueDate,
     time,
-    status,
+    status: isRepeatedDone ? "pending" : status,
     enabled: reminder.enabled !== false && !["disabled", "cancelled"].includes(String(status).toLowerCase()),
     completed,
-    completedAt:
-      reminder.completedAt ||
-      reminder.completed_at ||
-      reminder.lastDoneAt ||
-      reminder.last_done_at ||
-      reminder.doneAt ||
-      (completed ? reminder.updatedAt || reminder.updated_at || null : null),
+    completedAt,
+    repeatedLastDone: isRepeatedDone,
   };
 };
 
