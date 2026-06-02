@@ -124,9 +124,22 @@ export const AuthProvider = ({ children }) => {
     setState((current) => ({ ...current, error: null }));
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    start();
+    try {
+      console.log("Mock sending google credential to BE:", credential);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Mock successful login until BE is ready
+      const fakeUser = { id: 999, email: "google-user@example.com", name: "Google User" };
+      return finishSuccess({ accessToken: "mock-google-jwt-token", user: fakeUser });
+    } catch (err) {
+      return finishError(err);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ ...state, login, register, logout, updateUser, clearError }),
-    [state, login, register, logout, updateUser, clearError]
+    () => ({ ...state, login, loginWithGoogle, register, logout, updateUser, clearError }),
+    [state, login, loginWithGoogle, register, logout, updateUser, clearError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

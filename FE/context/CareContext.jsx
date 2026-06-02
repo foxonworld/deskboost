@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getReminderTypeLabel, getReminders, markReminderDone } from '../services/reminderApi';
+import { getUserNotifications, markNotificationRead, markAllNotificationsRead } from '../services/notificationApi';
 import { useAuth } from '../hooks/useAuth';
 
 const CareContext = createContext(null);
@@ -46,6 +47,10 @@ export const CareProvider = ({ children }) => {
   const [error, setError] = useState('');
   const [notificationOpen, setNotificationOpen] = useState(false);
 
+  // ── Admin notifications state ────────────────────────────────────────────────
+  const [adminNotifs, setAdminNotifs] = useState([]);
+  const [notifsLoading, setNotifsLoading] = useState(false);
+
   const refreshTasks = useCallback(async () => {
     if (isBootstrapping) return;
     if (!isAuthenticated) {
@@ -68,9 +73,25 @@ export const CareProvider = ({ children }) => {
     }
   }, [isAuthenticated, isBootstrapping]);
 
+  const refreshAdminNotifs = useCallback(async () => {
+    if (isBootstrapping || !isAuthenticated) {
+      setAdminNotifs([]);
+      return;
+    }
+    setNotifsLoading(true);
+    try {
+      const items = await getUserNotifications();
+      setAdminNotifs(items);
+    } catch {
+      setAdminNotifs([]);
+    } finally {
+      setNotifsLoading(false);
+    }
+  }, [isAuthenticated, isBootstrapping]);
+
   useEffect(() => {
-    refreshTasks();
-  }, [refreshTasks]);
+    Promise.allSettled([refreshTasks(), refreshAdminNotifs()]);
+  }, [refreshTasks, refreshAdminNotifs]);
 
   const markDone = useCallback(async (taskId) => {
     const updated = await markReminderDone(taskId);
@@ -87,9 +108,24 @@ export const CareProvider = ({ children }) => {
     refreshTasks();
   }, [refreshTasks]);
 
+  const markAdminRead = useCallback(async (id) => {
+    await markNotificationRead(id);
+    setAdminNotifs((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)),
+    );
+  }, []);
+
+  const markAllAdminRead = useCallback(async () => {
+    const ids = adminNotifs.filter((n) => !n.isRead).map((n) => n.id);
+    if (ids.length === 0) return;
+    await markAllNotificationsRead(ids);
+    setAdminNotifs((prev) => prev.map((n) => ({ ...n, isRead: true })));
+  }, [adminNotifs]);
+
   const pendingTasks = tasks.filter((task) => !task.done);
   const doneTasks = tasks.filter((task) => task.done);
   const urgentCount = pendingTasks.filter((task) => task.urgency === 'overdue' || task.urgency === 'today').length;
+  const unreadAdminCount = adminNotifs.filter((n) => !n.isRead).length;
 
   return (
     <CareContext.Provider value={{
@@ -105,6 +141,12 @@ export const CareProvider = ({ children }) => {
       undoDone,
       resetAll,
       refreshTasks,
+      adminNotifs,
+      unreadAdminCount,
+      notifsLoading,
+      markAdminRead,
+      markAllAdminRead,
+      refreshAdminNotifs,
     }}>
       {children}
     </CareContext.Provider>

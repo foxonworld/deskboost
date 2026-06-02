@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { getAdminUser, getAdminUsers, updateAdminUserStatus } from '../../services/adminApi';
+import { adminSendNotification } from '../../services/notificationApi';
 import { useI18n } from '../../i18n';
 
 const statusOptions = [
@@ -9,6 +10,8 @@ const statusOptions = [
   { value: 'inactive', labelKey: 'admin.status.inactive' },
   { value: 'banned', labelKey: 'admin.status.banned' },
 ];
+
+const TYPE_OPTIONS = ['announcement', 'promo', 'care_tip'];
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -20,6 +23,9 @@ const AdminUsers = () => {
   const [statusValue, setStatusValue] = useState('active');
   const [savingStatus, setSavingStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
+  const [quickSendForm, setQuickSendForm] = useState({ title: '', body: '', type: 'announcement' });
+  const [quickSending, setQuickSending] = useState(false);
+  const [quickSendResult, setQuickSendResult] = useState(null);
   const [searchParams] = useSearchParams();
   const { t } = useI18n();
   const linkedUserId = searchParams.get('userId');
@@ -50,6 +56,7 @@ const AdminUsers = () => {
     setDetailLoading(true);
     setDetailError('');
     setStatusError('');
+    setQuickSendResult(null);
     try {
       const data = await getAdminUser(userId);
       setSelectedUser(data);
@@ -81,6 +88,31 @@ const AdminUsers = () => {
       setStatusError(err?.message || t('admin.users.error.status'));
     } finally {
       setSavingStatus(false);
+    }
+  };
+
+  const handleQuickSend = async (e) => {
+    e.preventDefault();
+    if (!quickSendForm.title.trim() || !quickSendForm.body.trim()) {
+      setQuickSendResult({ ok: false, msg: t('adminNotif.form.errorRequired') });
+      return;
+    }
+    setQuickSending(true);
+    setQuickSendResult(null);
+    try {
+      await adminSendNotification({
+        title: quickSendForm.title.trim(),
+        body: quickSendForm.body.trim(),
+        type: quickSendForm.type,
+        targetType: 'specific',
+        targetUserIds: [selectedUser.id],
+      });
+      setQuickSendResult({ ok: true, msg: t('adminNotif.quickSend.success') });
+      setQuickSendForm({ title: '', body: '', type: 'announcement' });
+    } catch {
+      setQuickSendResult({ ok: false, msg: t('adminNotif.quickSend.error') });
+    } finally {
+      setQuickSending(false);
     }
   };
 
@@ -142,6 +174,7 @@ const AdminUsers = () => {
                   setSelectedUser(null);
                   setDetailError('');
                   setStatusError('');
+                  setQuickSendResult(null);
                 }}
                 className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700"
                 aria-label={t('admin.users.closeDetail')}
@@ -155,65 +188,118 @@ const AdminUsers = () => {
             ) : detailError ? (
               <p className="mt-5 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700 dark:bg-rose-950/30 dark:text-rose-300">{detailError}</p>
             ) : (
-              <div className="mt-5 grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-                <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
-                  <div className="flex items-center gap-4">
-                    {selectedUser.avatarUrl ? (
-                      <img src={selectedUser.avatarUrl} alt={selectedUser.name} className="h-14 w-14 rounded-full object-cover" />
-                    ) : (
-                      <div className="grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-lg font-black text-slate-500 dark:bg-slate-800">
-                        {(selectedUser.name || selectedUser.email || '?').slice(0, 1).toUpperCase()}
+              <div className="mt-5 grid gap-5">
+                {/* Row 1: thông tin user + cập nhật trạng thái */}
+                <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+                  {/* Thông tin user */}
+                  <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
+                    <div className="flex items-center gap-4">
+                      {selectedUser.avatarUrl ? (
+                        <img src={selectedUser.avatarUrl} alt={selectedUser.name} className="h-14 w-14 rounded-full object-cover" />
+                      ) : (
+                        <div className="grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-lg font-black text-slate-500 dark:bg-slate-800">
+                          {(selectedUser.name || selectedUser.email || '?').slice(0, 1).toUpperCase()}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-lg font-black text-slate-900 dark:text-white">{selectedUser.name || t('admin.users.unnamed')}</p>
+                        <p className="text-sm font-semibold text-slate-500">{selectedUser.email}</p>
                       </div>
-                    )}
-                    <div>
-                      <p className="text-lg font-black text-slate-900 dark:text-white">{selectedUser.name || t('admin.users.unnamed')}</p>
-                      <p className="text-sm font-semibold text-slate-500">{selectedUser.email}</p>
                     </div>
+                    <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt className="font-black text-slate-400">{t('admin.users.role')}</dt>
+                        <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.role || t('common.nA')}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-black text-slate-400">{t('admin.field.status')}</dt>
+                        <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.status || t('common.nA')}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-black text-slate-400">{t('admin.users.phone')}</dt>
+                        <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.phone || t('common.nA')}</dd>
+                      </div>
+                      <div>
+                        <dt className="font-black text-slate-400">{t('admin.users.created')}</dt>
+                        <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.createdAt || t('common.nA')}</dd>
+                      </div>
+                    </dl>
                   </div>
-                  <dl className="mt-5 grid gap-3 text-sm sm:grid-cols-2">
-                    <div>
-                      <dt className="font-black text-slate-400">{t('admin.users.role')}</dt>
-                      <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.role || t('common.nA')}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-black text-slate-400">{t('admin.field.status')}</dt>
-                      <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.status || t('common.nA')}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-black text-slate-400">{t('admin.users.phone')}</dt>
-                      <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.phone || t('common.nA')}</dd>
-                    </div>
-                    <div>
-                      <dt className="font-black text-slate-400">{t('admin.users.created')}</dt>
-                      <dd className="mt-1 font-bold text-slate-700 dark:text-slate-200">{selectedUser.createdAt || t('common.nA')}</dd>
-                    </div>
-                  </dl>
+
+                  {/* Cập nhật trạng thái */}
+                  <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
+                    <label className="text-sm font-black text-slate-700 dark:text-slate-200" htmlFor="admin-user-status">{t('admin.field.status')}</label>
+                    <select
+                      id="admin-user-status"
+                      value={statusValue}
+                      onChange={(event) => setStatusValue(event.target.value)}
+                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    >
+                      {statusOptions.map((option) => (
+                        <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+                      ))}
+                    </select>
+                    {statusError && <p className="mt-3 text-sm font-bold text-rose-600">{statusError}</p>}
+                    <button
+                      type="button"
+                      onClick={handleStatusUpdate}
+                      disabled={savingStatus || statusValue === selectedUser.status}
+                      className="mt-4 rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {savingStatus ? t('common.saving') : t('admin.users.updateStatus')}
+                    </button>
+                    <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-bold leading-5 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
+                      {t('admin.users.actionNote')}
+                    </p>
+                  </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
-                  <label className="text-sm font-black text-slate-700 dark:text-slate-200" htmlFor="admin-user-status">{t('admin.field.status')}</label>
-                  <select
-                    id="admin-user-status"
-                    value={statusValue}
-                    onChange={(event) => setStatusValue(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                  >
-                    {statusOptions.map((option) => (
-                      <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
-                    ))}
-                  </select>
-                  {statusError && <p className="mt-3 text-sm font-bold text-rose-600">{statusError}</p>}
-                  <button
-                    type="button"
-                    onClick={handleStatusUpdate}
-                    disabled={savingStatus || statusValue === selectedUser.status}
-                    className="mt-4 rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {savingStatus ? t('common.saving') : t('admin.users.updateStatus')}
-                  </button>
-                  <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-bold leading-5 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
-                    {t('admin.users.actionNote')}
-                  </p>
+                {/* Row 2: Form gửi thông báo riêng */}
+                <div className="rounded-2xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-5 dark:border-[#4CAF50]/10">
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="material-symbols-outlined text-[#4CAF50]" style={{ fontSize: '18px' }}>campaign</span>
+                    <p className="text-sm font-black text-slate-700 dark:text-slate-200">{t('adminNotif.quickSend.title')}</p>
+                  </div>
+                  <form onSubmit={handleQuickSend} className="grid gap-3">
+                    <input
+                      type="text"
+                      value={quickSendForm.title}
+                      onChange={(e) => setQuickSendForm((f) => ({ ...f, title: e.target.value }))}
+                      placeholder={t('adminNotif.form.notifTitlePlaceholder')}
+                      maxLength={120}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <textarea
+                      rows={3}
+                      value={quickSendForm.body}
+                      onChange={(e) => setQuickSendForm((f) => ({ ...f, body: e.target.value }))}
+                      placeholder={t('adminNotif.form.bodyPlaceholder')}
+                      maxLength={500}
+                      className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    />
+                    <select
+                      value={quickSendForm.type}
+                      onChange={(e) => setQuickSendForm((f) => ({ ...f, type: e.target.value }))}
+                      className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
+                    >
+                      {TYPE_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>{t(`adminNotif.type.${opt}`)}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="submit"
+                      disabled={quickSending}
+                      className="flex items-center justify-center gap-1.5 rounded-2xl bg-[#4CAF50] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
+                      {quickSending ? t('adminNotif.quickSend.sending') : t('adminNotif.quickSend.send')}
+                    </button>
+                    {quickSendResult && (
+                      <p className={`text-xs font-bold ${quickSendResult.ok ? 'text-[#4CAF50]' : 'text-rose-600'}`}>
+                        {quickSendResult.msg}
+                      </p>
+                    )}
+                  </form>
                 </div>
               </div>
             )}

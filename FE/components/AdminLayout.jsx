@@ -11,6 +11,7 @@ const adminItems = [
   { labelKey: 'admin.nav.marketplace', hintKey: 'admin.nav.marketplaceHint', icon: 'storefront', path: '/admin/marketplace' },
   { labelKey: 'admin.nav.feedback', hintKey: 'admin.nav.feedbackHint', icon: 'rate_review', path: '/admin/feedback' },
   { labelKey: 'admin.nav.ai', hintKey: 'admin.nav.aiHint', icon: 'smart_toy', path: '/admin/ai' },
+  { labelKey: 'admin.nav.notifications', hintKey: 'admin.nav.notificationsHint', icon: 'campaign', path: '/admin/notifications' },
 ];
 
 const AdminNavLinks = ({ onNavigate, t }) => (
