@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,46 +11,118 @@ namespace DeskBoost.Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Feedbacks_MarketplaceItems_CatalogPlantId",
-                table: "Feedbacks");
+            // Drop old FK only if it still exists
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conname = 'FK_Feedbacks_MarketplaceItems_CatalogPlantId'
+                    ) THEN
+                        ALTER TABLE ""Feedbacks"" DROP CONSTRAINT ""FK_Feedbacks_MarketplaceItems_CatalogPlantId"";
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.RenameColumn(
-                name: "CatalogPlantId",
-                table: "Feedbacks",
-                newName: "MarketplaceItemId");
+            // Rename column only if it still has the old name
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name   = 'Feedbacks'
+                          AND column_name  = 'CatalogPlantId'
+                    ) THEN
+                        ALTER TABLE ""Feedbacks"" RENAME COLUMN ""CatalogPlantId"" TO ""MarketplaceItemId"";
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.RenameIndex(
-                name: "IX_Feedbacks_CatalogPlantId",
-                table: "Feedbacks",
-                newName: "IX_Feedbacks_MarketplaceItemId");
+            // Rename index only if it still has the old name
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'public'
+                          AND indexname  = 'IX_Feedbacks_CatalogPlantId'
+                    ) THEN
+                        ALTER INDEX ""IX_Feedbacks_CatalogPlantId"" RENAME TO ""IX_Feedbacks_MarketplaceItemId"";
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.AddColumn<Guid>(
-                name: "PlantId",
-                table: "PlantClaimCodes",
-                type: "uuid",
-                nullable: true);
+            // Add PlantId to PlantClaimCodes only if it doesn't exist yet
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_schema = 'public'
+                          AND table_name   = 'PlantClaimCodes'
+                          AND column_name  = 'PlantId'
+                    ) THEN
+                        ALTER TABLE ""PlantClaimCodes"" ADD COLUMN ""PlantId"" uuid NULL;
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_PlantClaimCodes_PlantId",
-                table: "PlantClaimCodes",
-                column: "PlantId");
+            // Create index on PlantId only if it doesn't exist yet
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_indexes
+                        WHERE schemaname = 'public'
+                          AND tablename  = 'PlantClaimCodes'
+                          AND indexname  = 'IX_PlantClaimCodes_PlantId'
+                    ) THEN
+                        CREATE INDEX ""IX_PlantClaimCodes_PlantId"" ON ""PlantClaimCodes"" (""PlantId"");
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Feedbacks_MarketplaceItems_MarketplaceItemId",
-                table: "Feedbacks",
-                column: "MarketplaceItemId",
-                principalTable: "MarketplaceItems",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+            // Add new FK for Feedbacks only if it doesn't exist yet
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conname = 'FK_Feedbacks_MarketplaceItems_MarketplaceItemId'
+                    ) THEN
+                        ALTER TABLE ""Feedbacks""
+                            ADD CONSTRAINT ""FK_Feedbacks_MarketplaceItems_MarketplaceItemId""
+                            FOREIGN KEY (""MarketplaceItemId"")
+                            REFERENCES ""MarketplaceItems""(""Id"")
+                            ON DELETE SET NULL;
+                    END IF;
+                END
+                $$;
+            ");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_PlantClaimCodes_Plants_PlantId",
-                table: "PlantClaimCodes",
-                column: "PlantId",
-                principalTable: "Plants",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+            // Add FK for PlantClaimCodes.PlantId only if it doesn't exist yet
+            migrationBuilder.Sql(@"
+                DO $$
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM pg_constraint
+                        WHERE conname = 'FK_PlantClaimCodes_Plants_PlantId'
+                    ) THEN
+                        ALTER TABLE ""PlantClaimCodes""
+                            ADD CONSTRAINT ""FK_PlantClaimCodes_Plants_PlantId""
+                            FOREIGN KEY (""PlantId"")
+                            REFERENCES ""Plants""(""Id"")
+                            ON DELETE SET NULL;
+                    END IF;
+                END
+                $$;
+            ");
         }
 
         /// <inheritdoc />

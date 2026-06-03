@@ -13,6 +13,8 @@ namespace DeskBoost.Infrastructure.Persistence.Configurations
                    .HasForeignKey(d => d.PlantId)
                    .IsRequired(false)
                    .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasIndex(d => d.UserId);
         }
     }
 }

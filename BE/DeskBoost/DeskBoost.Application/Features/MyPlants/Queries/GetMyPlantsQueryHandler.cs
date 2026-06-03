@@ -1,6 +1,7 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Application.Features.MyPlants.Commands;
+using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +20,36 @@ public class GetMyPlantsQueryHandler : IRequestHandler<GetMyPlantsQuery, List<My
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync(ct);
 
-        return plants.Select(p =>
-            CreateMyPlantCommandHandler.ToDto(p, p.SpeciesName)
-        ).ToList();
+        var now = DateTime.UtcNow;
+        var result = new List<MyPlantDto>();
+
+        foreach (var p in plants)
+        {
+            var computedStatus = await ComputeStatusAsync(_db, p, now, ct);
+            result.Add(CreateMyPlantCommandHandler.ToDtoWithStatus(p, p.SpeciesName, computedStatus));
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Tính trạng thái thực tế: issue > needs-water > (DB status)
+    /// </summary>
+    internal static async Task<string> ComputeStatusAsync(IAppDbContext db, Domain.Entities.Plant p, DateTime now, CancellationToken ct)
+    {
+        if (p.Status == PlantStatus.Issue)
+            return "issue";
+
+        var hasOverdueWatering = await db.Reminders
+            .AnyAsync(r => r.PlantId == p.Id
+                          && r.CareType == CareType.Watering
+                          && r.Status == ReminderStatus.Pending
+                          && r.IsActive
+                          && r.DueAt < now, ct);
+
+        if (hasOverdueWatering)
+            return "needs-water";
+
+        return p.Status.ToApiString();
     }
 }

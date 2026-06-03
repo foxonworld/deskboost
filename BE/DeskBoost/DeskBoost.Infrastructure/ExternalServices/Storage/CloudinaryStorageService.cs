@@ -27,7 +27,7 @@ public class CloudinaryStorageService : IStorageService
         {
             File = new FileDescription(fileName, stream),
             Folder = Folder,
-            Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+            Transformation = new Transformation().Width(1280).Height(1280).Crop("limit").Quality("auto").FetchFormat("auto")
         };
 
         var result = await _cloudinary.UploadAsync(uploadParams);

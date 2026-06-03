@@ -1,10 +1,12 @@
 using DeskBoost.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace DeskBoost.Application.Common.Interfaces;
 
 public interface IAppDbContext
 {
+    DatabaseFacade Database { get; }
     DbSet<User> Users { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<DiagnosisResult> DiagnosisResults { get; }
@@ -17,5 +19,8 @@ public interface IAppDbContext
     DbSet<AiDialog> AiDialogs { get; }
     DbSet<AiMessage> AiMessages { get; }
     DbSet<Feedback> Feedbacks { get; }
+    DbSet<AiUsage> AiUsages { get; }
+    DbSet<Notification> Notifications { get; }
+    DbSet<NotificationRead> NotificationReads { get; }
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

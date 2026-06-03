@@ -89,6 +89,46 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.ToTable("AiMessages");
                 });
 
+            modelBuilder.Entity("DeskBoost.Domain.Entities.AiUsage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DiagnosisResultId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Feature")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("PlantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DiagnosisResultId");
+
+                    b.HasIndex("PlantId");
+
+                    b.HasIndex("UserId", "Feature", "UsedAt");
+
+                    b.ToTable("AiUsages");
+                });
+
             modelBuilder.Entity("DeskBoost.Domain.Entities.ChatHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -160,9 +200,14 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PlantId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("DiagnosisResults");
                 });
@@ -285,6 +330,86 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("MarketplaceItems", (string)null);
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByAdminId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("TargetType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("TargetUserIdsJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("IsActive");
+
+                    b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.NotificationRead", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("NotificationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("NotificationId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("NotificationReads");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.Plant", b =>
@@ -597,12 +722,20 @@ namespace DeskBoost.Infrastructure.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("GoogleId")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<string>("PasswordResetToken")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("PasswordResetTokenExpiresAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Phone")
                         .HasColumnType("text");
@@ -649,6 +782,31 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.Navigation("Dialog");
                 });
 
+            modelBuilder.Entity("DeskBoost.Domain.Entities.AiUsage", b =>
+                {
+                    b.HasOne("DeskBoost.Domain.Entities.DiagnosisResult", "DiagnosisResult")
+                        .WithMany()
+                        .HasForeignKey("DiagnosisResultId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DeskBoost.Domain.Entities.Plant", "Plant")
+                        .WithMany()
+                        .HasForeignKey("PlantId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("DeskBoost.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DiagnosisResult");
+
+                    b.Navigation("Plant");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("DeskBoost.Domain.Entities.ChatHistory", b =>
                 {
                     b.HasOne("DeskBoost.Domain.Entities.Plant", "Plant")
@@ -678,6 +836,25 @@ namespace DeskBoost.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("MarketplaceItem");
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.NotificationRead", b =>
+                {
+                    b.HasOne("DeskBoost.Domain.Entities.Notification", "Notification")
+                        .WithMany("Reads")
+                        .HasForeignKey("NotificationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("DeskBoost.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Notification");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.Plant", b =>
@@ -745,6 +922,11 @@ namespace DeskBoost.Infrastructure.Migrations
             modelBuilder.Entity("DeskBoost.Domain.Entities.AiDialog", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.Notification", b =>
+                {
+                    b.Navigation("Reads");
                 });
 
             modelBuilder.Entity("DeskBoost.Domain.Entities.PlantSpecies", b =>

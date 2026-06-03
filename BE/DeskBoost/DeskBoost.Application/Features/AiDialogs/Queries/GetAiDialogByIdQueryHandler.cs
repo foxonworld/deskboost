@@ -26,6 +26,6 @@ public class GetAiDialogByIdQueryHandler : IRequestHandler<GetAiDialogByIdQuery,
             .Select(m => new AiMessageDto(m.Id, m.Role.ToApiString(), m.Content, m.CreatedAt))
             .ToList();
 
-        return new AiDialogDetailDto(dialog.Id, dialog.PlantId, dialog.Plant?.Name, dialog.Title, messages, dialog.CreatedAt);
+        return new AiDialogDetailDto(dialog.Id, dialog.UserId, null, null, dialog.PlantId, dialog.Plant?.Name, dialog.Title, messages, dialog.CreatedAt);
     }
 }

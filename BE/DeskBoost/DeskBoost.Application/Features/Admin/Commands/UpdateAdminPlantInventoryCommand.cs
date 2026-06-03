@@ -14,6 +14,9 @@ public record UpdateAdminPlantInventoryCommand : IRequest<AdminPlantInventoryDto
     public string? SpeciesName { get; init; }
     public string? ImageUrl { get; init; }
     public string? Location { get; init; }
+    public string? CareLevel { get; init; }
+    public string? Light { get; init; }
+    public string? Water { get; init; }
     public int? WateringCycleDays { get; init; }
     public string? Notes { get; init; }
 }
@@ -34,6 +37,9 @@ public class UpdateAdminPlantInventoryCommandHandler : IRequestHandler<UpdateAdm
         if (request.SpeciesName is not null) plant.SpeciesName = request.SpeciesName.Trim();
         if (request.ImageUrl is not null) plant.ImageUrl = request.ImageUrl;
         if (request.Location is not null) plant.Location = request.Location.Trim();
+        if (request.CareLevel is not null) plant.CareLevel = request.CareLevel;
+        if (request.Light is not null) plant.Light = request.Light;
+        if (request.Water is not null) plant.Water = request.Water;
         if (request.WateringCycleDays.HasValue && request.WateringCycleDays.Value > 0)
             plant.WateringCycleDays = request.WateringCycleDays.Value;
         if (request.Notes is not null) plant.Notes = request.Notes.Trim();

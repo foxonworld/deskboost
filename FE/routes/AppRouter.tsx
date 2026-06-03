@@ -20,7 +20,9 @@ import AdminUsers from "../pages/admin/AdminUsers";
 import AdminPlants from "../pages/admin/AdminPlants";
 import AdminPlantInventory from "../pages/admin/AdminPlantInventory";
 import AdminMarketplace from "../pages/admin/AdminMarketplace";
+import AdminFeedback from "../pages/admin/AdminFeedback";
 import AdminAI from "../pages/admin/AdminAI";
+import AdminNotifications from "../pages/admin/AdminNotifications";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
 
@@ -63,7 +65,9 @@ const AppRouter: React.FC = () => {
       <Route path="/admin/plants" element={admin(<AdminPlants />)} />
       <Route path="/admin/plant-inventory" element={admin(<AdminPlantInventory />)} />
       <Route path="/admin/marketplace" element={admin(<AdminMarketplace />)} />
+      <Route path="/admin/feedback" element={admin(<AdminFeedback />)} />
       <Route path="/admin/ai" element={admin(<AdminAI />)} />
+      <Route path="/admin/notifications" element={admin(<AdminNotifications />)} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />

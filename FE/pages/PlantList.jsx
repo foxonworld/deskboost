@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getMarketplacePlants } from '../services/plantApi';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
@@ -9,6 +10,7 @@ import Card from '../components/Card';
 import { Badge, Chip } from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
 import { formatVND } from '../utils/currency';
+import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
@@ -77,6 +79,7 @@ const PlantList = () => {
   const [error, setError] = useState('');
   const reducedMotion = usePrefersReducedMotion();
   const { t } = useI18n();
+  const navigate = useNavigate();
 
   useEffect(() => {
     let alive = true;
@@ -147,6 +150,12 @@ const PlantList = () => {
     return translated === key ? plant[field] : translated;
   };
 
+  const getTagDisplay = (tag, index) => {
+    const metricType = index === 0 ? 'care' : index === 1 ? 'light' : '';
+    const metricDisplay = metricType ? getCareScaleDisplay(metricType, tag, t) : null;
+    return metricDisplay?.value || getDisplayValue(tag);
+  };
+
   const sortedAndFilteredPlants = useMemo(() => plants
     .filter(p => p.status === 'Active' || p.status === 'Out of Stock')
     .filter(plant => {
@@ -161,6 +170,12 @@ const PlantList = () => {
     }), [plants, searchTerm, activeFilter, sortBy]);
 
   const resultLabel = isLoading ? t('market.result.loading') : t('market.result.count', { count: sortedAndFilteredPlants.length });
+  const openPlantDetail = (plantId) => navigate(`/plants/${plantId}`);
+  const handlePlantCardKeyDown = (event, plantId) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    openPlantDetail(plantId);
+  };
 
   return (
     <div ref={pageRef} className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display transition-colors">
@@ -251,7 +266,18 @@ const PlantList = () => {
         ) : sortedAndFilteredPlants.length > 0 ? (
           <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label={t('market.listAria')}>
             {sortedAndFilteredPlants.map(plant => (
-              <Card key={plant.id} padding="none" interactive={false} className="group flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/20 dark:hover:border-primary/20" data-motion="marketplace-card">
+              <Card
+                key={plant.id}
+                padding="none"
+                interactive={false}
+                role="link"
+                tabIndex={0}
+                aria-label={`${t('market.card.detail')} ${getProductDisplay(plant, 'name')}`}
+                onClick={() => openPlantDetail(plant.id)}
+                onKeyDown={(event) => handlePlantCardKeyDown(event, plant.id)}
+                className="group flex cursor-pointer flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/20 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:hover:border-primary/20"
+                data-motion="marketplace-card"
+              >
                 <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
                   <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
                     <Badge tone="overlay" icon="forum">{t('market.badge.contact')}</Badge>
@@ -272,7 +298,7 @@ const PlantList = () => {
                   </div>
                   <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{getProductDisplay(plant, 'description')}</p>
                   <div className="mb-4 flex flex-wrap gap-2">
-                    {plant.tags?.slice(0, 3).map(tag => <Badge key={tag} tone="neutral">{getDisplayValue(tag)}</Badge>)}
+                    {plant.tags?.slice(0, 3).map((tag, index) => <Badge key={`${tag}-${index}`} tone="neutral">{getTagDisplay(tag, index)}</Badge>)}
                   </div>
                   <div className="mt-auto rounded-2xl border border-primary/15 bg-primary/5 p-3 dark:border-primary/20 dark:bg-primary/10">
                     <p className="text-xs font-bold leading-5 text-primary dark:text-green-200">{t('market.card.contactOnly')}</p>

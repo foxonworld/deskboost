@@ -10,6 +10,7 @@ import Card from '../components/Card';
 import Badge from '../components/Badge';
 import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../utils/motion';
 import { formatVND } from '../utils/currency';
+import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
 
 const PlantDetail = () => {
@@ -52,10 +53,13 @@ const PlantDetail = () => {
   const category = String(plant?.category || '').toLowerCase();
   const isPlant = !['pot', 'soil', 'fertilizer', 'accessory'].includes(category);
   const feedbackMarketplaceItemId = plant?.marketplaceItemId || plant?.id;
+  const lightDisplay = getCareScaleDisplay('light', plant?.light, t);
+  const waterDisplay = getCareScaleDisplay('water', plant?.water, t);
+  const careDisplay = getCareScaleDisplay('care', plant?.difficulty, t);
   const careHighlights = [
-    { icon: 'wb_sunny', label: t('detail.care.light'), value: plant?.light || t('detail.care.lightFallback'), tone: 'text-amber-500' },
-    { icon: 'water_drop', label: t('detail.care.water'), value: plant?.water || t('detail.care.waterFallback'), tone: 'text-sky-500' },
-    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: plant?.difficulty || t('detail.care.difficultyFallback'), tone: 'text-primary' },
+    { icon: 'wb_sunny', label: t('detail.care.light'), value: lightDisplay.value || t('detail.care.lightFallback'), hint: lightDisplay.hint, tone: 'text-amber-500' },
+    { icon: 'water_drop', label: t('detail.care.water'), value: waterDisplay.value || t('detail.care.waterFallback'), hint: waterDisplay.hint, tone: 'text-sky-500' },
+    { icon: 'psychiatry', label: t('detail.care.difficulty'), value: careDisplay.value || t('detail.care.difficultyFallback'), hint: careDisplay.hint, tone: 'text-primary' },
   ];
   const trustStats = [
     ['verified', t('detail.trust.feedback'), t('detail.trust.records', { count: feedbackItems.length })],
@@ -126,12 +130,12 @@ const PlantDetail = () => {
 
   const handleContactFacebook = () => {
     alert(t('detail.alert.facebook'));
-    window.open("https://m.me/deskboost", "_blank");
+    window.open("https://www.facebook.com/profile.php?id=61589573026631", "_blank");
   };
 
   const handleContactZalo = () => {
     alert(t('detail.alert.zalo'));
-    window.open("https://zalo.me/YOUR_ZALO_NUMBER", "_blank");
+    window.open("https://zalo.me/0345674779", "_blank");
   };
 
   if (plantLoading || !plant) {
@@ -177,6 +181,7 @@ const PlantDetail = () => {
                   <span className={`material-symbols-outlined text-2xl ${item.tone}`} aria-hidden="true">{item.icon}</span>
                   <p className="mt-2 text-[11px] font-extrabold text-text-secondary dark:text-slate-400">{item.label}</p>
                   <p className="mt-1 text-xs font-bold leading-5 text-[#111813] dark:text-white">{item.value}</p>
+                  {item.hint && <p className="mt-1 text-[11px] font-semibold leading-4 text-text-secondary dark:text-slate-400">{item.hint}</p>}
                 </Card>
               ))}
             </div>
@@ -203,11 +208,34 @@ const PlantDetail = () => {
                 <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary dark:text-slate-300">{t('detail.priceNote')}</p>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Button variant="channel" size="lg" onClick={handleContactZalo} className="w-full bg-[#0068FF] hover:bg-[#0055d4] animate-cta-pulse-once">{t('detail.zalo')}</Button>
-                <Button variant="channel" size="lg" onClick={handleContactFacebook} className="w-full bg-[#0866FF] hover:bg-[#0050d1] animate-cta-pulse-once">{t('detail.messenger')}</Button>
+              <div className="mt-5 rounded-3xl border border-[#E4EEE6] bg-white/80 p-3 shadow-sm dark:border-[#2A4532] dark:bg-white/5">
+                <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                  <div>
+                    <p className="text-sm font-extrabold text-[#111813] dark:text-white">{t('detail.contactChannels')}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-text-secondary dark:text-slate-400">{t('detail.contactChannelsDesc')}</p>
+                  </div>
+                  <span className="material-symbols-outlined rounded-2xl bg-primary/10 p-2 text-primary" aria-hidden="true">forum</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button variant="channel" size="lg" onClick={handleContactZalo} className="group w-full justify-start rounded-2xl bg-[#0068FF] px-4 shadow-[#0068FF]/20 hover:bg-[#0055d4] animate-cta-pulse-once">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">Z</span>
+                    <span className="min-w-0 text-left">
+                      <span className="block truncate text-sm font-extrabold">{t('detail.zalo')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-white/80">0345674779</span>
+                    </span>
+                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                  </Button>
+                  <Button variant="channel" size="lg" onClick={handleContactFacebook} className="group w-full justify-start rounded-2xl bg-[#0866FF] px-4 shadow-[#0866FF]/20 hover:bg-[#0050d1] animate-cta-pulse-once">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">f</span>
+                    <span className="min-w-0 text-left">
+                      <span className="block truncate text-sm font-extrabold">{t('detail.messenger')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-white/80">Facebook</span>
+                    </span>
+                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                  </Button>
+                </div>
+                <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full rounded-2xl bg-white font-extrabold dark:bg-slate-950/40 animate-cta-pulse-once">{t('detail.contactThis')}</Button>
               </div>
-              <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full animate-cta-pulse-once">{t('detail.contactThis')}</Button>
               <p className="mt-3 text-center text-xs font-bold text-text-secondary dark:text-slate-400">{t('detail.noCheckout')}</p>
             </Card>
           </aside>
@@ -225,33 +253,6 @@ const PlantDetail = () => {
           ))}
         </section>
 
-        <section className="mt-8" aria-labelledby="qr-foundation-heading">
-          <Card radius="hero" variant="subtle">
-            <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
-              <div>
-                <Badge tone="neutral" icon="qr_code_2" className="mb-4">{t('detail.qr.badge')}</Badge>
-                <h2 id="qr-foundation-heading" className="text-2xl font-extrabold text-[#111813] dark:text-white">{t('detail.qr.title')}</h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-7 text-text-secondary dark:text-slate-300">{t('detail.qr.description')}</p>
-              </div>
-              <Badge tone="neutral" size="md">{plant.isClaimed ? t('detail.qr.claimed') : t('detail.qr.notReady')}</Badge>
-            </div>
-            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.code')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{plant.ownershipCode || t('detail.qr.unavailable')}</p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.status')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{plant.ownershipStatus || t('detail.qr.unavailable')}</p>
-              </div>
-              <div className="rounded-2xl border border-dashed border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
-                <p className="text-xs font-extrabold text-text-secondary dark:text-slate-400">{t('detail.qr.identity')}</p>
-                <p className="mt-1 text-sm font-bold text-[#111813] dark:text-white">{t('detail.qr.noQr')}</p>
-              </div>
-            </div>
-          </Card>
-        </section>
-
         <section className="mt-8 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <Card radius="hero" variant="subtle" aria-labelledby="workspace-fit-heading">
             <Badge tone="primary" icon="desk" className="mb-4">{t('detail.workspace.badge')}</Badge>
@@ -259,7 +260,7 @@ const PlantDetail = () => {
             <div className="mt-5 space-y-4">
               {[
                 [t('detail.workspace.position'), isPlant ? t('detail.workspace.positionPlant') : t('detail.workspace.positionAccessory')],
-                [t('detail.workspace.careLevel'), plant.difficulty || t('detail.workspace.careLevelFallback')],
+                [t('detail.workspace.careLevel'), careDisplay.value || t('detail.workspace.careLevelFallback')],
                 [t('detail.workspace.askSeller'), t('detail.workspace.askSellerDesc')],
               ].map(([title, desc]) => (
                 <div key={title} className="rounded-2xl border border-[#E4EEE6] bg-white/70 p-4 dark:border-[#2A4532] dark:bg-white/5">
@@ -279,6 +280,7 @@ const PlantDetail = () => {
                 <div key={item.label} className="rounded-2xl bg-primary/5 p-4 dark:bg-primary/10">
                   <p className="text-xs font-extrabold text-primary dark:text-green-200">{item.label}</p>
                   <p className="mt-1 text-sm font-bold leading-6 text-[#111813] dark:text-white">{item.value}</p>
+                  {item.hint && <p className="mt-1 text-xs font-medium leading-5 text-text-secondary dark:text-slate-300">{item.hint}</p>}
                 </div>
               ))}
             </div>

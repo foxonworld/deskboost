@@ -20,6 +20,9 @@ namespace DeskBoost.Infrastructure.Persistence
         public DbSet<AiDialog> AiDialogs => Set<AiDialog>();
         public DbSet<AiMessage> AiMessages => Set<AiMessage>();
         public DbSet<Feedback> Feedbacks => Set<Feedback>();
+        public DbSet<AiUsage> AiUsages => Set<AiUsage>();
+        public DbSet<Notification> Notifications => Set<Notification>();
+        public DbSet<NotificationRead> NotificationReads => Set<NotificationRead>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

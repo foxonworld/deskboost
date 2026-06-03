@@ -3,4 +3,4 @@ using MediatR;
 
 namespace DeskBoost.Application.Features.AiDialogs.Queries;
 
-public record GetAiDialogsQuery(Guid UserId) : IRequest<List<AiDialogListItemDto>>;
+public record GetAiDialogsQuery(Guid UserId, Guid? PlantId = null, int? Limit = null) : IRequest<List<AiDialogListItemDto>>;

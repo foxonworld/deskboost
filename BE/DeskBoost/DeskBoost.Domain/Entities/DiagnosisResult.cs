@@ -8,6 +8,7 @@ namespace DeskBoost.Domain.Entities
 {
     public class DiagnosisResult : BaseEntity
     {
+        public Guid? UserId { get; set; }
         public Guid? PlantId { get; set; }
         public string ImageUrl { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;  // "Healthy" | "Warning" | "Critical"
