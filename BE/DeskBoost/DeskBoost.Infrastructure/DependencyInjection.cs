@@ -24,6 +24,7 @@ namespace DeskBoost.Infrastructure
             services.AddScoped<IDiagnosisOrchestrator, DiagnosisOrchestrator>();
             services.AddHttpClient<IAiChatService, GeminiChatService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddSingleton<IAiConfiguration, AiConfigurationService>();
             services.AddScoped<IStorageService, CloudinaryStorageService>();
             services.AddScoped<IAiQuotaService, AiQuotaService>();

@@ -113,4 +113,16 @@ public class AuthController : ControllerBase
         var result = await _sender.Send(new ResetPasswordCommand(request.Token, request.NewPassword), ct);
         return Ok(result);
     }
+
+    /// <summary>POST /api/auth/google</summary>
+    [HttpPost("google")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdToken))
+            throw new ValidationException("Google ID token không được để trống.");
+
+        var result = await _sender.Send(new GoogleLoginCommand(request.IdToken), ct);
+        return Ok(result);
+    }
 }

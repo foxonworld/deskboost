@@ -26,7 +26,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email == emailLower && u.IsActive, ct);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user is null || user.PasswordHash is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedException("Email hoặc mật khẩu không đúng.");
 
         var refreshInfo = _jwt.GenerateRefreshToken();
