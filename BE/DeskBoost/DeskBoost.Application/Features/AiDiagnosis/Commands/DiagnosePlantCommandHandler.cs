@@ -1,6 +1,7 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Entities;
+using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
@@ -42,6 +43,19 @@ public class DiagnosePlantCommandHandler : IRequestHandler<DiagnosePlantCommand,
                 Confidence = result.Confidence
             };
             _db.DiagnosisResults.Add(entity);
+
+            // Cập nhật Plant.Status dựa trên kết quả AI
+            if (request.PlantId.HasValue)
+            {
+                var plant = await _db.Plants.FindAsync(new object[] { request.PlantId.Value }, ct);
+                if (plant is not null)
+                {
+                    plant.Status = result.IsHealthy ? PlantStatus.Healthy : PlantStatus.Issue;
+                    plant.LastCondition = result.IsHealthy ? PlantCondition.Healthy : PlantCondition.Critical;
+                    plant.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
             await _db.SaveChangesAsync(ct);
         }
 

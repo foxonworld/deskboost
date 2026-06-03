@@ -41,3 +41,21 @@ public record ClaimPreviewItemDto(
     string? Light,
     string? Water
 );
+
+public record CareSummaryDto(
+    DateTime? NextWateringAt,
+    DateTime? LastWateredAt,
+    int WateringCycleDays,
+    string LastCondition,
+    int TotalPendingReminders,
+    int TotalAiDialogs
+);
+
+public record PlantCareProfileDto(
+    MyPlantDto Plant,
+    List<ReminderDto> NextReminders,
+    List<ReminderDto> RecentCompletedReminders,
+    List<AiDialogListItemDto> RecentAiDialogs,
+    DiagnosisListItemDto? LatestDiagnosis,
+    CareSummaryDto CareSummary
+);

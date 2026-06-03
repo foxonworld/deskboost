@@ -1,4 +1,4 @@
-import { get, put } from "./api";
+import { get, put, post } from "./api";
 
 const unwrapProfile = (response = {}) =>
   response.user || response.profile || response.data || response;
@@ -57,3 +57,5 @@ export const toUserProfilePayload = (payload = {}) => ({
 export const getMe = () => get("/users/me").then(normalizeUserProfile);
 export const updateMe = (payload) =>
   put("/users/me", toUserProfilePayload(payload)).then(normalizeUserProfile);
+export const changePassword = (currentPassword, newPassword) =>
+  post("/users/me/change-password", { currentPassword, newPassword });

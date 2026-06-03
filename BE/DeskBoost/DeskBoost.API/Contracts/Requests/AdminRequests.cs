@@ -43,3 +43,12 @@ public class PlantInventoryUpsertRequest
     public int WateringCycleDays { get; set; } = 3;
     public string? Notes { get; set; }
 }
+
+public class UpdateAdminUserRequest
+{
+    public string? FullName { get; set; }
+    public string? Email { get; set; }
+    public string? Phone { get; set; }
+    public string? AvatarUrl { get; set; }
+    public string? Role { get; set; }
+}

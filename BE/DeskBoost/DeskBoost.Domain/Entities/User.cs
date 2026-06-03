@@ -12,6 +12,8 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
     public string? AvatarUrl { get; set; }
     public string? Phone { get; set; }
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpiresAt { get; set; }
 
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

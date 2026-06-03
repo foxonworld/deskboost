@@ -20,10 +20,10 @@ public class RemindersController : ControllerBase
 
     /// <summary>GET /api/reminders</summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll(CancellationToken ct)
+    public async Task<IActionResult> GetAll([FromQuery] Guid? plantId, CancellationToken ct)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var items = await _sender.Send(new GetRemindersQuery(userId), ct);
+        var items = await _sender.Send(new GetRemindersQuery(userId, plantId), ct);
         return Ok(new { items });
     }
 
@@ -107,7 +107,7 @@ public class RemindersController : ControllerBase
         if (format?.ToLower() == "ics")
         {
             var ics = BuildIcsContent(result);
-            return File(Encoding.UTF8.GetBytes(ics), "text/calendar", "reminder.ics");
+            return File(System.Text.Encoding.UTF8.GetBytes(ics), "text/calendar", "reminder.ics");
         }
 
         return Ok(result);

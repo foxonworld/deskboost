@@ -63,6 +63,44 @@ public class AdminController : ControllerBase
         }
     }
 
+    /// <summary>PUT /api/admin/users/{id}</summary>
+    [HttpPut("users/{id:guid}")]
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateAdminUserRequest request, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _sender.Send(new UpdateAdminUserCommand
+            {
+                UserId = id,
+                FullName = request.FullName,
+                Email = request.Email,
+                Phone = request.Phone,
+                AvatarUrl = request.AvatarUrl,
+                Role = request.Role
+            }, ct);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>DELETE /api/admin/users/{id}</summary>
+    [HttpDelete("users/{id:guid}")]
+    public async Task<IActionResult> DeleteUser(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(new DeleteAdminUserCommand(id), ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
     // ── User Plants (claimed plants with owner) ───────────────────────────────
 
     /// <summary>GET /api/admin/user-plants</summary>

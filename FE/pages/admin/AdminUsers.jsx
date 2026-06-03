@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { getAdminUser, getAdminUsers, updateAdminUserStatus } from '../../services/adminApi';
+import { getAdminUser, getAdminUsers, updateAdminUserStatus, updateAdminUser, deleteAdminUser } from '../../services/adminApi';
 import { adminSendNotification } from '../../services/notificationApi';
 import { useI18n } from '../../i18n';
 
@@ -23,6 +23,9 @@ const AdminUsers = () => {
   const [statusValue, setStatusValue] = useState('active');
   const [savingStatus, setSavingStatus] = useState(false);
   const [statusError, setStatusError] = useState('');
+  const [editForm, setEditForm] = useState({ name: '', role: '', status: '' });
+  const [savingUser, setSavingUser] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [quickSendForm, setQuickSendForm] = useState({ title: '', body: '', type: 'announcement' });
   const [quickSending, setQuickSending] = useState(false);
   const [quickSendResult, setQuickSendResult] = useState(null);
@@ -61,6 +64,7 @@ const AdminUsers = () => {
       const data = await getAdminUser(userId);
       setSelectedUser(data);
       setStatusValue(data.status || 'active');
+      setEditForm({ name: data.name || '', role: data.role || 'user', status: data.status || 'active' });
     } catch (err) {
       setDetailError(err?.message || t('admin.users.error.detail'));
     } finally {
@@ -88,6 +92,37 @@ const AdminUsers = () => {
       setStatusError(err?.message || t('admin.users.error.status'));
     } finally {
       setSavingStatus(false);
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!selectedUser?.id) return;
+    setSavingUser(true);
+    setStatusError('');
+    try {
+      const updated = await updateAdminUser(selectedUser.id, editForm);
+      setSelectedUser(updated);
+      setUsers((current) => current.map((user) => (user.id === updated.id ? { ...user, ...updated } : user)));
+      setStatusError('Cập nhật thành công!');
+      setTimeout(() => setStatusError(''), 3000);
+    } catch (err) {
+      setStatusError(err?.message || 'Lỗi cập nhật người dùng');
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser?.id || !window.confirm('Bạn có chắc muốn xóa người dùng này?')) return;
+    setDeletingUser(true);
+    try {
+      await deleteAdminUser(selectedUser.id);
+      setUsers((current) => current.filter((u) => u.id !== selectedUser.id));
+      setSelectedUser(null);
+    } catch (err) {
+      setStatusError(err?.message || 'Lỗi xóa người dùng');
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -226,31 +261,42 @@ const AdminUsers = () => {
                     </dl>
                   </div>
 
-                  {/* Cập nhật trạng thái */}
+                  {/* Cập nhật người dùng */}
                   <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
-                    <label className="text-sm font-black text-slate-700 dark:text-slate-200" htmlFor="admin-user-status">{t('admin.field.status')}</label>
-                    <select
-                      id="admin-user-status"
-                      value={statusValue}
-                      onChange={(event) => setStatusValue(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-                    >
-                      {statusOptions.map((option) => (
-                        <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
-                      ))}
-                    </select>
-                    {statusError && <p className="mt-3 text-sm font-bold text-rose-600">{statusError}</p>}
-                    <button
-                      type="button"
-                      onClick={handleStatusUpdate}
-                      disabled={savingStatus || statusValue === selectedUser.status}
-                      className="mt-4 rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {savingStatus ? t('common.saving') : t('admin.users.updateStatus')}
-                    </button>
-                    <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs font-bold leading-5 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
-                      {t('admin.users.actionNote')}
-                    </p>
+                    <p className="text-sm font-black text-slate-700 dark:text-slate-200 mb-4">Chỉnh sửa Tài khoản</p>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 block mb-1">Họ và Tên</label>
+                        <input type="text" value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 block mb-1">Vai trò (Role)</label>
+                        <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 block mb-1">Trạng thái (Status)</label>
+                        <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white">
+                          {statusOptions.map((option) => (
+                            <option key={option.value} value={option.value}>{t(option.labelKey)}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {statusError && <p className={`mt-3 text-sm font-bold ${statusError.includes('thành công') ? 'text-[#4CAF50]' : 'text-rose-600'}`}>{statusError}</p>}
+                    
+                    <div className="mt-5 flex gap-3">
+                      <button type="button" onClick={handleUpdateUser} disabled={savingUser} className="flex-1 rounded-xl bg-[#4CAF50] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:opacity-50">
+                        {savingUser ? t('common.saving') : 'Lưu thay đổi'}
+                      </button>
+                      <button type="button" onClick={handleDeleteUser} disabled={deletingUser} className="rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-black text-rose-600 transition hover:bg-rose-100 disabled:opacity-50">
+                        Xóa
+                      </button>
+                    </div>
                   </div>
                 </div>
 

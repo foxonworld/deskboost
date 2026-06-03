@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { deleteMyPlant, getMyPlant, getMyPlants, updateMyPlant } from '../services/plantApi';
-import { getReminders, getReminderTypeLabel } from '../services/reminderApi';
-import { getMyAiDialogs } from '../services/aiApi';
+import { deleteMyPlant, updateMyPlant, getPlantCareProfile } from '../services/plantApi';
+import { getReminderTypeLabel } from '../services/reminderApi';
 import { uploadImage, validateImageFile } from '../services/uploadApi';
 import { useI18n } from '../i18n';
 
@@ -62,8 +61,7 @@ const PlantProfile = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [plant, setPlant] = useState(null);
-  const [reminders, setReminders] = useState([]);
-  const [aiDialogs, setAiDialogs] = useState([]);
+  const [careProfile, setCareProfile] = useState(null);
   const [form, setForm] = useState({ nickname: '', species: '', location: '', imageUrl: '', status: '', notes: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,31 +89,15 @@ const PlantProfile = () => {
       setError('');
       setSecondaryError('');
       try {
-        const [plantResult, plantsResult, remindersResult, dialogsResult] = await Promise.allSettled([
-          getMyPlant(id),
-          getMyPlants(),
-          getReminders(),
-          getMyAiDialogs({ limit: 20 }),
-        ]);
-
+        const profile = await getPlantCareProfile(id);
         if (!alive) return;
-        const listPlant = plantsResult.status === 'fulfilled'
-          ? (plantsResult.value?.items || []).find((item) => item.id === id)
-          : null;
-        if (plantResult.status !== 'fulfilled' && !listPlant) {
-          setPlant(null);
-          setError(plantResult.reason?.message || t('plantProfile.notFoundError'));
-          return;
-        }
-
-        const nextPlant = plantResult.status === 'fulfilled' ? (plantResult.value?.data || plantResult.value) : listPlant;
-        setPlant(nextPlant);
-        syncForm(nextPlant);
-        setReminders(remindersResult.status === 'fulfilled' ? remindersResult.value || [] : []);
-        setAiDialogs(dialogsResult.status === 'fulfilled' ? dialogsResult.value?.items || [] : []);
-        if (remindersResult.status !== 'fulfilled' || dialogsResult.status !== 'fulfilled') {
-          setSecondaryError('Một phần dữ liệu chăm sóc chưa tải được. Hồ sơ cây vẫn dùng dữ liệu thật hiện có.');
-        }
+        setPlant(profile.plant);
+        setCareProfile(profile);
+        syncForm(profile.plant);
+      } catch (err) {
+        if (!alive) return;
+        setPlant(null);
+        setError(err?.message || t('plantProfile.notFoundError'));
       } finally {
         if (alive) setIsLoading(false);
       }
@@ -128,12 +110,11 @@ const PlantProfile = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  const plantReminders = useMemo(() => reminders.filter((reminder) => reminder.plantId === id), [reminders, id]);
-  const pendingReminders = useMemo(() => sortByDueAt(plantReminders.filter((reminder) => reminder.enabled && !reminder.completed)), [plantReminders]);
-  const wateringReminders = useMemo(() => plantReminders.filter(isWateringReminder), [plantReminders]);
-  const nextWatering = useMemo(() => sortByDueAt(wateringReminders.filter((reminder) => reminder.enabled && !reminder.completed))[0] || null, [wateringReminders]);
-  const lastWatered = useMemo(() => sortByLatestDone(wateringReminders.filter((reminder) => reminder.completedAt))[0] || null, [wateringReminders]);
-  const recentDialogs = useMemo(() => aiDialogs.filter((dialog) => dialog.plantId === id).slice(0, 4), [aiDialogs, id]);
+  const pendingReminders = useMemo(() => careProfile?.nextReminders || [], [careProfile]);
+  const nextWatering = useMemo(() => careProfile?.careSummary?.nextWateringAt ? { dueAt: careProfile.careSummary.nextWateringAt } : null, [careProfile]);
+  const lastWatered = useMemo(() => careProfile?.careSummary?.lastWateredAt ? { completedAt: careProfile.careSummary.lastWateredAt } : null, [careProfile]);
+  const recentDialogs = useMemo(() => careProfile?.recentAiDialogs || [], [careProfile]);
+  const latestDiagnosis = useMemo(() => careProfile?.latestDiagnosis || null, [careProfile]);
 
   const imageSrc = previewUrl || form.imageUrl || plant?.image || plant?.imageUrl;
   const plantName = plant?.nickname || plant?.name || 'Cây của tôi';
@@ -245,11 +226,11 @@ const PlantProfile = () => {
           <>
             <section className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="grid gap-0 lg:grid-cols-[0.9fr_1.1fr]">
-                <div className="relative min-h-72 bg-slate-100 dark:bg-slate-800">
+                <div className="relative h-72 sm:h-96 lg:h-auto lg:min-h-[400px] bg-slate-100 dark:bg-slate-800">
                   {imageSrc ? (
-                    <img src={imageSrc} alt={plantName} className="h-full min-h-72 w-full object-cover" />
+                    <img src={imageSrc} alt={plantName} className="absolute inset-0 h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full min-h-72 items-center justify-center text-[#4CAF50]">
+                    <div className="absolute inset-0 flex items-center justify-center text-[#4CAF50]">
                       <span className="material-symbols-outlined text-7xl" aria-hidden="true">potted_plant</span>
                     </div>
                   )}
@@ -290,7 +271,7 @@ const PlantProfile = () => {
             </section>
 
             <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -320,7 +301,7 @@ const PlantProfile = () => {
                         <span className="material-symbols-outlined text-[#4CAF50]" aria-hidden="true">notifications_active</span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-black text-slate-900 dark:text-white">{reminder.title || careTypeLabels[reminder.type] || getReminderTypeLabel(reminder.type)}</p>
-                          <p className="text-xs font-bold text-slate-500">{careTypeLabels[reminder.type] || reminder.type} · {formatDateTime(reminder.dueAt)}</p>
+                          <p className="truncate text-xs font-bold text-slate-500">{careTypeLabels[reminder.type] || reminder.type} · {formatDateTime(reminder.dueAt)}</p>
                         </div>
                       </div>
                     )) : (
@@ -333,7 +314,7 @@ const PlantProfile = () => {
                 </div>
               </div>
 
-              <aside className="space-y-6">
+              <aside className="min-w-0 space-y-6">
                 <div className="rounded-3xl border border-[#A5D6A7] bg-[#F0FDF4] p-5 shadow-sm dark:bg-[#4CAF50]/10">
                   <p className="text-xs font-black uppercase tracking-wide text-[#2E7D32]">AI care</p>
                   <h2 className="mt-1 text-xl font-black text-slate-900 dark:text-white">Làm việc tiếp với AI</h2>

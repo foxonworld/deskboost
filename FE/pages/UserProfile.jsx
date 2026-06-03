@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { LoadingState, StateNotice } from '../components/UiState';
-import { getMe, updateMe } from '../services/userApi';
+import { getMe, updateMe, changePassword } from '../services/userApi';
 import { uploadImage, validateImageFile } from '../services/uploadApi';
 import { useAuth } from '../hooks/useAuth';
 import { useI18n } from '../i18n';
@@ -35,6 +35,13 @@ const UserProfile = () => {
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordNotice, setPasswordNotice] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
   const applyProfile = (nextProfile) => {
     setProfile(nextProfile);
@@ -136,6 +143,37 @@ const UserProfile = () => {
       setError(err?.message || t('userProfile.errorSave'));
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordNotice('');
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setPasswordError('Vui lòng nhập đầy đủ mật khẩu.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Mật khẩu mới không khớp.');
+      return;
+    }
+    if (newPassword.length < 6) {
+      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự.');
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setPasswordNotice('Đổi mật khẩu thành công!');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => setPasswordNotice(''), 3000);
+    } catch (err) {
+      setPasswordError(err?.message || 'Đổi mật khẩu thất bại.');
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -261,9 +299,33 @@ const UserProfile = () => {
                     <span className="size-8 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center text-[#4CAF50]">
                       <span className="material-symbols-outlined text-sm">security</span>
                     </span>
-                    {t('userProfile.security')}
+                    {t('userProfile.security', 'Bảo mật')}
                   </h3>
-                  <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{t('userProfile.passwordUnsupported')}</p>
+                  
+                  <div className="space-y-4">
+                    {passwordError && <StateNotice tone="error">{passwordError}</StateNotice>}
+                    {passwordNotice && <StateNotice tone="success">{passwordNotice}</StateNotice>}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mật khẩu hiện tại</label>
+                        <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full h-14 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-6 text-sm font-bold dark:text-white focus:ring-4 focus:ring-[#4CAF50]/5 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mật khẩu mới</label>
+                        <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full h-14 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-6 text-sm font-bold dark:text-white focus:ring-4 focus:ring-[#4CAF50]/5 outline-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Xác nhận mật khẩu mới</label>
+                        <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full h-14 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 px-6 text-sm font-bold dark:text-white focus:ring-4 focus:ring-[#4CAF50]/5 outline-none" />
+                      </div>
+                      <div className="space-y-2 flex items-end">
+                         <button type="button" onClick={handlePasswordSubmit} disabled={changingPassword} className="h-14 px-8 rounded-2xl bg-[#4CAF50] text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:hover:scale-100">
+                          {changingPassword ? 'Đang đổi...' : 'Đổi mật khẩu'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

@@ -54,6 +54,14 @@ export const forgotPassword = async (email) => {
   }
 };
 
+export const resetPassword = async (token, newPassword) => {
+  try {
+    return await post("/auth/reset-password", { token, newPassword });
+  } catch (err) {
+    normalizeError(err);
+  }
+};
+
 export const getCurrentUser = async () => normalizeUser(await get("/auth/me"));
 
 export const apiRegister = (name, email, password) =>

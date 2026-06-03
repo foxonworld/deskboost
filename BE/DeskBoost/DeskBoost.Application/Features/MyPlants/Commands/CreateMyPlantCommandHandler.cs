@@ -34,7 +34,10 @@ public class CreateMyPlantCommandHandler : IRequestHandler<CreateMyPlantCommand,
         return ToDto(plant, plant.SpeciesName);
     }
 
-    internal static MyPlantDto ToDto(Plant p, string? speciesName) => new(
+    internal static MyPlantDto ToDto(Plant p, string? speciesName) =>
+        ToDtoWithStatus(p, speciesName, p.Status.ToApiString());
+
+    internal static MyPlantDto ToDtoWithStatus(Plant p, string? speciesName, string computedStatus) => new(
         p.Id,
         p.MarketplaceItemId,
         p.ClaimCodeId,
@@ -44,7 +47,7 @@ public class CreateMyPlantCommandHandler : IRequestHandler<CreateMyPlantCommand,
         p.PlantSpeciesId,
         p.Location,
         p.ImageUrl,
-        p.Status.ToApiString(),
+        computedStatus,
         p.CareLevel,
         p.Light,
         p.Water,

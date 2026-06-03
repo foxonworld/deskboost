@@ -181,6 +181,12 @@ export const getAdminUsers = (params) =>
 export const getAdminUser = (id) =>
   get(`/admin/users/${id}`).then(normalizeAdminUser);
 
+export const updateAdminUser = (id, payload) =>
+  put(`/admin/users/${id}`, payload).then(normalizeAdminUser);
+
+export const deleteAdminUser = (id) =>
+  del(`/admin/users/${id}`);
+
 export const updateAdminUserStatus = (id, payload) =>
   put(`/admin/users/${id}/status`, payload).then(normalizeAdminUser);
 

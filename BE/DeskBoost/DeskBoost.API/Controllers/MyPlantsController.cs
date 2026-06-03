@@ -129,4 +129,15 @@ public class MyPlantsController : ControllerBase
         await _sender.Send(new DeleteMyPlantCommand(id, userId), ct);
         return NoContent();
     }
+
+    /// <summary>GET /api/my-plants/{id}/care-profile</summary>
+    [HttpGet("{id:guid}/care-profile")]
+    public async Task<IActionResult> GetCareProfile(Guid id, CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _sender.Send(new GetPlantCareProfileQuery(id, userId), ct);
+        if (result is null)
+            return NotFound(new { message = $"Không tìm thấy cây với ID {id}" });
+        return Ok(result);
+    }
 }

@@ -34,6 +34,16 @@ public class MarkReminderDoneCommandHandler : IRequestHandler<MarkReminderDoneCo
         }
         reminder.UpdatedAt = DateTime.UtcNow;
 
+        // Khi tưới xong → cập nhật Plant.Status (ưu tiên: issue > needs-water > healthy)
+        if (reminder.CareType == CareType.Watering && reminder.Plant is not null)
+        {
+            if (reminder.Plant.Status != PlantStatus.Issue)
+            {
+                reminder.Plant.Status = PlantStatus.Healthy;
+                reminder.Plant.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
         await _db.SaveChangesAsync(ct);
 
         return new ReminderDto(

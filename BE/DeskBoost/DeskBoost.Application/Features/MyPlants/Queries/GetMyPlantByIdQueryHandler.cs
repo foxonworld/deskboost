@@ -27,6 +27,7 @@ public class GetMyPlantByIdQueryHandler : IRequestHandler<GetMyPlantByIdQuery, M
             speciesName = species?.Name;
         }
 
-        return CreateMyPlantCommandHandler.ToDto(p, speciesName);
+        var computedStatus = await GetMyPlantsQueryHandler.ComputeStatusAsync(_db, p, DateTime.UtcNow, ct);
+        return CreateMyPlantCommandHandler.ToDtoWithStatus(p, speciesName, computedStatus);
     }
 }

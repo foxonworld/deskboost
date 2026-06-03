@@ -16,7 +16,8 @@ public class GetRemindersQueryHandler : IRequestHandler<GetRemindersQuery, List<
     {
         var reminders = await _db.Reminders
             .Include(r => r.Plant)
-            .Where(r => r.UserId == request.UserId && r.IsActive)
+            .Where(r => r.UserId == request.UserId && r.IsActive
+                        && (request.PlantId == null || r.PlantId == request.PlantId))
             .OrderBy(r => r.DueAt)
             .ToListAsync(ct);
 

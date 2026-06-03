@@ -13,3 +13,13 @@ public class DiagnosisResultDto
     public string? Message { get; set; }
     public List<PlantIdSuggestion> Suggestions { get; set; } = new();
 }
+
+public record DiagnosisListItemDto(
+    Guid Id,
+    Guid? PlantId,
+    string Condition,
+    double Confidence,
+    DateTime CreatedAt,
+    string? Disease,
+    string? Treatment
+);

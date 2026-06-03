@@ -120,6 +120,10 @@ export const getMyPlants = () =>
 export const createMyPlant = (payload) =>
   post("/my-plants", toMyPlantPayload(payload)).then(normalizeMyPlant);
 export const getMyPlant = (id) => get(`/my-plants/${id}`).then(normalizeMyPlant);
+export const getPlantCareProfile = (id) => get(`/my-plants/${id}/care-profile`).then((data) => ({
+  ...data,
+  plant: normalizeMyPlant(data?.plant),
+}));
 export const updateMyPlant = (id, payload) =>
   put(`/my-plants/${id}`, toMyPlantPayload(payload)).then(normalizeMyPlant);
 export const deleteMyPlant = (id) => del(`/my-plants/${id}`);
