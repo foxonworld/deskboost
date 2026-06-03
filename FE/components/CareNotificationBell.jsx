@@ -30,7 +30,7 @@ const timeAgo = (isoString) => {
 const CareNotificationBell = () => {
   const { t } = useI18n();
   const {
-    pendingTasks, doneTasks, urgentCount, loading, error, notificationOpen, setNotificationOpen, markDone, undoDone,
+    pendingTasks, upcomingTasks, doneTasks, doneTodayCount, todayTotalCount, urgentCount, loading, error, notificationOpen, setNotificationOpen, markDone, undoDone,
     adminNotifs, unreadAdminCount, notifsLoading, markAdminRead, markAllAdminRead,
   } = useCare();
   const panelRef = useRef(null);
@@ -51,7 +51,7 @@ const CareNotificationBell = () => {
   }, [notificationOpen, setNotificationOpen]);
 
   const totalPending = pendingTasks.length;
-  const totalBadge = totalPending + unreadAdminCount;
+  const totalBadge = urgentCount + unreadAdminCount;
 
   const handleMarkDone = async (taskId) => {
     try {
@@ -194,14 +194,14 @@ const CareNotificationBell = () => {
               </div>
             )}
 
-            {!loading && totalPending === 0 && doneTasks.length === 0 && !error && adminNotifs.length === 0 && (
+            {!loading && totalPending === 0 && upcomingTasks.length === 0 && doneTasks.length === 0 && !error && adminNotifs.length === 0 && (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">🌿</div>
                 <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{t('careBell.empty')}</p>
               </div>
             )}
 
-            {!loading && totalPending === 0 && doneTasks.length === 0 && !error && adminNotifs.length > 0 && (
+            {!loading && totalPending === 0 && upcomingTasks.length === 0 && doneTasks.length === 0 && !error && adminNotifs.length > 0 && (
               <div className="px-5 py-3 text-center">
                 <p className="text-xs font-bold text-slate-400">{t('careBell.allDone')}</p>
               </div>
@@ -241,7 +241,7 @@ const CareNotificationBell = () => {
                           title={t('careBell.confirmDone')}
                         >
                           <span className="material-symbols-outlined text-xs" style={{ fontSize: '13px' }}>check</span>
-                          {t('careBell.doneButton')}
+                          {t('careBell.doneTodayButton')}
                         </button>
                         <Link
                           to={task.plantPath}
@@ -259,9 +259,53 @@ const CareNotificationBell = () => {
               </div>
             )}
 
+            {!loading && upcomingTasks.length > 0 && (
+              <div className="px-3 pb-3">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.upcomingSection')}</span>
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                </div>
+                <div className="space-y-1.5">
+                  {upcomingTasks.slice(0, 3).map((task) => {
+                    const cfg = urgencyConfig.upcoming;
+                    return (
+                      <div key={task.id} className={`flex items-center gap-3 p-3 rounded-2xl border ${cfg.bg} border-transparent opacity-90`}>
+                        <div className="flex-shrink-0 size-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-lg">
+                          {task.plantEmoji || '🌿'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{task.plantName}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className={`material-symbols-outlined text-xs ${cfg.color}`} style={{ fontSize: '13px' }}>
+                              {task.taskIcon}
+                            </span>
+                            <span className="text-xs text-slate-500 font-medium">{task.taskLabel} · {task.dueTime}</span>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
+                            <span className={`text-[10px] font-bold ${cfg.color}`}>{t(cfg.labelKey)}</span>
+                          </div>
+                        </div>
+                        <Link
+                          to={task.plantPath}
+                          onClick={() => setNotificationOpen(false)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold rounded-xl hover:border-[#4CAF50]/40 hover:text-[#4CAF50] transition-all"
+                          title={t('careBell.viewProfile')}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>open_in_new</span>
+                          {t('careBell.profile')}
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {!loading && doneTasks.length > 0 && (
               <div className="px-3 pb-3">
-                {pendingTasks.length > 0 && (
+                {(pendingTasks.length > 0 || upcomingTasks.length > 0) && (
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.doneSection')}</span>
@@ -298,7 +342,7 @@ const CareNotificationBell = () => {
           {/* ── Footer ── */}
           <div className="px-5 py-3 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-[10px] text-slate-400 font-medium">
-              {t('careBell.footer', { done: doneTasks.length, total: doneTasks.length + pendingTasks.length })}
+              {t('careBell.footer', { done: doneTodayCount, total: todayTotalCount })}
             </p>
             <Link
               to="/app/settings"

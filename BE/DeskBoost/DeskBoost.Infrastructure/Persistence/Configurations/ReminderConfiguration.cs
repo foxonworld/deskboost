@@ -18,7 +18,7 @@ public class ReminderConfiguration : IEntityTypeConfiguration<Reminder>
         builder.Property(r => r.RepeatRule)
             .HasMaxLength(50)
             .HasConversion(
-                v => v.HasValue ? v.Value.ToString().ToLowerInvariant() : null,
+                v => v.ToApiString(),
                 v => v.ToRepeatRule());
 
         builder.Property(r => r.Status)

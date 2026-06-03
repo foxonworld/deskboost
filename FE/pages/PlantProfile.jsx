@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { deleteMyPlant, updateMyPlant, getPlantCareProfile } from '../services/plantApi';
-import { getReminderTypeLabel } from '../services/reminderApi';
+import { deleteMyPlant, updateMyPlant, getMyPlant, getMyPlants } from '../services/plantApi';
+import { getReminders, getReminderTypeLabel } from '../services/reminderApi';
+import { getMyAiDialogs } from '../services/aiApi';
 import { uploadImage, validateImageFile } from '../services/uploadApi';
 import { useI18n } from '../i18n';
 
@@ -39,9 +40,21 @@ const formatDate = (value) => {
 const displayValue = (value, fallback = 'Chưa có dữ liệu') => value || fallback;
 const displayStatus = (value) => statusLabels[String(value || '').toLowerCase()] || displayValue(value);
 const isWateringReminder = (reminder) => reminder.type === 'watering' || reminder.careType === 'watering';
+const isPendingReminder = (reminder) => String(reminder.status || '').toLowerCase() === 'pending' && !reminder.completed;
 
 const sortByDueAt = (items) => [...items].sort((a, b) => (parseDate(a.dueAt)?.getTime() || 0) - (parseDate(b.dueAt)?.getTime() || 0));
 const sortByLatestDone = (items) => [...items].sort((a, b) => (parseDate(b.completedAt)?.getTime() || 0) - (parseDate(a.completedAt)?.getTime() || 0));
+
+const getPlantFromDetailOrList = async (id) => {
+  try {
+    return await getMyPlant(id);
+  } catch (err) {
+    const data = await getMyPlants();
+    const plant = (data?.items || []).find((item) => item.id === id);
+    if (plant) return plant;
+    throw err;
+  }
+};
 
 const InfoTile = ({ icon, label, value, tone = 'slate' }) => {
   const toneClass = tone === 'green' ? 'bg-[#F0FDF4] text-[#2E7D32]' : tone === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
@@ -61,7 +74,8 @@ const PlantProfile = () => {
   const navigate = useNavigate();
   const { t } = useI18n();
   const [plant, setPlant] = useState(null);
-  const [careProfile, setCareProfile] = useState(null);
+  const [reminders, setReminders] = useState([]);
+  const [aiDialogs, setAiDialogs] = useState([]);
   const [form, setForm] = useState({ nickname: '', species: '', location: '', imageUrl: '', status: '', notes: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,11 +103,19 @@ const PlantProfile = () => {
       setError('');
       setSecondaryError('');
       try {
-        const profile = await getPlantCareProfile(id);
+        const [nextPlant, nextReminders, nextDialogs] = await Promise.all([
+          getPlantFromDetailOrList(id),
+          getReminders().catch((err) => {
+            if (alive) setSecondaryError(err?.message || 'Không tải được lịch chăm sóc của cây.');
+            return [];
+          }),
+          getMyAiDialogs({ limit: 20 }).catch(() => ({ items: [] })),
+        ]);
         if (!alive) return;
-        setPlant(profile.plant);
-        setCareProfile(profile);
-        syncForm(profile.plant);
+        setPlant(nextPlant);
+        setReminders(nextReminders);
+        setAiDialogs(Array.isArray(nextDialogs) ? nextDialogs : nextDialogs?.items || []);
+        syncForm(nextPlant);
       } catch (err) {
         if (!alive) return;
         setPlant(null);
@@ -110,11 +132,26 @@ const PlantProfile = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  const pendingReminders = useMemo(() => careProfile?.nextReminders || [], [careProfile]);
-  const nextWatering = useMemo(() => careProfile?.careSummary?.nextWateringAt ? { dueAt: careProfile.careSummary.nextWateringAt } : null, [careProfile]);
-  const lastWatered = useMemo(() => careProfile?.careSummary?.lastWateredAt ? { completedAt: careProfile.careSummary.lastWateredAt } : null, [careProfile]);
-  const recentDialogs = useMemo(() => careProfile?.recentAiDialogs || [], [careProfile]);
-  const latestDiagnosis = useMemo(() => careProfile?.latestDiagnosis || null, [careProfile]);
+  const plantReminders = useMemo(
+    () => reminders.filter((reminder) => String(reminder.plantId) === String(id)),
+    [id, reminders]
+  );
+  const pendingReminders = useMemo(
+    () => sortByDueAt(plantReminders.filter(isPendingReminder)),
+    [plantReminders]
+  );
+  const nextWatering = useMemo(
+    () => sortByDueAt(pendingReminders.filter(isWateringReminder))[0] || null,
+    [pendingReminders]
+  );
+  const lastWatered = useMemo(
+    () => sortByLatestDone(plantReminders.filter((reminder) => isWateringReminder(reminder) && reminder.completedAt))[0] || null,
+    [plantReminders]
+  );
+  const recentDialogs = useMemo(
+    () => aiDialogs.filter((dialog) => String(dialog.plantId || '') === String(id)),
+    [aiDialogs, id]
+  );
 
   const imageSrc = previewUrl || form.imageUrl || plant?.image || plant?.imageUrl;
   const plantName = plant?.nickname || plant?.name || 'Cây của tôi';

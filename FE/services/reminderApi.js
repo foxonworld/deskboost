@@ -17,6 +17,8 @@ const recurrenceRules = {
 
 const normalizeRepeatRule = (value) => {
   const rule = String(value || "").toLowerCase();
+  if (rule === "every2days") return "every-2-days";
+  if (rule === "every3days") return "every-3-days";
   return rule && rule !== "none" ? rule : "none";
 };
 

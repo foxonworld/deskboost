@@ -432,6 +432,9 @@ const Home = () => {
             <Link to="/plants" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">{t('home.footer.marketplace')}</Link>
             <Link to="/app/ai-chat" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">{t('home.footer.aiCare')}</Link>
             <Link to="/login" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">{t('navbar.login')}</Link>
+            <a href="https://www.facebook.com/profile.php?id=61589573026631" target="_blank" rel="noreferrer" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">Facebook</a>
+            <a href="mailto:deskboost83@gmail.com" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">deskboost83@gmail.com</a>
+            <a href="tel:0345674779" className="transition-colors hover:text-primary focus:outline-none focus:ring-4 focus:ring-primary/20">0345674779</a>
           </div>
         </div>
       </footer>

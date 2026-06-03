@@ -94,8 +94,10 @@ public static class EnumExtensions
         {
             "daily"        => RepeatRule.Daily,
             "every-2-days" => RepeatRule.Every2Days,
+            "every2days"   => RepeatRule.Every2Days,
             "2-days"       => RepeatRule.Every2Days,
             "every-3-days" => RepeatRule.Every3Days,
+            "every3days"   => RepeatRule.Every3Days,
             "3-days"       => RepeatRule.Every3Days,
             "weekly"       => RepeatRule.Weekly,
             "biweekly"     => RepeatRule.Biweekly,

@@ -62,13 +62,31 @@ const getSuggestedFrequency = (plant) => {
   return 'daily';
 };
 
-const todayKey = new Date().toISOString().slice(0, 10);
+const toDateKey = (date = new Date()) => {
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const todayKey = toDateKey();
 
 const getBucket = (reminder) => {
   if (reminder.completed) return 'completed';
   if (reminder.dueDate <= todayKey) return 'today';
   return 'upcoming';
 };
+
+const sortRemindersForDisplay = (items) => [...items].sort((a, b) => {
+  const bucketOrder = { today: 0, upcoming: 1, completed: 2 };
+  const bucketDiff = bucketOrder[getBucket(a)] - bucketOrder[getBucket(b)];
+  if (bucketDiff) return bucketDiff;
+  if (getBucket(a) === 'completed') {
+    return new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime();
+  }
+  return new Date(a.dueAt || `${a.dueDate}T${a.time || '00:00'}`).getTime() - new Date(b.dueAt || `${b.dueDate}T${b.time || '00:00'}`).getTime();
+});
 
 const isRecurringReminder = (reminder) => reminder.frequency !== 'none' && Boolean(frequencyLabels[reminder.frequency]);
 
@@ -153,7 +171,10 @@ const RemindersSettings = () => {
     completed: reminders.filter((item) => getBucket(item) === 'completed'),
   }), [reminders]);
 
-  const filteredReminders = reminders.filter((item) => activeFilter === 'all' || getBucket(item) === activeFilter);
+  const filteredReminders = useMemo(
+    () => sortRemindersForDisplay(reminders.filter((item) => activeFilter === 'all' || getBucket(item) === activeFilter)),
+    [activeFilter, reminders]
+  );
   const calendarExport = useMemo(() => generateCombinedCalendarExport(reminders), [reminders]);
   const exportableCount = calendarExport.reminders.length;
   const selectedPlant = plants.find((plant) => plant.id === form.plantId);
@@ -188,7 +209,8 @@ const RemindersSettings = () => {
         setReminders((prev) => [created, ...prev]);
         setNotice(t('reminders.notice.added'));
       }
-      setForm(getDefaultForm(plants[0]?.id || '', getSuggestedFrequency(plants[0])));
+      const nextPlant = plants.find((plant) => plant.id === form.plantId) || plants[0];
+      setForm(getDefaultForm(nextPlant?.id || '', getSuggestedFrequency(nextPlant)));
       setTimeout(() => setNotice(''), 2500);
     } catch (err) {
       setError(err?.message || t('reminders.error.save'));
@@ -209,10 +231,14 @@ const RemindersSettings = () => {
     }
   };
 
-  const handleMarkDone = (id) =>
-    withReminderAction(id, async () => {
-      const updated = await markReminderDone(id);
-      setReminders((prev) => prev.map((item) => (item.id === id ? updated : item)));
+  const handleMarkDone = (reminder) =>
+    withReminderAction(reminder.id, async () => {
+      const updated = await markReminderDone(reminder.id);
+      setReminders((prev) => prev.map((item) => (item.id === reminder.id ? updated : item)));
+      setNotice(isRecurringReminder(reminder)
+        ? t('reminders.notice.completedOccurrence', { next: `${updated.dueDate} ${updated.time}` })
+        : t('reminders.notice.completed'));
+      setTimeout(() => setNotice(''), 3000);
     });
 
   const handleDelete = (id) =>
@@ -350,7 +376,7 @@ const RemindersSettings = () => {
               ))}
             </select>
             <label className={`${dateTimeShellClass} lg:col-span-2`}>
-              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.startDateLabel')}</span>
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{editingId ? t('reminders.nextDueDateLabel') : t('reminders.startDateLabel')}</span>
               <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="mt-1 block w-full min-w-0 appearance-none border-0 bg-transparent p-0 text-sm font-bold leading-5 text-slate-900 outline-none dark:text-white" />
             </label>
             <label className={`${dateTimeShellClass} lg:col-span-2`}>
@@ -383,6 +409,7 @@ const RemindersSettings = () => {
               const cfg = typeConfig[reminder.type] || typeConfig.watering;
               const bucket = getBucket(reminder);
               const recurring = isRecurringReminder(reminder);
+              const dueNow = bucket === 'today';
               const plantImage = getPlantImage(reminder, plants);
               const isEditing = editingId === reminder.id;
               return (
@@ -422,10 +449,15 @@ const RemindersSettings = () => {
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
-                    {!reminder.completed && (
-                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
+                    {!reminder.completed && dueNow && (
+                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
                         {recurring ? t('reminders.completeOccurrence') : t('reminders.markDone')}
                       </button>
+                    )}
+                    {!reminder.completed && !dueNow && (
+                      <span className="px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-black dark:bg-blue-900/20">
+                        {t('reminders.notDueYet')}
+                      </span>
                     )}
                     <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-60">
                       {t('common.edit')}

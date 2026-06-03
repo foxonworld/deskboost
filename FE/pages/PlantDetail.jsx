@@ -130,12 +130,12 @@ const PlantDetail = () => {
 
   const handleContactFacebook = () => {
     alert(t('detail.alert.facebook'));
-    window.open("https://m.me/deskboost", "_blank");
+    window.open("https://www.facebook.com/profile.php?id=61589573026631", "_blank");
   };
 
   const handleContactZalo = () => {
     alert(t('detail.alert.zalo'));
-    window.open("https://zalo.me/YOUR_ZALO_NUMBER", "_blank");
+    window.open("https://zalo.me/0345674779", "_blank");
   };
 
   if (plantLoading || !plant) {
@@ -208,11 +208,34 @@ const PlantDetail = () => {
                 <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary dark:text-slate-300">{t('detail.priceNote')}</p>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <Button variant="channel" size="lg" onClick={handleContactZalo} className="w-full bg-[#0068FF] hover:bg-[#0055d4] animate-cta-pulse-once">{t('detail.zalo')}</Button>
-                <Button variant="channel" size="lg" onClick={handleContactFacebook} className="w-full bg-[#0866FF] hover:bg-[#0050d1] animate-cta-pulse-once">{t('detail.messenger')}</Button>
+              <div className="mt-5 rounded-3xl border border-[#E4EEE6] bg-white/80 p-3 shadow-sm dark:border-[#2A4532] dark:bg-white/5">
+                <div className="mb-3 flex items-center justify-between gap-3 px-1">
+                  <div>
+                    <p className="text-sm font-extrabold text-[#111813] dark:text-white">{t('detail.contactChannels')}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-text-secondary dark:text-slate-400">{t('detail.contactChannelsDesc')}</p>
+                  </div>
+                  <span className="material-symbols-outlined rounded-2xl bg-primary/10 p-2 text-primary" aria-hidden="true">forum</span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Button variant="channel" size="lg" onClick={handleContactZalo} className="group w-full justify-start rounded-2xl bg-[#0068FF] px-4 shadow-[#0068FF]/20 hover:bg-[#0055d4] animate-cta-pulse-once">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">Z</span>
+                    <span className="min-w-0 text-left">
+                      <span className="block truncate text-sm font-extrabold">{t('detail.zalo')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-white/80">0345674779</span>
+                    </span>
+                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                  </Button>
+                  <Button variant="channel" size="lg" onClick={handleContactFacebook} className="group w-full justify-start rounded-2xl bg-[#0866FF] px-4 shadow-[#0866FF]/20 hover:bg-[#0050d1] animate-cta-pulse-once">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">f</span>
+                    <span className="min-w-0 text-left">
+                      <span className="block truncate text-sm font-extrabold">{t('detail.messenger')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-white/80">Facebook</span>
+                    </span>
+                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                  </Button>
+                </div>
+                <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full rounded-2xl bg-white font-extrabold dark:bg-slate-950/40 animate-cta-pulse-once">{t('detail.contactThis')}</Button>
               </div>
-              <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full animate-cta-pulse-once">{t('detail.contactThis')}</Button>
               <p className="mt-3 text-center text-xs font-bold text-text-secondary dark:text-slate-400">{t('detail.noCheckout')}</p>
             </Card>
           </aside>
