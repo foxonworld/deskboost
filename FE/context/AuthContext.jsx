@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { getCurrentUser, login as loginApi, register as registerApi } from "../services/authApi";
+import { getCurrentUser, login as loginApi, loginGoogle as loginGoogleApi, register as registerApi } from "../services/authApi";
 import { clearStoredAuth, getStoredToken, getStoredUser, saveAuth } from "../utils/authStorage";
 
 export const AuthContext = createContext(null);
@@ -127,11 +127,8 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = useCallback(async (credential) => {
     start();
     try {
-      console.log("Mock sending google credential to BE:", credential);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Mock successful login until BE is ready
-      const fakeUser = { id: 999, email: "google-user@example.com", name: "Google User" };
-      return finishSuccess({ accessToken: "mock-google-jwt-token", user: fakeUser });
+      // credential là idToken từ Google One-tap (GoogleLogin component)
+      return finishSuccess(await loginGoogleApi(credential));
     } catch (err) {
       return finishError(err);
     }

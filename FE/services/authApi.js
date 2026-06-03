@@ -64,6 +64,14 @@ export const resetPassword = async (token, newPassword) => {
 
 export const getCurrentUser = async () => normalizeUser(await get("/auth/me"));
 
+export const loginGoogle = async (idToken) => {
+  try {
+    return normalizeAuthResponse(await post("/auth/google", { idToken }));
+  } catch (err) {
+    normalizeError(err);
+  }
+};
+
 export const apiRegister = (name, email, password) =>
   register({ name, email, password });
 export const apiLogin = (email, password) => login({ email, password });
