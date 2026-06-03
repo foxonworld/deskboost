@@ -72,14 +72,16 @@ public class AiQuotaService : IAiQuotaService
     {
         var nowVn = DateTime.UtcNow.Add(VnOffset);
         var startOfDayVn = nowVn.Date;
-        var startUtc = startOfDayVn - VnOffset;
+        var startUtc = DateTime.SpecifyKind(startOfDayVn - VnOffset, DateTimeKind.Utc);
         return (startUtc, startUtc.AddDays(1));
     }
 
     private static DateTimeOffset GetNextMidnightVn()
     {
         var nowVn = DateTime.UtcNow.Add(VnOffset);
-        var tomorrowMidnightVn = nowVn.Date.AddDays(1);
+        // Date preserves Kind=Utc from UtcNow; must strip to Unspecified before
+        // constructing DateTimeOffset with a non-zero offset, or .NET throws.
+        var tomorrowMidnightVn = DateTime.SpecifyKind(nowVn.Date.AddDays(1), DateTimeKind.Unspecified);
         return new DateTimeOffset(tomorrowMidnightVn, VnOffset);
     }
 
