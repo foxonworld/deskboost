@@ -93,9 +93,7 @@ const AdminNotifications = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           {t('adminNotif.description')}
         </p>
-        <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-          {t('adminNotif.mockNote')}
-        </p>
+
       </section>
 
       {/* ── Form soạn thông báo ── */}

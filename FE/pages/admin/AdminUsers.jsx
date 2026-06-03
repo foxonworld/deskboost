@@ -159,9 +159,6 @@ const AdminUsers = () => {
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
           {t('admin.users.description')}
         </p>
-        <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">
-          {t('admin.users.backendNote')}
-        </p>
         {error && <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-bold text-amber-700 dark:bg-amber-950/30 dark:text-amber-300">{t('admin.users.backendUnavailable')}</p>}
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -187,6 +184,21 @@ const AdminUsers = () => {
                     className="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300"
                   >
                     {t('admin.users.viewDetail')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!window.confirm('Bạn có chắc muốn xóa người dùng này?')) return;
+                      try {
+                        await deleteAdminUser(user.id);
+                        setUsers((current) => current.filter((u) => u.id !== user.id));
+                      } catch (err) {
+                        alert(err?.message || 'Lỗi xóa người dùng');
+                      }
+                    }}
+                    className="rounded-full border border-rose-200 px-3 py-1 text-[11px] font-black text-rose-600 transition hover:bg-rose-50 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                  >
+                    Xóa
                   </button>
                 </div>
               </div>
@@ -264,7 +276,7 @@ const AdminUsers = () => {
                   {/* Cập nhật người dùng */}
                   <div className="rounded-2xl border border-slate-100 p-5 dark:border-slate-800">
                     <p className="text-sm font-black text-slate-700 dark:text-slate-200 mb-4">Chỉnh sửa Tài khoản</p>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="text-xs font-bold text-slate-500 block mb-1">Họ và Tên</label>
@@ -288,7 +300,7 @@ const AdminUsers = () => {
                     </div>
 
                     {statusError && <p className={`mt-3 text-sm font-bold ${statusError.includes('thành công') ? 'text-[#4CAF50]' : 'text-rose-600'}`}>{statusError}</p>}
-                    
+
                     <div className="mt-5 flex gap-3">
                       <button type="button" onClick={handleUpdateUser} disabled={savingUser} className="flex-1 rounded-xl bg-[#4CAF50] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#3f9f42] disabled:opacity-50">
                         {savingUser ? t('common.saving') : 'Lưu thay đổi'}

@@ -80,7 +80,7 @@ export const normalizeAdminAiDialog = (dialog = {}) => ({
   ...dialog,
   id: firstValue(dialog.id, dialog.Id),
   userId: firstValue(dialog.userId, dialog.UserId),
-  userName: firstValue(dialog.userName, dialog.UserName, dialog.fullName, dialog.FullName),
+  userName: firstValue(dialog.userName, dialog.UserName, dialog.userFullName, dialog.UserFullName, dialog.fullName, dialog.FullName),
   userEmail: firstValue(dialog.userEmail, dialog.UserEmail, dialog.email, dialog.Email),
   plantId: firstValue(dialog.plantId, dialog.PlantId),
   plantName: firstValue(dialog.plantName, dialog.PlantName),

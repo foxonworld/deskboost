@@ -142,7 +142,6 @@ const vi = {
   "admin.users.badge": "Người dùng",
   "admin.users.title": "Quản lý người dùng",
   "admin.users.description": "Danh sách tài khoản, xem chi tiết và cập nhật trạng thái từ endpoint admin thật.",
-  "admin.users.backendNote": "Tạo user, sửa hồ sơ và xóa user cần endpoint backend. Admin không lưu mock CRUD ở đây.",
   "admin.users.backendUnavailable": "Chưa có dữ liệu người dùng admin. Backend cần endpoint: GET /api/admin/users.",
   "admin.users.loading": "Đang tải người dùng để rà soát admin...",
   "admin.users.emptyBackend": "Không tải được dữ liệu người dùng từ backend thật. Không hiển thị user mock.",

@@ -87,6 +87,14 @@ const AIPlantAnalysis = () => {
   const diagnosisLimit = typeof diagnosisQuota?.limit === 'number' ? diagnosisQuota.limit : 2;
   const isDiagnosisQuotaExhausted = diagnosisRemaining !== null && diagnosisRemaining <= 0;
 
+  const refreshQuota = async () => {
+    try {
+      setQuota(await getAiQuota());
+    } catch {
+      setQuota(null);
+    }
+  };
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -138,10 +146,20 @@ const AIPlantAnalysis = () => {
         question: question || undefined,
       });
       setResult(diagnosis);
+      await refreshQuota();
     } catch (err) {
       if (err?.status === 429) {
         setError(err?.message || t('aiAnalysis.quotaExhausted'));
-        setQuota((current) => current ? { ...current, diagnosis: { ...(current.diagnosis || {}), remaining: 0 } } : current);
+        setQuota((current) => current ? {
+          ...current,
+          hasVerifiedPlant: err?.details?.hasVerifiedPlant ?? current.hasVerifiedPlant,
+          diagnosis: {
+            ...(current.diagnosis || {}),
+            limit: err?.details?.limit ?? current.diagnosis?.limit,
+            used: err?.details?.used ?? current.diagnosis?.used,
+            remaining: err?.details?.remaining ?? 0,
+          },
+        } : current);
       } else {
         setError(err?.message || t('aiAnalysis.errorAnalyze'));
       }

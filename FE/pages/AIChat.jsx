@@ -306,6 +306,14 @@ const AIChat = () => {
   const isChatQuotaExhausted = chatRemaining !== null && chatRemaining <= 0;
   const canSend = Boolean(input.trim() && !isSending && !isChatQuotaExhausted);
 
+  const refreshQuota = async () => {
+    try {
+      setQuota(await getAiQuota());
+    } catch {
+      setQuota(null);
+    }
+  };
+
   const handleOpenDialog = async (dialogId) => {
     setIsDialogLoading(true);
     setError('');
@@ -343,7 +351,8 @@ const AIChat = () => {
           role: message.from === 'user' ? 'user' : 'assistant',
           content: message.text,
         }));
-      const diagnosisHistory = diagnosisContext
+      const shouldUseLocalDiagnosisContext = diagnosisContext && !diagnosisContext.diagnosisId;
+      const diagnosisHistory = shouldUseLocalDiagnosisContext
         ? [{
             role: 'assistant',
             content: t('aiChat.diagnosisHistoryContext', {
@@ -358,7 +367,6 @@ const AIChat = () => {
         history: [...diagnosisHistory, ...history],
         plantContext: selectedPlant ? normalizePlantContext(selectedPlant) : undefined,
         diagnosisResultId: diagnosisContext?.diagnosisId,
-        diagnosisContext,
       });
 
       const assistantMessage = {
@@ -376,10 +384,20 @@ const AIChat = () => {
         sessionStorage.removeItem(DIAGNOSIS_CONTEXT_STORAGE_KEY);
         setDiagnosisContext(null);
       }
+      await refreshQuota();
     } catch (err) {
       if (err?.status === 429) {
         setError(err?.message || t('aiChat.quotaExhausted'));
-        setQuota((current) => current ? { ...current, chat: { ...(current.chat || {}), remaining: 0 } } : current);
+        setQuota((current) => current ? {
+          ...current,
+          hasVerifiedPlant: err?.details?.hasVerifiedPlant ?? current.hasVerifiedPlant,
+          chat: {
+            ...(current.chat || {}),
+            limit: err?.details?.limit ?? current.chat?.limit,
+            used: err?.details?.used ?? current.chat?.used,
+            remaining: err?.details?.remaining ?? 0,
+          },
+        } : current);
       } else {
         setError(err?.message || t('aiChat.sendError'));
       }

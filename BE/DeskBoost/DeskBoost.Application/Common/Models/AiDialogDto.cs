@@ -2,6 +2,9 @@ namespace DeskBoost.Application.Common.Models;
 
 public record AiDialogListItemDto(
     Guid Id,
+    Guid UserId,
+    string? UserEmail,
+    string? UserName,
     Guid? PlantId,
     string? PlantName,
     string Title,
@@ -11,6 +14,9 @@ public record AiDialogListItemDto(
 
 public record AiDialogDetailDto(
     Guid Id,
+    Guid UserId,
+    string? UserEmail,
+    string? UserName,
     Guid? PlantId,
     string? PlantName,
     string Title,

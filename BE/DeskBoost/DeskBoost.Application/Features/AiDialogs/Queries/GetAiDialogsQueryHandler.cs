@@ -20,6 +20,9 @@ public class GetAiDialogsQueryHandler : IRequestHandler<GetAiDialogsQuery, List<
             .OrderByDescending(d => d.UpdatedAt ?? d.CreatedAt)
             .Select(d => new AiDialogListItemDto(
                 d.Id,
+                d.UserId,
+                null,
+                null,
                 d.PlantId,
                 d.Plant != null ? d.Plant.Name : null,
                 d.Title,

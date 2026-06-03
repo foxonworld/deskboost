@@ -60,7 +60,7 @@ public class GetPlantCareProfileQueryHandler : IRequestHandler<GetPlantCareProfi
             .Where(d => d.PlantId == request.PlantId && d.UserId == request.UserId)
             .OrderByDescending(d => d.UpdatedAt ?? d.CreatedAt)
             .Take(5)
-            .Select(d => new AiDialogListItemDto(d.Id, d.PlantId, d.Plant != null ? d.Plant.Name : null, d.Title, d.LastMessage, d.CreatedAt))
+            .Select(d => new AiDialogListItemDto(d.Id, d.UserId, null, null, d.PlantId, d.Plant != null ? d.Plant.Name : null, d.Title, d.LastMessage, d.CreatedAt))
             .ToListAsync(ct);
 
         // 4. Load latest diagnosis

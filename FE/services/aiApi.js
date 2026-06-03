@@ -141,7 +141,6 @@ export const sendPlantContextChatMessage = ({
   history = [],
   plantContext,
   diagnosisResultId,
-  diagnosisContext,
 }) => {
   const payload = {
     plantId,
@@ -149,7 +148,6 @@ export const sendPlantContextChatMessage = ({
     history,
     plantContext,
     diagnosisResultId,
-    diagnosisContext,
   };
   return requestOrExplicitMock(
     () => post("/ai/chat", payload),

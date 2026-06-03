@@ -20,7 +20,11 @@ public class GetAdminAiDialogsQueryHandler : IRequestHandler<GetAdminAiDialogsQu
             .Include(d => d.Plant)
             .OrderByDescending(d => d.UpdatedAt ?? d.CreatedAt)
             .Select(d => new AiDialogListItemDto(
-                d.Id, d.PlantId,
+                d.Id,
+                d.UserId,
+                _db.Users.Where(u => u.Id == d.UserId).Select(u => u.Email).FirstOrDefault(),
+                _db.Users.Where(u => u.Id == d.UserId).Select(u => u.FullName).FirstOrDefault(),
+                d.PlantId,
                 d.Plant != null ? d.Plant.Name : null,
                 d.Title, d.LastMessage, d.CreatedAt))
             .ToListAsync(ct);
@@ -44,12 +48,23 @@ public class GetAdminAiDialogByIdQueryHandler : IRequestHandler<GetAdminAiDialog
 
         if (dialog is null) return null;
 
+        var user = await _db.Users.FindAsync(new object[] { dialog.UserId }, ct);
+
         var messages = dialog.Messages
             .OrderBy(m => m.CreatedAt)
             .Select(m => new AiMessageDto(m.Id, m.Role.ToApiString(), m.Content, m.CreatedAt))
             .ToList();
 
-        return new AiDialogDetailDto(dialog.Id, dialog.PlantId, dialog.Plant?.Name, dialog.Title, messages, dialog.CreatedAt);
+        return new AiDialogDetailDto(
+            dialog.Id,
+            dialog.UserId,
+            user?.Email,
+            user?.FullName,
+            dialog.PlantId,
+            dialog.Plant?.Name,
+            dialog.Title,
+            messages,
+            dialog.CreatedAt);
     }
 }
 
