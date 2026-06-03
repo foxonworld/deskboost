@@ -1,0 +1,234 @@
+# ============================================================
+# DeskBoost - Luồng test đầy đủ AI Quota
+# Cài extension "REST Client" trong VS Code để dùng file này.
+# Chạy từng request theo thứ tự, copy giá trị vào biến bên dưới.
+# ============================================================
+
+@baseUrl = http://localhost:5272
+@accessToken = PASTE_TOKEN_HERE
+@plantId = PASTE_PLANT_ID_HERE
+@diagnosisId = PASTE_DIAGNOSIS_ID_HERE
+@claimCode = PASTE_CLAIM_CODE_HERE
+
+# ============================================================
+# BƯỚC 1: ĐĂNG KÝ TÀI KHOẢN MỚI (bỏ qua nếu đã có)
+# ============================================================
+
+### 1.1 Register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@deskboost.com",
+  "password": "Test@123456",
+  "confirmPassword": "Test@123456",
+  "fullName": "Test User"
+}
+
+# ============================================================
+# BƯỚC 2: ĐĂNG NHẬP - lấy accessToken
+# ============================================================
+
+### 2.1 Login → copy "accessToken" vào @accessToken bên trên
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@deskboost.com",
+  "password": "Test@123456"
+}
+
+### 2.2 Kiểm tra thông tin user
+GET {{baseUrl}}/api/auth/me
+Authorization: Bearer {{accessToken}}
+
+# ============================================================
+# BƯỚC 3: KIỂM TRA QUOTA BAN ĐẦU (chưa có cây verified)
+# Mong đợi: hasVerifiedPlant=false, chat.limit=5, diagnosis.limit=2
+# ============================================================
+
+### 3.1 GET quota - trạng thái ban đầu
+GET {{baseUrl}}/api/ai/quota
+Authorization: Bearer {{accessToken}}
+
+# ============================================================
+# BƯỚC 4: TEST CHAT AI (không có cây)
+# ============================================================
+
+### 4.1 Chat cơ bản - không có plant context
+POST {{baseUrl}}/api/ai/chat
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "message": "Cây của tôi bị vàng lá, nguyên nhân là gì?",
+  "history": []
+}
+
+### 4.2 Chat hội thoại nhiều lượt (giả lập history)
+POST {{baseUrl}}/api/ai/chat
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "message": "Tôi nên tưới nước bao nhiêu lần mỗi tuần?",
+  "history": [
+    {
+      "role": "user",
+      "content": "Cây của tôi bị vàng lá, nguyên nhân là gì?"
+    },
+    {
+      "role": "assistant",
+      "content": "Vàng lá thường do thiếu nước, thiếu ánh sáng hoặc sâu bệnh."
+    }
+  ]
+}
+
+### 4.3 Kiểm tra quota sau 2 lần chat (chat.used phải = 2)
+GET {{baseUrl}}/api/ai/quota
+Authorization: Bearer {{accessToken}}
+
+# ============================================================
+# BƯỚC 5: TEST CHẨN ĐOÁN BỆNH CÂY
+# Dùng Swagger UI để upload ảnh vì .http không hỗ trợ tốt multipart.
+# POST /api/ai/diagnose (multipart/form-data)
+#   - Image: [file ảnh]
+#   - PlantId: (tuỳ chọn)
+# Sau khi chẩn đoán xong, copy diagnosisId vào @diagnosisId bên trên.
+# ============================================================
+
+### 5.1 Xem danh sách chẩn đoán (sau khi diagnose qua Swagger)
+GET {{baseUrl}}/api/ai/diagnosis?limit=5
+Authorization: Bearer {{accessToken}}
+
+### 5.2 Chat với context từ kết quả chẩn đoán
+# Thay @diagnosisId bằng id từ bước 5.1
+POST {{baseUrl}}/api/ai/chat
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "diagnosisResultId": "{{diagnosisId}}",
+  "message": "Cây tôi bị bệnh như vậy thì cần làm gì ngay bây giờ?",
+  "history": []
+}
+
+# ============================================================
+# BƯỚC 6: TẠO CÂY THỦ CÔNG (để test chat có plant context)
+# ============================================================
+
+### 6.1 Tạo cây mới (thêm thủ công, KHÔNG có ClaimCodeId)
+# → hasVerifiedPlant vẫn = false
+POST {{baseUrl}}/api/my-plants
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Cây Phát Tài",
+  "species": "Dracaena",
+  "location": "Góc bàn làm việc",
+  "notes": "Tưới 2 lần/tuần"
+}
+
+### 6.2 Xem danh sách cây → copy id vào @plantId
+GET {{baseUrl}}/api/my-plants
+Authorization: Bearer {{accessToken}}
+
+### 6.3 Chat với plant context đầy đủ
+POST {{baseUrl}}/api/ai/chat
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "plantId": "{{plantId}}",
+  "message": "Cây này cần chăm sóc như thế nào?",
+  "history": [],
+  "plantContext": {
+    "name": "Cây Phát Tài",
+    "species": "Dracaena",
+    "status": "Healthy",
+    "light": "Ánh sáng nhẹ",
+    "water": "2 lần/tuần",
+    "notes": "Để trong nhà"
+  }
+}
+
+# ============================================================
+# BƯỚC 7: CLAIM CÂY DESKBOOST (để được verified plant)
+# Yêu cầu: có mã QR code hợp lệ từ marketplace.
+# ============================================================
+
+### 7.1 Xem sản phẩm marketplace để biết có claim code không
+GET {{baseUrl}}/api/marketplace-items
+Authorization: Bearer {{accessToken}}
+
+### 7.2 Preview claim code trước khi claim
+GET {{baseUrl}}/api/my-plants/claim-preview?code={{claimCode}}
+Authorization: Bearer {{accessToken}}
+
+### 7.3 Claim cây DeskBoost (có ClaimCodeId → hasVerifiedPlant = true)
+POST {{baseUrl}}/api/my-plants/claim
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{claimCode}}",
+  "nickname": "Cây DeskBoost của tôi",
+  "location": "Bàn làm việc"
+}
+
+# ============================================================
+# BƯỚC 8: KIỂM TRA QUOTA SAU KHI CÓ VERIFIED PLANT
+# Mong đợi: hasVerifiedPlant=true, chat.limit=30, diagnosis.limit=5
+# ============================================================
+
+### 8.1 GET quota sau khi claim → limit tăng lên
+GET {{baseUrl}}/api/ai/quota
+Authorization: Bearer {{accessToken}}
+
+# ============================================================
+# BƯỚC 9: TEST VƯỢT QUOTA (khi chưa có verified plant)
+# Tạo user mới, chat 5 lần → lần thứ 6 phải trả 429
+# ============================================================
+
+### 9.1 Login user test không có verified plant
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "noplant@deskboost.com",
+  "password": "Test@123456"
+}
+
+# Chạy request chat bên dưới 6 lần liên tiếp với token của user trên
+# Lần 1-5: HTTP 200, lần thứ 6: HTTP 429
+
+### 9.2 Chat lần 1-5 → 200 OK | lần 6 → 429 Too Many Requests
+POST {{baseUrl}}/api/ai/chat
+Authorization: Bearer PASTE_NO_PLANT_USER_TOKEN
+Content-Type: application/json
+
+{
+  "message": "Test quota vượt giới hạn",
+  "history": []
+}
+
+# ============================================================
+# BƯỚC 10: XEM LỊCH SỬ HỘI THOẠI
+# ============================================================
+
+### 10.1 Danh sách tất cả dialog
+GET {{baseUrl}}/api/ai/dialogs
+Authorization: Bearer {{accessToken}}
+
+### 10.2 Dialog theo cây cụ thể
+GET {{baseUrl}}/api/ai/dialogs?plantId={{plantId}}&limit=5
+Authorization: Bearer {{accessToken}}
+
+### 10.3 Chi tiết 1 dialog (thay DIALOG_ID bằng id từ response chat)
+GET {{baseUrl}}/api/ai/dialogs/DIALOG_ID
+Authorization: Bearer {{accessToken}}
+
+### 10.4 Danh sách chẩn đoán theo cây
+GET {{baseUrl}}/api/ai/diagnosis?plantId={{plantId}}&limit=5
+Authorization: Bearer {{accessToken}}
