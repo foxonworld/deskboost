@@ -19,5 +19,8 @@ public interface IAppDbContext
     DbSet<AiDialog> AiDialogs { get; }
     DbSet<AiMessage> AiMessages { get; }
     DbSet<Feedback> Feedbacks { get; }
+    DbSet<AiUsage> AiUsages { get; }
+    DbSet<Notification> Notifications { get; }
+    DbSet<NotificationRead> NotificationReads { get; }
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

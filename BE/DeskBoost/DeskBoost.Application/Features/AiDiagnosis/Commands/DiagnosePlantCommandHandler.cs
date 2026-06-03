@@ -12,15 +12,21 @@ public class DiagnosePlantCommandHandler : IRequestHandler<DiagnosePlantCommand,
 {
     private readonly IDiagnosisOrchestrator _orchestrator;
     private readonly IAppDbContext _db;
+    private readonly IAiQuotaService _quotaService;
 
-    public DiagnosePlantCommandHandler(IDiagnosisOrchestrator orchestrator, IAppDbContext db)
+    public DiagnosePlantCommandHandler(IDiagnosisOrchestrator orchestrator, IAppDbContext db, IAiQuotaService quotaService)
     {
         _orchestrator = orchestrator;
         _db = db;
+        _quotaService = quotaService;
     }
 
     public async Task<DiagnosisResultDto> Handle(DiagnosePlantCommand request, CancellationToken ct)
     {
+        // Enforce quota trước khi xử lý
+        if (request.UserId.HasValue)
+            await _quotaService.EnforceQuotaAsync(request.UserId.Value, AiFeature.Diagnosis, ct);
+
         if (request.PlantId.HasValue && request.UserId.HasValue)
         {
             var plantBelongsToUser = await _db.Plants
@@ -35,6 +41,7 @@ public class DiagnosePlantCommandHandler : IRequestHandler<DiagnosePlantCommand,
         {
             var entity = new DiagnosisResult
             {
+                UserId = request.UserId,
                 PlantId = request.PlantId,
                 Condition = MapCondition(result.Severity),
                 DiseasesJson = JsonSerializer.Serialize(new[] { result.Disease }),
@@ -57,6 +64,12 @@ public class DiagnosePlantCommandHandler : IRequestHandler<DiagnosePlantCommand,
             }
 
             await _db.SaveChangesAsync(ct);
+
+            result.DiagnosisId = entity.Id;
+
+            // Ghi usage sau khi thành công
+            if (request.UserId.HasValue)
+                await _quotaService.RecordUsageAsync(request.UserId.Value, AiFeature.Diagnosis, request.PlantId, entity.Id, ct);
         }
 
         return result;

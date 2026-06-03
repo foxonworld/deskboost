@@ -3,6 +3,8 @@ using DeskBoost.Application.Features.AiDiagnosis.Commands;
 using DeskBoost.Application.Features.AiDiagnosis.Queries;
 using DeskBoost.Application.Features.AiDialogs.Commands;
 using DeskBoost.Application.Features.AiDialogs.Queries;
+using DeskBoost.Application.Features.AiQuota.Queries;
+using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,6 +21,32 @@ public class AiController : ControllerBase
 
     public AiController(ISender sender) => _sender = sender;
 
+    /// <summary>GET /api/ai/quota</summary>
+    [HttpGet("quota")]
+    public async Task<IActionResult> GetQuota(CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var quota = await _sender.Send(new GetAiQuotaQuery(userId), ct);
+        return Ok(new
+        {
+            hasVerifiedPlant = quota.HasVerifiedPlant,
+            chat = new
+            {
+                limit = quota.Chat.Limit,
+                used = quota.Chat.Used,
+                remaining = quota.Chat.Remaining,
+                resetAt = quota.Chat.ResetAt
+            },
+            diagnosis = new
+            {
+                limit = quota.Diagnosis.Limit,
+                used = quota.Diagnosis.Used,
+                remaining = quota.Diagnosis.Remaining,
+                resetAt = quota.Diagnosis.ResetAt
+            }
+        });
+    }
+
     /// <summary>POST /api/ai/chat</summary>
     [HttpPost("chat")]
     public async Task<IActionResult> Chat([FromBody] AiChatRequest request, CancellationToken ct)
@@ -33,6 +61,7 @@ public class AiController : ControllerBase
             {
                 UserId = userId,
                 PlantId = request.PlantId,
+                DiagnosisResultId = request.DiagnosisResultId,
                 Message = request.Message,
                 History = [.. request.History.Select(h => new ChatHistoryItem(h.Role, h.Content))],
                 PlantContext = request.PlantContext is null ? null : new PlantContextDto(
@@ -47,6 +76,20 @@ public class AiController : ControllerBase
             }, ct);
 
             return Ok(result);
+        }
+        catch (AiQuotaExceededException ex)
+        {
+            return StatusCode(429, new
+            {
+                message = ex.HasVerifiedPlant
+                    ? "Bạn đã dùng hết lượt AI chat hôm nay."
+                    : "Bạn nên chăm sóc 1 cây của DeskBoost để sử dụng đầy đủ AI.",
+                feature = ex.Feature,
+                limit = ex.Limit,
+                used = ex.Used,
+                remaining = 0,
+                hasVerifiedPlant = ex.HasVerifiedPlant
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -74,6 +117,20 @@ public class AiController : ControllerBase
                 UserId = userId
             }, ct);
             return Ok(result);
+        }
+        catch (AiQuotaExceededException ex)
+        {
+            return StatusCode(429, new
+            {
+                message = ex.HasVerifiedPlant
+                    ? "Bạn đã dùng hết lượt chẩn đoán hôm nay."
+                    : "Bạn nên chăm sóc 1 cây của DeskBoost để sử dụng đầy đủ AI.",
+                feature = ex.Feature,
+                limit = ex.Limit,
+                used = ex.Used,
+                remaining = 0,
+                hasVerifiedPlant = ex.HasVerifiedPlant
+            });
         }
         catch (InvalidOperationException ex)
         {

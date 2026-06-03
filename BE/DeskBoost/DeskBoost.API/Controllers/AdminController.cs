@@ -6,6 +6,8 @@ using DeskBoost.Application.Features.Feedback.Commands;
 using DeskBoost.Application.Features.Feedback.Queries;
 using DeskBoost.Application.Features.Marketplace.Commands;
 using DeskBoost.Application.Features.Marketplace.Queries;
+using DeskBoost.Application.Features.Notifications.Commands;
+using DeskBoost.Application.Features.Notifications.Queries;
 using DeskBoost.Application.Features.PlantSpecies.Commands;
 using DeskBoost.Application.Features.PlantSpecies.Queries;
 using MediatR;
@@ -563,6 +565,52 @@ public class AdminController : ControllerBase
     [HttpGet("ai-config/status")]
     public async Task<IActionResult> GetAiConfigStatus(CancellationToken ct)
         => Ok(await _sender.Send(new GetAdminAiConfigStatusQuery(), ct));
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+
+    /// <summary>GET /api/admin/notifications</summary>
+    [HttpGet("notifications")]
+    public async Task<IActionResult> GetNotifications(CancellationToken ct)
+        => Ok(new { items = await _sender.Send(new GetAdminNotificationsQuery(), ct) });
+
+    /// <summary>POST /api/admin/notifications</summary>
+    [HttpPost("notifications")]
+    public async Task<IActionResult> CreateNotification([FromBody] CreateNotificationRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.Title))
+            return BadRequest(new { message = "Tiêu đề không được để trống." });
+        if (string.IsNullOrWhiteSpace(request.Body))
+            return BadRequest(new { message = "Nội dung không được để trống." });
+        if (request.TargetType == "specific" && (request.TargetUserIds is null || request.TargetUserIds.Count == 0))
+            return BadRequest(new { message = "Phải chỉ định ít nhất 1 user khi targetType = specific." });
+
+        var adminId = GetCurrentUserId() ?? Guid.Empty;
+        var result = await _sender.Send(new CreateNotificationCommand
+        {
+            AdminId = adminId,
+            Title = request.Title,
+            Body = request.Body,
+            Type = request.Type,
+            TargetType = request.TargetType,
+            TargetUserIds = request.TargetUserIds
+        }, ct);
+        return StatusCode(201, result);
+    }
+
+    /// <summary>DELETE /api/admin/notifications/{id} — soft delete</summary>
+    [HttpDelete("notifications/{id:guid}")]
+    public async Task<IActionResult> DeleteNotification(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _sender.Send(new DeleteNotificationCommand(id), ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
 
     private Guid? GetCurrentUserId()
     {
