@@ -3,15 +3,27 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
 import { useI18n } from '../i18n';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
   const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    clearError();
+    setFormError('');
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      navigate(redirectTo, { replace: true });
+    } catch {
+      // AuthContext owns friendly error state.
+    }
+  };
 
   const redirectTo = useMemo(() => {
     const fromPath = location.state?.from?.pathname;
@@ -74,6 +86,25 @@ const Login = () => {
             {isLoading && <Spinner className="text-lg" />}
             {isLoading ? t('common.loading') : isBootstrapping ? t('common.loading') : t('login.submit')}
           </button>
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
+            <span className="relative px-4 bg-white dark:bg-slate-900 text-sm text-gray-500">Hoặc</span>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setFormError('Đăng nhập Google thất bại.')}
+              useOneTap={false}
+              shape="rectangular"
+              size="large"
+              text="signin_with"
+              locale="vi"
+              width="400"
+            />
+          </div>
+
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">{t('login.noAccount')} <Link to="/register" state={location.state} className="text-text-main font-bold hover:underline">{t('login.signUp')}</Link></p>
           </div>

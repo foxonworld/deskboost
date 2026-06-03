@@ -9,9 +9,30 @@ const urgencyConfig = {
   upcoming: { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20', dot: 'bg-blue-400', labelKey: 'careBell.urgency.upcoming' },
 };
 
+const notifTypeConfig = {
+  promo: { icon: 'local_offer', color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+  care_tip: { icon: 'eco', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  announcement: { icon: 'campaign', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+};
+
+const timeAgo = (isoString) => {
+  if (!isoString) return '';
+  const diff = Date.now() - new Date(isoString).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Vừa xong';
+  if (mins < 60) return `${mins} phút trước`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} giờ trước`;
+  const days = Math.floor(hours / 24);
+  return `${days} ngày trước`;
+};
+
 const CareNotificationBell = () => {
   const { t } = useI18n();
-  const { pendingTasks, doneTasks, urgentCount, loading, error, notificationOpen, setNotificationOpen, markDone, undoDone } = useCare();
+  const {
+    pendingTasks, upcomingTasks, doneTasks, doneTodayCount, todayTotalCount, urgentCount, loading, error, notificationOpen, setNotificationOpen, markDone, undoDone,
+    adminNotifs, unreadAdminCount, notifsLoading, markAdminRead, markAllAdminRead,
+  } = useCare();
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -30,12 +51,13 @@ const CareNotificationBell = () => {
   }, [notificationOpen, setNotificationOpen]);
 
   const totalPending = pendingTasks.length;
+  const totalBadge = urgentCount + unreadAdminCount;
 
   const handleMarkDone = async (taskId) => {
     try {
       await markDone(taskId);
     } catch {
-      // Keep the notification panel mounted; CareContext owns refresh/error state.
+      // CareContext owns error state
     }
   };
 
@@ -51,12 +73,12 @@ const CareNotificationBell = () => {
         }`}
         title={t('careBell.title')}
       >
-        <span className={`material-symbols-outlined text-lg transition-all ${urgentCount > 0 ? 'animate-[wiggle_2s_ease-in-out_infinite]' : ''}`}>
-          {urgentCount > 0 ? 'notifications_active' : 'notifications'}
+        <span className={`material-symbols-outlined text-lg transition-all ${(urgentCount > 0 || unreadAdminCount > 0) ? 'animate-[wiggle_2s_ease-in-out_infinite]' : ''}`}>
+          {(urgentCount > 0 || unreadAdminCount > 0) ? 'notifications_active' : 'notifications'}
         </span>
-        {totalPending > 0 && (
+        {totalBadge > 0 && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
-            {totalPending > 9 ? '9+' : totalPending}
+            {totalBadge > 9 ? '9+' : totalBadge}
           </span>
         )}
       </button>
@@ -64,9 +86,10 @@ const CareNotificationBell = () => {
       {notificationOpen && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-full mt-3 w-[360px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 z-[200] overflow-hidden"
+          className="absolute right-0 top-full mt-3 w-[380px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 z-[200] overflow-hidden"
           style={{ animation: 'slideDown 0.2s ease' }}
         >
+          {/* ── Header ── */}
           <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-slate-50 dark:border-slate-800">
             <div>
               <h3 className="font-black text-slate-900 dark:text-white text-sm">{t('careBell.title')}</h3>
@@ -83,7 +106,81 @@ const CareNotificationBell = () => {
             </Link>
           </div>
 
-          <div className="max-h-[380px] overflow-y-auto">
+          <div className="max-h-[440px] overflow-y-auto">
+
+            {/* ── Section: Thông báo từ DeskBoost ── */}
+            {(adminNotifs.length > 0 || notifsLoading) && (
+              <div className="px-3 pt-3">
+                <div className="flex items-center justify-between px-1 mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[#4CAF50]" style={{ fontSize: '14px' }}>campaign</span>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('careBell.adminSection')}</span>
+                    {unreadAdminCount > 0 && (
+                      <span className="min-w-[16px] h-[16px] px-1 bg-[#4CAF50] text-white text-[9px] font-black rounded-full flex items-center justify-center">
+                        {unreadAdminCount}
+                      </span>
+                    )}
+                  </div>
+                  {unreadAdminCount > 0 && (
+                    <button
+                      onClick={markAllAdminRead}
+                      className="text-[10px] font-bold text-[#4CAF50] hover:underline"
+                    >
+                      {t('careBell.markAllRead')}
+                    </button>
+                  )}
+                </div>
+
+                {notifsLoading ? (
+                  <div className="flex items-center gap-2 p-3 text-xs text-slate-400">
+                    <span className="material-symbols-outlined text-[#4CAF50] animate-spin" style={{ fontSize: '14px' }}>progress_activity</span>
+                    Đang tải...
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 pb-2">
+                    {adminNotifs.slice(0, 5).map((notif) => {
+                      const cfg = notifTypeConfig[notif.type] || notifTypeConfig.announcement;
+                      return (
+                        <button
+                          key={notif.id}
+                          type="button"
+                          onClick={() => !notif.isRead && markAdminRead(notif.id)}
+                          className={`w-full text-left flex items-start gap-3 p-3 rounded-2xl border transition-all ${
+                            notif.isRead
+                              ? 'bg-slate-50 dark:bg-slate-800/40 border-transparent opacity-70'
+                              : `${cfg.bg} border-transparent`
+                          }`}
+                        >
+                          <div className={`flex-shrink-0 size-8 rounded-xl flex items-center justify-center bg-white dark:bg-slate-800 shadow-sm`}>
+                            <span className={`material-symbols-outlined ${cfg.color}`} style={{ fontSize: '16px' }}>{cfg.icon}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className={`text-sm font-bold truncate ${notif.isRead ? 'text-slate-500 dark:text-slate-400' : 'text-slate-800 dark:text-white'}`}>
+                                {notif.title}
+                              </p>
+                              {!notif.isRead && (
+                                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#4CAF50] mt-1" />
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.body}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">{timeAgo(notif.createdAt)}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Divider trước care tasks */}
+                <div className="flex items-center gap-2 mt-1 mb-2 px-1">
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.careSection')}</span>
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                </div>
+              </div>
+            )}
+
+            {/* ── Section: Nhắc nhở chăm cây ── */}
             {loading && (
               <div className="p-8 text-center">
                 <span className="material-symbols-outlined text-[#4CAF50] animate-spin mb-3">progress_activity</span>
@@ -97,10 +194,16 @@ const CareNotificationBell = () => {
               </div>
             )}
 
-            {!loading && totalPending === 0 && doneTasks.length === 0 && !error && (
+            {!loading && totalPending === 0 && upcomingTasks.length === 0 && doneTasks.length === 0 && !error && adminNotifs.length === 0 && (
               <div className="p-8 text-center">
                 <div className="text-4xl mb-3">🌿</div>
                 <p className="text-sm font-bold text-slate-600 dark:text-slate-400">{t('careBell.empty')}</p>
+              </div>
+            )}
+
+            {!loading && totalPending === 0 && upcomingTasks.length === 0 && doneTasks.length === 0 && !error && adminNotifs.length > 0 && (
+              <div className="px-5 py-3 text-center">
+                <p className="text-xs font-bold text-slate-400">{t('careBell.allDone')}</p>
               </div>
             )}
 
@@ -138,7 +241,7 @@ const CareNotificationBell = () => {
                           title={t('careBell.confirmDone')}
                         >
                           <span className="material-symbols-outlined text-xs" style={{ fontSize: '13px' }}>check</span>
-                          {t('careBell.doneButton')}
+                          {t('careBell.doneTodayButton')}
                         </button>
                         <Link
                           to={task.plantPath}
@@ -156,9 +259,53 @@ const CareNotificationBell = () => {
               </div>
             )}
 
+            {!loading && upcomingTasks.length > 0 && (
+              <div className="px-3 pb-3">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.upcomingSection')}</span>
+                  <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
+                </div>
+                <div className="space-y-1.5">
+                  {upcomingTasks.slice(0, 3).map((task) => {
+                    const cfg = urgencyConfig.upcoming;
+                    return (
+                      <div key={task.id} className={`flex items-center gap-3 p-3 rounded-2xl border ${cfg.bg} border-transparent opacity-90`}>
+                        <div className="flex-shrink-0 size-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center shadow-sm text-lg">
+                          {task.plantEmoji || '🌿'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{task.plantName}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className={`material-symbols-outlined text-xs ${cfg.color}`} style={{ fontSize: '13px' }}>
+                              {task.taskIcon}
+                            </span>
+                            <span className="text-xs text-slate-500 font-medium">{task.taskLabel} · {task.dueTime}</span>
+                          </div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}></span>
+                            <span className={`text-[10px] font-bold ${cfg.color}`}>{t(cfg.labelKey)}</span>
+                          </div>
+                        </div>
+                        <Link
+                          to={task.plantPath}
+                          onClick={() => setNotificationOpen(false)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold rounded-xl hover:border-[#4CAF50]/40 hover:text-[#4CAF50] transition-all"
+                          title={t('careBell.viewProfile')}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>open_in_new</span>
+                          {t('careBell.profile')}
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {!loading && doneTasks.length > 0 && (
               <div className="px-3 pb-3">
-                {pendingTasks.length > 0 && (
+                {(pendingTasks.length > 0 || upcomingTasks.length > 0) && (
                   <div className="flex items-center gap-2 mb-2 px-1">
                     <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('careBell.doneSection')}</span>
@@ -192,9 +339,10 @@ const CareNotificationBell = () => {
             )}
           </div>
 
+          {/* ── Footer ── */}
           <div className="px-5 py-3 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
             <p className="text-[10px] text-slate-400 font-medium">
-              {t('careBell.footer', { done: doneTasks.length, total: doneTasks.length + pendingTasks.length })}
+              {t('careBell.footer', { done: doneTodayCount, total: todayTotalCount })}
             </p>
             <Link
               to="/app/settings"

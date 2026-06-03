@@ -20,6 +20,7 @@ public record SendAiChatCommand : IRequest<AiChatResponseDto>
 {
     public Guid UserId { get; init; }
     public Guid? PlantId { get; init; }
+    public Guid? DiagnosisResultId { get; init; }
     public string Message { get; init; } = string.Empty;
     public IReadOnlyList<ChatHistoryItem> History { get; init; } = [];
     public PlantContextDto? PlantContext { get; init; }

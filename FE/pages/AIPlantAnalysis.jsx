@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
-import { diagnosePlant } from '../services/aiApi';
+import { diagnosePlant, getAiQuota } from '../services/aiApi';
 import { getMyPlants } from '../services/plantApi';
 import { Spinner, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
@@ -13,11 +14,16 @@ import { useI18n } from '../i18n';
 
 gsap.registerPlugin(useGSAP);
 
+const DIAGNOSIS_CONTEXT_STORAGE_KEY = 'deskboost.aiDiagnosisContext';
+
 const captureTipKeys = ['aiAnalysis.tip.clear', 'aiAnalysis.tip.light', 'aiAnalysis.tip.soil'];
 const defaultRecommendationKeys = ['aiAnalysis.defaultRec.moisture', 'aiAnalysis.defaultRec.light', 'aiAnalysis.defaultRec.leaves'];
 
 const AIPlantAnalysis = () => {
   const { t } = useI18n();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const routePlantId = new URLSearchParams(location.search).get('plantId') || location.state?.selectedPlantId || '';
   const captureTips = captureTipKeys.map((key) => t(key));
   const defaultRecommendations = defaultRecommendationKeys.map((key) => t(key));
   const [dragActive, setDragActive] = useState(false);
@@ -26,6 +32,7 @@ const AIPlantAnalysis = () => {
   const [plants, setPlants] = useState([]);
   const [selectedPlantId, setSelectedPlantId] = useState('');
   const [question, setQuestion] = useState('Diagnose this plant image and keep advice plant-care only.');
+  const [quota, setQuota] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
@@ -53,14 +60,40 @@ const AIPlantAnalysis = () => {
     const loadPlants = async () => {
       try {
         const data = await getMyPlants();
-        if (active) setPlants(data?.items || []);
+        if (active) {
+          const items = data?.items || [];
+          setPlants(items);
+          setSelectedPlantId((current) => current || (items.some((plant) => plant.id === routePlantId) ? routePlantId : ''));
+        }
       } catch {
         if (active) setPlants([]);
       }
     };
+    const loadQuota = async () => {
+      try {
+        const data = await getAiQuota();
+        if (active) setQuota(data);
+      } catch {
+        if (active) setQuota(null);
+      }
+    };
     loadPlants();
+    loadQuota();
     return () => { active = false; };
-  }, []);
+  }, [routePlantId]);
+
+  const diagnosisQuota = quota?.diagnosis;
+  const diagnosisRemaining = typeof diagnosisQuota?.remaining === 'number' ? diagnosisQuota.remaining : null;
+  const diagnosisLimit = typeof diagnosisQuota?.limit === 'number' ? diagnosisQuota.limit : 2;
+  const isDiagnosisQuotaExhausted = diagnosisRemaining !== null && diagnosisRemaining <= 0;
+
+  const refreshQuota = async () => {
+    try {
+      setQuota(await getAiQuota());
+    } catch {
+      setQuota(null);
+    }
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -100,6 +133,10 @@ const AIPlantAnalysis = () => {
       setError(t('aiAnalysis.errorNoImage'));
       return;
     }
+    if (isDiagnosisQuotaExhausted) {
+      setError(t('aiAnalysis.quotaExhausted'));
+      return;
+    }
     setIsAnalyzing(true);
     setError('');
     try {
@@ -109,11 +146,39 @@ const AIPlantAnalysis = () => {
         question: question || undefined,
       });
       setResult(diagnosis);
+      await refreshQuota();
     } catch (err) {
-      setError(err?.message || t('aiAnalysis.errorAnalyze'));
+      if (err?.status === 429) {
+        setError(err?.message || t('aiAnalysis.quotaExhausted'));
+        setQuota((current) => current ? {
+          ...current,
+          hasVerifiedPlant: err?.details?.hasVerifiedPlant ?? current.hasVerifiedPlant,
+          diagnosis: {
+            ...(current.diagnosis || {}),
+            limit: err?.details?.limit ?? current.diagnosis?.limit,
+            used: err?.details?.used ?? current.diagnosis?.used,
+            remaining: err?.details?.remaining ?? 0,
+          },
+        } : current);
+      } else {
+        setError(err?.message || t('aiAnalysis.errorAnalyze'));
+      }
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleAskMore = () => {
+    if (!result) return;
+    const context = {
+      diagnosisId: result.diagnosisId || result.id || null,
+      plantId: selectedPlantId || null,
+      summary: result.summary || t('aiAnalysis.summaryFallback'),
+      recommendations: result.recommendations || defaultRecommendations,
+      source: result.source || null,
+    };
+    sessionStorage.setItem(DIAGNOSIS_CONTEXT_STORAGE_KEY, JSON.stringify(context));
+    navigate('/app/ai-chat', { state: { aiDiagnosisContext: context } });
   };
 
   const handleRemoveImage = () => {
@@ -145,6 +210,11 @@ const AIPlantAnalysis = () => {
         </Card>
 
         {error && <StateNotice tone="error">{error}</StateNotice>}
+        <StateNotice tone="info" className="text-sm">
+          {diagnosisRemaining === null
+            ? t('aiAnalysis.quotaFallback')
+            : t('aiAnalysis.quotaStatus', { remaining: diagnosisRemaining, limit: diagnosisLimit })}
+        </StateNotice>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           <div className="space-y-5 lg:col-span-2">
@@ -197,7 +267,7 @@ const AIPlantAnalysis = () => {
                           <textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={3} className="w-full rounded-2xl border border-[#E4EEE6] bg-white px-3 py-3 text-sm font-bold outline-none focus:border-primary dark:border-[#2A4532] dark:bg-surface-dark" />
                         </label>
                       </div>
-                      <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing} loading={isAnalyzing} className="mt-5 w-full">
+                      <Button type="button" onClick={handleAnalyze} disabled={isAnalyzing || isDiagnosisQuotaExhausted} loading={isAnalyzing} className="mt-5 w-full">
                         {isAnalyzing ? t('aiAnalysis.analyzingButton') : t('aiAnalysis.analyzeButton')}
                       </Button>
                     </div>
@@ -262,6 +332,15 @@ const AIPlantAnalysis = () => {
                       <p className="mt-2 text-sm font-bold leading-6 text-text-main dark:text-white">{item}</p>
                     </div>
                   ))}
+                </div>
+                <div className="flex flex-col gap-3 border-t border-[#E4EEE6] pt-5 dark:border-[#2A4532] sm:flex-row sm:items-center sm:justify-between">
+                  <p className="text-sm font-semibold leading-6 text-text-secondary dark:text-slate-300">
+                    {t('aiAnalysis.askMoreDescription')}
+                  </p>
+                  <Button type="button" onClick={handleAskMore} className="w-full sm:w-auto">
+                    <span className="material-symbols-outlined text-base" aria-hidden="true">forum</span>
+                    {t('aiAnalysis.askMoreButton')}
+                  </Button>
                 </div>
               </Card>
             )}

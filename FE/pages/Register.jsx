@@ -3,17 +3,29 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
 import { useI18n } from '../i18n';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Register = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { register, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
+  const { register, loginWithGoogle, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
   const { t } = useI18n();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [formError, setFormError] = useState('');
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    clearError();
+    setFormError('');
+    try {
+      await loginWithGoogle(credentialResponse.credential);
+      navigate(redirectTo, { replace: true });
+    } catch {
+      // AuthContext owns friendly error state.
+    }
+  };
 
   const redirectTo = useMemo(() => {
     const fromPath = location.state?.from?.pathname;
@@ -97,6 +109,24 @@ const Register = () => {
             {isLoading && <Spinner className="text-lg" />}
             {isLoading ? t('common.saving') : isBootstrapping ? t('common.loading') : t('common.submit')}
           </button>
+
+          <div className="relative flex items-center justify-center my-4">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
+            <span className="relative px-4 bg-white dark:bg-slate-900 text-sm text-gray-500">Hoặc</span>
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setFormError('Đăng ký Google thất bại.')}
+              useOneTap={false}
+              shape="rectangular"
+              size="large"
+              text="signup_with"
+              locale="vi"
+              width="400"
+            />
+          </div>
 
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">

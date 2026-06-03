@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { getCurrentUser, login as loginApi, register as registerApi } from "../services/authApi";
+import { getCurrentUser, login as loginApi, loginGoogle as loginGoogleApi, register as registerApi } from "../services/authApi";
 import { clearStoredAuth, getStoredToken, getStoredUser, saveAuth } from "../utils/authStorage";
 
 export const AuthContext = createContext(null);
@@ -124,9 +124,19 @@ export const AuthProvider = ({ children }) => {
     setState((current) => ({ ...current, error: null }));
   }, []);
 
+  const loginWithGoogle = useCallback(async (credential) => {
+    start();
+    try {
+      // credential là idToken từ Google One-tap (GoogleLogin component)
+      return finishSuccess(await loginGoogleApi(credential));
+    } catch (err) {
+      return finishError(err);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ ...state, login, register, logout, updateUser, clearError }),
-    [state, login, register, logout, updateUser, clearError]
+    () => ({ ...state, login, loginWithGoogle, register, logout, updateUser, clearError }),
+    [state, login, loginWithGoogle, register, logout, updateUser, clearError]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,6 +3,7 @@ using DeskBoost.Infrastructure.ExternalServices.Ai;
 using DeskBoost.Infrastructure.ExternalServices.Storage;
 using DeskBoost.Infrastructure.Identity;
 using DeskBoost.Infrastructure.Persistence;
+using DeskBoost.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,8 +24,10 @@ namespace DeskBoost.Infrastructure
             services.AddScoped<IDiagnosisOrchestrator, DiagnosisOrchestrator>();
             services.AddHttpClient<IAiChatService, GeminiChatService>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddSingleton<IAiConfiguration, AiConfigurationService>();
             services.AddScoped<IStorageService, CloudinaryStorageService>();
+            services.AddScoped<IAiQuotaService, AiQuotaService>();
 
             return services;
         }

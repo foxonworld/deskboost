@@ -6,6 +6,36 @@ const typeLabels = {
   check_leaves: "check leaves",
 };
 
+const recurrenceRules = {
+  daily: "FREQ=DAILY",
+  "every-2-days": "FREQ=DAILY;INTERVAL=2",
+  "every-3-days": "FREQ=DAILY;INTERVAL=3",
+  weekly: "FREQ=WEEKLY",
+  biweekly: "FREQ=WEEKLY;INTERVAL=2",
+  monthly: "FREQ=MONTHLY",
+};
+
+const normalizeRepeatRule = (value) => {
+  const rule = String(value || "").toLowerCase();
+  if (rule === "every2days") return "every-2-days";
+  if (rule === "every3days") return "every-3-days";
+  return rule && rule !== "none" ? rule : "none";
+};
+
+const toApiRepeatRule = (value, clearToken = null) => {
+  const rule = normalizeRepeatRule(value);
+  return rule === "none" ? clearToken : rule;
+};
+
+const repeatIntervals = {
+  daily: { days: 1 },
+  "every-2-days": { days: 2 },
+  "every-3-days": { days: 3 },
+  weekly: { days: 7 },
+  biweekly: { days: 14 },
+  monthly: { months: 1 },
+};
+
 const isDoneStatus = (status) =>
   ["done", "completed", "complete"].includes(String(status || "").toLowerCase());
 
@@ -28,14 +58,47 @@ const buildDueAt = (payload = {}) => {
   return new Date(`${dueDate}T${time}:00`).toISOString();
 };
 
+const addRepeatInterval = (date, repeatRule) => {
+  const interval = repeatIntervals[repeatRule] || repeatIntervals.daily;
+  const next = new Date(date);
+  if (interval.months) next.setMonth(next.getMonth() + interval.months);
+  else next.setDate(next.getDate() + interval.days);
+  return next;
+};
+
+const getNextRepeatedDueAt = (dueAt, repeatRule, completedAt) => {
+  const start = new Date(dueAt || Date.now());
+  const completed = new Date(completedAt || Date.now());
+  if (Number.isNaN(start.getTime())) return dueAt || new Date().toISOString();
+  if (Number.isNaN(completed.getTime())) return start.toISOString();
+
+  let next = addRepeatInterval(start, repeatRule);
+  while (next <= completed) {
+    next = addRepeatInterval(next, repeatRule);
+  }
+  return next.toISOString();
+};
+
 export const getReminderTypeLabel = (type) =>
   typeLabels[type] || type || "watering";
 
 export const normalizeReminder = (reminder = {}) => {
-  const dueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
-  const { dueDate, time } = toLocalDateParts(dueAt);
+  const rawDueAt = reminder.dueAt || reminder.due_at || reminder.dueDate || reminder.due_date;
+  const repeatRule = normalizeRepeatRule(reminder.repeatRule || reminder.repeat_rule || reminder.frequency);
   const status = reminder.status || (reminder.completed || reminder.done ? "done" : "pending");
-  const completed = isDoneStatus(status) || Boolean(reminder.completed || reminder.done);
+  const completedAt =
+    reminder.completedAt ||
+    reminder.completed_at ||
+    reminder.lastDoneAt ||
+    reminder.last_done_at ||
+    reminder.doneAt ||
+    (isDoneStatus(status) ? reminder.updatedAt || reminder.updated_at || null : null);
+  const isRepeatedDone = isDoneStatus(status) && Boolean(recurrenceRules[repeatRule]);
+  const dueAt = isRepeatedDone
+    ? getNextRepeatedDueAt(rawDueAt, repeatRule, completedAt)
+    : rawDueAt;
+  const { dueDate, time } = toLocalDateParts(dueAt);
+  const completed = !isRepeatedDone && (isDoneStatus(status) || Boolean(reminder.completed || reminder.done));
 
   return {
     ...reminder,
@@ -51,20 +114,17 @@ export const normalizeReminder = (reminder = {}) => {
     title: reminder.title || getReminderTypeLabel(reminder.careType || reminder.type),
     type: reminder.careType || reminder.care_type || reminder.type || "watering",
     careType: reminder.careType || reminder.care_type || reminder.type || "watering",
-    frequency: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
-    repeatRule: reminder.repeatRule || reminder.repeat_rule || reminder.frequency || "daily",
+    frequency: repeatRule,
+    repeatRule,
     notes: reminder.notes || "",
     dueAt: dueAt || new Date().toISOString(),
     dueDate,
     time,
-    status,
+    status: isRepeatedDone ? "pending" : status,
     enabled: reminder.enabled !== false && !["disabled", "cancelled"].includes(String(status).toLowerCase()),
     completed,
-    completedAt:
-      reminder.completedAt ||
-      reminder.completed_at ||
-      reminder.doneAt ||
-      (completed ? reminder.updatedAt || reminder.updated_at || null : null),
+    completedAt,
+    repeatedLastDone: isRepeatedDone,
   };
 };
 
@@ -75,12 +135,12 @@ const normalizeList = (data) => {
   return items.map(normalizeReminder);
 };
 
-export const toReminderPayload = (payload = {}) => ({
+export const toReminderPayload = (payload = {}, clearRepeatToken = null) => ({
   plantId: payload.plantId,
   title: payload.title || getReminderTypeLabel(payload.careType || payload.type),
   careType: payload.careType || payload.type || "watering",
   dueAt: buildDueAt(payload),
-  repeatRule: payload.repeatRule || payload.frequency || "daily",
+  repeatRule: toApiRepeatRule(payload.repeatRule || payload.frequency, clearRepeatToken),
   notes: payload.notes || "",
 });
 
@@ -91,7 +151,7 @@ export const createReminder = (payload) =>
   post("/reminders", toReminderPayload(payload)).then(normalizeReminder);
 
 export const updateReminder = (id, payload) =>
-  put(`/reminders/${id}`, toReminderPayload(payload)).then(normalizeReminder);
+  put(`/reminders/${id}`, toReminderPayload(payload, "")).then(normalizeReminder);
 
 export const deleteReminder = (id) => del(`/reminders/${id}`);
 
@@ -115,6 +175,7 @@ const getCalendarEvent = (reminder) => {
   const start = parseReminderDate(normalized);
   const end = new Date(start.getTime() + 30 * 60 * 1000);
   const label = getReminderTypeLabel(normalized.type);
+  const recurrenceRule = recurrenceRules[normalized.frequency] || "";
 
   return {
     id: normalized.id,
@@ -127,6 +188,7 @@ const getCalendarEvent = (reminder) => {
       .join("\n"),
     start,
     end,
+    recurrenceRule,
   };
 };
 
@@ -157,6 +219,7 @@ const buildCalendar = (events) => {
       `DTEND:${toCalendarDate(event.end)}`,
       `SUMMARY:${escapeText(event.title)}`,
       `DESCRIPTION:${escapeText(event.description)}`,
+      ...(event.recurrenceRule ? [`RRULE:${event.recurrenceRule}`] : []),
       "END:VEVENT",
     ]),
     "END:VCALENDAR",
@@ -171,6 +234,7 @@ export const generateGoogleCalendarUrl = (reminder) => {
     details: event.description,
     dates: `${toCalendarDate(event.start)}/${toCalendarDate(event.end)}`,
   });
+  if (event.recurrenceRule) params.set("recur", `RRULE:${event.recurrenceRule}`);
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 };
 

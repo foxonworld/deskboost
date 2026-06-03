@@ -3,4 +3,4 @@ using MediatR;
 
 namespace DeskBoost.Application.Features.Reminders.Queries;
 
-public record GetRemindersQuery(Guid UserId) : IRequest<List<ReminderDto>>;
+public record GetRemindersQuery(Guid UserId, Guid? PlantId = null) : IRequest<List<ReminderDto>>;

@@ -2,6 +2,7 @@ namespace DeskBoost.Application.Common.Models;
 
 public class DiagnosisResultDto
 {
+    public Guid? DiagnosisId { get; set; }
     public bool Success { get; set; }
     public string? Disease { get; set; }
     public float Confidence { get; set; }
@@ -13,3 +14,13 @@ public class DiagnosisResultDto
     public string? Message { get; set; }
     public List<PlantIdSuggestion> Suggestions { get; set; } = new();
 }
+
+public record DiagnosisListItemDto(
+    Guid Id,
+    Guid? PlantId,
+    string Condition,
+    double Confidence,
+    DateTime CreatedAt,
+    string? Disease,
+    string? Treatment
+);

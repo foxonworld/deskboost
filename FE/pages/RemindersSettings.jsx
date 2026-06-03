@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import {
@@ -23,18 +24,75 @@ const typeConfig = {
 };
 
 const frequencyLabels = {
+  none: 'reminders.frequency.none',
   daily: 'reminders.frequency.daily',
+  'every-2-days': 'reminders.frequency.every2Days',
+  'every-3-days': 'reminders.frequency.every3Days',
   weekly: 'reminders.frequency.weekly',
   biweekly: 'reminders.frequency.biweekly',
   monthly: 'reminders.frequency.monthly',
 };
 
-const todayKey = new Date().toISOString().slice(0, 10);
+const fieldShellClass = 'h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-sm outline-none transition-colors focus:border-[#4CAF50] focus:ring-4 focus:ring-[#4CAF50]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white';
+const dateTimeShellClass = 'h-14 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm transition-colors focus-within:border-[#4CAF50] focus-within:ring-4 focus-within:ring-[#4CAF50]/10 dark:border-slate-700 dark:bg-slate-900';
+const fieldControlClass = 'h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-sm outline-none transition-colors placeholder:text-slate-400 focus:border-[#4CAF50] focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white';
+
+const frequencyOptions = [
+  'none',
+  'daily',
+  'every-2-days',
+  'every-3-days',
+  'weekly',
+  'biweekly',
+  'monthly',
+];
+
+const getPlantWateringDays = (plant) => {
+  const value = Number(plant?.wateringCycleDays ?? plant?.WateringCycleDays);
+  return Number.isFinite(value) && value > 0 ? value : null;
+};
+
+const getSuggestedFrequency = (plant) => {
+  const days = getPlantWateringDays(plant);
+  if (days === 2) return 'every-2-days';
+  if (days === 3) return 'every-3-days';
+  if (days === 7) return 'weekly';
+  if (days === 14) return 'biweekly';
+  if (days && days >= 28 && days <= 31) return 'monthly';
+  return 'daily';
+};
+
+const toDateKey = (date = new Date()) => {
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const todayKey = toDateKey();
 
 const getBucket = (reminder) => {
   if (reminder.completed) return 'completed';
   if (reminder.dueDate <= todayKey) return 'today';
   return 'upcoming';
+};
+
+const sortRemindersForDisplay = (items) => [...items].sort((a, b) => {
+  const bucketOrder = { today: 0, upcoming: 1, completed: 2 };
+  const bucketDiff = bucketOrder[getBucket(a)] - bucketOrder[getBucket(b)];
+  if (bucketDiff) return bucketDiff;
+  if (getBucket(a) === 'completed') {
+    return new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime();
+  }
+  return new Date(a.dueAt || `${a.dueDate}T${a.time || '00:00'}`).getTime() - new Date(b.dueAt || `${b.dueDate}T${b.time || '00:00'}`).getTime();
+});
+
+const isRecurringReminder = (reminder) => reminder.frequency !== 'none' && Boolean(frequencyLabels[reminder.frequency]);
+
+const getPlantImage = (reminder, plants) => {
+  const plant = plants.find((item) => item.id === reminder.plantId);
+  return reminder.plantImage || reminder.imageUrl || reminder.image || plant?.image || plant?.imageUrl || '';
 };
 
 const downloadIcsContent = (content, filename) => {
@@ -55,11 +113,11 @@ const openCalendarUrls = (urls = []) => {
   });
 };
 
-const getDefaultForm = (plantId = '') => ({
+const getDefaultForm = (plantId = '', frequency = 'daily') => ({
   plantId,
   title: '',
   type: 'watering',
-  frequency: 'daily',
+  frequency,
   dueDate: new Date().toISOString().slice(0, 10),
   time: '08:00',
   notes: '',
@@ -67,6 +125,11 @@ const getDefaultForm = (plantId = '') => ({
 
 const RemindersSettings = () => {
   const { t } = useI18n();
+  const location = useLocation();
+  const routePlantId = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return location.state?.selectedPlantId || params.get('plantId') || '';
+  }, [location.search, location.state]);
   const [reminders, setReminders] = useState([]);
   const [plants, setPlants] = useState([]);
   const [form, setForm] = useState(getDefaultForm());
@@ -86,7 +149,11 @@ const RemindersSettings = () => {
       const nextPlants = plantData.items || [];
       setReminders(nextReminders);
       setPlants(nextPlants);
-      setForm((prev) => (prev.plantId ? prev : getDefaultForm(nextPlants[0]?.id || '')));
+      setForm((prev) => {
+        if (prev.plantId) return prev;
+        const firstPlant = nextPlants.find((plant) => plant.id === routePlantId) || nextPlants[0];
+        return getDefaultForm(firstPlant?.id || '', getSuggestedFrequency(firstPlant));
+      });
     } catch (err) {
       setError(err?.message || t('reminders.error.load'));
     } finally {
@@ -96,7 +163,7 @@ const RemindersSettings = () => {
 
   useEffect(() => {
     loadReminders();
-  }, [t]);
+  }, [t, routePlantId]);
 
   const grouped = useMemo(() => ({
     today: reminders.filter((item) => getBucket(item) === 'today'),
@@ -104,9 +171,14 @@ const RemindersSettings = () => {
     completed: reminders.filter((item) => getBucket(item) === 'completed'),
   }), [reminders]);
 
-  const filteredReminders = reminders.filter((item) => activeFilter === 'all' || getBucket(item) === activeFilter);
+  const filteredReminders = useMemo(
+    () => sortRemindersForDisplay(reminders.filter((item) => activeFilter === 'all' || getBucket(item) === activeFilter)),
+    [activeFilter, reminders]
+  );
   const calendarExport = useMemo(() => generateCombinedCalendarExport(reminders), [reminders]);
   const exportableCount = calendarExport.reminders.length;
+  const selectedPlant = plants.find((plant) => plant.id === form.plantId);
+  const selectedPlantWateringDays = getPlantWateringDays(selectedPlant);
 
   const handleAddAllToCalendar = () => {
     if (!exportableCount) return;
@@ -137,7 +209,8 @@ const RemindersSettings = () => {
         setReminders((prev) => [created, ...prev]);
         setNotice(t('reminders.notice.added'));
       }
-      setForm(getDefaultForm(plants[0]?.id || ''));
+      const nextPlant = plants.find((plant) => plant.id === form.plantId) || plants[0];
+      setForm(getDefaultForm(nextPlant?.id || '', getSuggestedFrequency(nextPlant)));
       setTimeout(() => setNotice(''), 2500);
     } catch (err) {
       setError(err?.message || t('reminders.error.save'));
@@ -158,10 +231,14 @@ const RemindersSettings = () => {
     }
   };
 
-  const handleMarkDone = (id) =>
-    withReminderAction(id, async () => {
-      const updated = await markReminderDone(id);
-      setReminders((prev) => prev.map((item) => (item.id === id ? updated : item)));
+  const handleMarkDone = (reminder) =>
+    withReminderAction(reminder.id, async () => {
+      const updated = await markReminderDone(reminder.id);
+      setReminders((prev) => prev.map((item) => (item.id === reminder.id ? updated : item)));
+      setNotice(isRecurringReminder(reminder)
+        ? t('reminders.notice.completedOccurrence', { next: `${updated.dueDate} ${updated.time}` })
+        : t('reminders.notice.completed'));
+      setTimeout(() => setNotice(''), 3000);
     });
 
   const handleDelete = (id) =>
@@ -185,7 +262,16 @@ const RemindersSettings = () => {
 
   const handleCancelEdit = () => {
     setEditingId('');
-    setForm(getDefaultForm(plants[0]?.id || ''));
+    setForm(getDefaultForm(plants[0]?.id || '', getSuggestedFrequency(plants[0])));
+  };
+
+  const handlePlantChange = (plantId) => {
+    const plant = plants.find((item) => item.id === plantId);
+    setForm((prev) => ({
+      ...prev,
+      plantId,
+      frequency: prev.type === 'watering' && !editingId ? getSuggestedFrequency(plant) : prev.frequency,
+    }));
   };
 
   const handleAddToCalendar = (reminder) =>
@@ -263,33 +349,46 @@ const RemindersSettings = () => {
                 {editingId ? t('reminders.editTitle') : t('reminders.settingsTitle')}
               </h2>
               <p className="text-xs text-slate-500 mt-1">{t('reminders.settingsDesc')}</p>
+              {selectedPlantWateringDays && form.type === 'watering' && !editingId && (
+                <p className="text-xs font-semibold text-[#2E7D32] mt-1">
+                  {t('reminders.plantSuggestion', { days: selectedPlantWateringDays })}
+                </p>
+              )}
             </div>
             <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">{t('reminders.showAll')}</button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-5 grid grid-cols-1 md:grid-cols-6 gap-3 border-b border-slate-50 dark:border-slate-800">
-            <select value={form.plantId} onChange={(event) => setForm((prev) => ({ ...prev, plantId: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" required disabled={!plants.length}>
+          <form onSubmit={handleSubmit} className="p-4 md:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 border-b border-slate-50 dark:border-slate-800">
+            <select value={form.plantId} onChange={(event) => handlePlantChange(event.target.value)} className={`${fieldShellClass} lg:col-span-4`} required disabled={!plants.length}>
               {plants.length === 0 && <option value="">{t('reminders.noPlants')}</option>}
               {plants.map((plant) => (
                 <option key={plant.id} value={plant.id}>{plant.nickname || plant.name}</option>
               ))}
             </select>
-            <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
+            <select value={form.type} onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))} className={`${fieldShellClass} lg:col-span-2`}>
               <option value="watering">{t('reminders.type.watering')}</option>
               <option value="fertilizing">{t('reminders.type.fertilizing')}</option>
               <option value="check_leaves">{t('reminders.type.check_leaves')}</option>
             </select>
-            <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold">
-              <option value="daily">{t('reminders.frequency.daily')}</option>
-              <option value="weekly">{t('reminders.frequency.weekly')}</option>
-              <option value="biweekly">{t('reminders.frequency.biweekly')}</option>
-              <option value="monthly">{t('reminders.frequency.monthly')}</option>
+            <select value={form.frequency} onChange={(event) => setForm((prev) => ({ ...prev, frequency: event.target.value }))} className={`${fieldShellClass} lg:col-span-2`}>
+              {frequencyOptions.map((frequency) => (
+                <option key={frequency} value={frequency}>{t(frequencyLabels[frequency])}</option>
+              ))}
             </select>
-            <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
-            <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" />
-            <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className="md:col-span-2 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.titlePlaceholder')} />
-            <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className="md:col-span-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white px-4 py-3 text-sm font-bold" placeholder={t('reminders.notesPlaceholder')} />
-            <div className="flex gap-2">
+            <label className={`${dateTimeShellClass} lg:col-span-2`}>
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{editingId ? t('reminders.nextDueDateLabel') : t('reminders.startDateLabel')}</span>
+              <input type="date" value={form.dueDate} onChange={(event) => setForm((prev) => ({ ...prev, dueDate: event.target.value }))} className="mt-1 block w-full min-w-0 appearance-none border-0 bg-transparent p-0 text-sm font-bold leading-5 text-slate-900 outline-none dark:text-white" />
+            </label>
+            <label className={`${dateTimeShellClass} lg:col-span-2`}>
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wide">{t('reminders.timeLabel')}</span>
+              <input type="time" value={form.time} onChange={(event) => setForm((prev) => ({ ...prev, time: event.target.value }))} className="mt-1 block w-full min-w-0 appearance-none border-0 bg-transparent p-0 text-sm font-bold leading-5 text-slate-900 outline-none dark:text-white" />
+            </label>
+            <p className="sm:col-span-2 lg:col-span-12 text-xs font-semibold text-slate-500 dark:text-slate-400">
+              {t('reminders.repeatHint')}
+            </p>
+            <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className={`${fieldControlClass} lg:col-span-4`} placeholder={t('reminders.titlePlaceholder')} />
+            <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className={`${fieldControlClass} lg:col-span-6`} placeholder={t('reminders.notesPlaceholder')} />
+            <div className="sm:col-span-2 lg:col-span-2 flex gap-2">
               {editingId && (
                 <button type="button" onClick={handleCancelEdit} className="px-4 py-3 rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 text-xs font-black">
                   {t('common.cancel')}
@@ -309,15 +408,29 @@ const RemindersSettings = () => {
             {!loading && filteredReminders.map((reminder) => {
               const cfg = typeConfig[reminder.type] || typeConfig.watering;
               const bucket = getBucket(reminder);
+              const recurring = isRecurringReminder(reminder);
+              const dueNow = bucket === 'today';
+              const plantImage = getPlantImage(reminder, plants);
+              const isEditing = editingId === reminder.id;
               return (
-                <article key={reminder.id} className={`rounded-3xl border p-4 transition-all ${reminder.completed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-80' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md'}`}>
+                <article key={reminder.id} className={`rounded-3xl border p-4 transition-all ${isEditing ? 'border-[#4CAF50] bg-[#F0FDF4]/60 shadow-lg shadow-[#4CAF50]/10 ring-4 ring-[#A5D6A7]/30 dark:bg-[#4CAF50]/10' : reminder.completed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-80' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md'}`}>
                   <div className="flex items-start gap-4">
-                    <div className={`size-12 rounded-2xl flex items-center justify-center text-2xl ${cfg.bg}`}>{reminder.plantEmoji || '🌿'}</div>
+                    <div className={`size-14 shrink-0 overflow-hidden rounded-2xl border border-white shadow-sm ${cfg.bg} dark:border-slate-800`}>
+                      {plantImage ? (
+                        <img src={plantImage} alt={reminder.plantName} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <span className="material-symbols-outlined text-[#4CAF50]">potted_plant</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-black text-slate-900 dark:text-white">{reminder.plantName}</h3>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${reminder.enabled ? 'bg-[#F0FDF4] text-[#2E7D32]' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>{reminder.enabled ? t('common.enabled') : t('common.disabled')}</span>
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300">{t(`reminders.stats.${bucket}`)}</span>
+                        {recurring && <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 dark:bg-blue-900/20">{t('reminders.recurringBadge')}</span>}
+                        {reminder.repeatedLastDone && <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20">{t('reminders.lastDoneBadge')}</span>}
                       </div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap text-xs font-bold text-slate-500">
                         <span className={`${cfg.color} flex items-center gap-1`}><span className="material-symbols-outlined text-sm">{cfg.icon}</span>{t(cfg.labelKey)}</span>
@@ -326,15 +439,25 @@ const RemindersSettings = () => {
                         <span>·</span>
                         <span>{t('reminders.dueAt', { date: reminder.dueDate, time: reminder.time })}</span>
                       </div>
+                      {reminder.completedAt && recurring && (
+                        <p className="mt-2 text-xs font-semibold text-[#2E7D32]">
+                          {t('reminders.lastDoneAt', { time: new Date(reminder.completedAt).toLocaleString('vi-VN') })}
+                        </p>
+                      )}
                       {reminder.notes && <p className="mt-2 text-xs font-semibold text-slate-400">{reminder.notes}</p>}
                     </div>
                   </div>
 
                   <div className="mt-4 flex items-center gap-2 flex-wrap">
-                    {!reminder.completed && (
-                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder.id)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
-                        {t('reminders.markDone')}
+                    {!reminder.completed && dueNow && (
+                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
+                        {recurring ? t('reminders.completeOccurrence') : t('reminders.markDone')}
                       </button>
+                    )}
+                    {!reminder.completed && !dueNow && (
+                      <span className="px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-black dark:bg-blue-900/20">
+                        {t('reminders.notDueYet')}
+                      </span>
                     )}
                     <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-60">
                       {t('common.edit')}

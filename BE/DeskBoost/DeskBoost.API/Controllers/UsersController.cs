@@ -43,4 +43,21 @@ public class UsersController : ControllerBase
         }, ct);
         return Ok(result);
     }
+
+    /// <summary>POST /api/users/me/change-password</summary>
+    [HttpPost("me/change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
+            return BadRequest(new { message = "Vui lòng điền đầy đủ mật khẩu hiện tại và mật khẩu mới." });
+
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        await _sender.Send(new ChangePasswordCommand
+        {
+            UserId = userId,
+            CurrentPassword = request.CurrentPassword,
+            NewPassword = request.NewPassword
+        }, ct);
+        return Ok(new { message = "Đổi mật khẩu thành công." });
+    }
 }

@@ -5,33 +5,40 @@ import {
   deleteAdminPlantInventory,
   getAdminMarketplacePlants,
   getAdminPlantInventory,
+  getPlantSpecies,
   regenerateAdminPlantInventoryCode,
-  updateAdminPlantInventory,
 } from '../../services/adminApi';
-import { uploadImage } from '../../services/uploadApi';
 
-const emptyForm = {
-  marketplaceItemId: '',
-  name: '',
-  speciesName: '',
-  imageUrl: '',
-  location: '',
-  wateringCycleDays: '3',
-  notes: '',
-};
+const defaultLocation = 'HCM';
 
 const normalizeCategory = (value) => String(value || '').toLowerCase();
+
+const parseWateringCycleDays = (water) => {
+  const match = String(water || '').match(/^1\/(\d+)$/);
+  return match ? Number(match[1]) : 3;
+};
+
+const padSequence = (value) => String(value).padStart(3, '0');
 
 const AdminPlantInventory = () => {
   const [items, setItems] = useState([]);
   const [inventory, setInventory] = useState([]);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState('');
+  const [speciesOptions, setSpeciesOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState('');
   const [regeneratingId, setRegeneratingId] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [generatedPlant, setGeneratedPlant] = useState(null);
+  const [draft, setDraft] = useState({
+    name: '',
+    imageUrl: '',
+    plantSpeciesId: '',
+    speciesName: '',
+    location: defaultLocation,
+    wateringCycleDays: '3',
+    notes: '',
+  });
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
 
@@ -44,15 +51,18 @@ const AdminPlantInventory = () => {
     setLoading(true);
     setError('');
     try {
-      const [itemData, inventoryData] = await Promise.all([
+      const [itemData, inventoryData, speciesData] = await Promise.all([
         getAdminMarketplacePlants({ limit: 100, category: 'plant' }),
         getAdminPlantInventory(),
+        getPlantSpecies().catch(() => ({ items: [] })),
       ]);
       setItems(itemData?.items || []);
       setInventory(inventoryData?.items || []);
+      setSpeciesOptions(speciesData?.items || []);
     } catch (err) {
       setItems([]);
       setInventory([]);
+      setSpeciesOptions([]);
       setError(err?.message || 'Could not load plant inventory.');
     } finally {
       setLoading(false);
@@ -63,87 +73,102 @@ const AdminPlantInventory = () => {
     loadData();
   }, []);
 
-  const updateField = (event) => {
-    const { name, value } = event.target;
-    setError('');
-    setNotice('');
-    setForm((current) => ({ ...current, [name]: value }));
+  const getNextName = (item) => {
+    const count = inventory.filter((plant) => plant.marketplaceItemId === item.id).length + 1;
+    return `${item.name} #${padSequence(count)}`;
   };
 
-  const resetForm = () => {
-    setForm(emptyForm);
-    setEditingId('');
-    setError('');
+  const getSpeciesLabel = (species) =>
+    species?.vietnameseName || species?.name || '';
+
+  const findDefaultSpecies = (item) => {
+    const itemName = String(item?.name || '').trim().toLowerCase();
+    if (!itemName) return null;
+    return speciesOptions.find((species) =>
+      [species.name, species.vietnameseName]
+        .filter(Boolean)
+        .some((name) => String(name).trim().toLowerCase() === itemName),
+    ) || null;
   };
 
-  const startEdit = (plant) => {
-    setEditingId(plant.id);
-    setForm({
-      marketplaceItemId: plant.marketplaceItemId || '',
-      name: plant.name || '',
-      speciesName: plant.speciesName || '',
-      imageUrl: plant.imageUrl || '',
-      location: plant.location || '',
-      wateringCycleDays: String(plant.wateringCycleDays || 3),
-      notes: plant.notes || '',
+  const openGenerateModal = (item) => {
+    const defaultSpecies = findDefaultSpecies(item);
+    setSelectedItem(item);
+    setGeneratedPlant(null);
+    setDraft({
+      name: getNextName(item),
+      imageUrl: item.imageUrl || '',
+      plantSpeciesId: defaultSpecies?.id || '',
+      speciesName: getSpeciesLabel(defaultSpecies) || item.name || '',
+      location: defaultLocation,
+      wateringCycleDays: String(parseWateringCycleDays(item.water)),
+      notes: '',
     });
     setError('');
     setNotice('');
   };
 
-  const handleUploadImage = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    setError('');
-    setNotice('');
-    try {
-      const imageUrl = await uploadImage(file);
-      setForm((current) => ({ ...current, imageUrl }));
-      setNotice('Image uploaded and attached to inventory item.');
-    } catch (err) {
-      setError(err?.message || 'Image upload failed.');
-    } finally {
-      setUploading(false);
-      event.target.value = '';
-    }
+  const closeGenerateModal = () => {
+    setSelectedItem(null);
+    setGeneratedPlant(null);
+    setDraft({
+      name: '',
+      imageUrl: '',
+      plantSpeciesId: '',
+      speciesName: '',
+      location: defaultLocation,
+      wateringCycleDays: '3',
+      notes: '',
+    });
   };
 
-  const toPayload = () => ({
-    marketplaceItemId: form.marketplaceItemId || null,
-    name: form.name.trim(),
-    speciesName: form.speciesName.trim() || null,
-    imageUrl: form.imageUrl.trim() || null,
-    location: form.location.trim() || null,
-    wateringCycleDays: Number(form.wateringCycleDays || 3),
-    notes: form.notes.trim() || null,
-  });
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const updateDraft = (event) => {
+    const { name, value } = event.target;
     setError('');
     setNotice('');
-    if (!form.marketplaceItemId) {
-      setError('Please select a plant marketplace item before creating inventory.');
-      return;
-    }
-    if (!form.name.trim()) {
-      setError('Inventory plant name is required.');
-      return;
-    }
-    setSaving(true);
-    try {
-      if (editingId) {
-        await updateAdminPlantInventory(editingId, toPayload());
-        setNotice('Plant inventory updated.');
-      } else {
-        await createAdminPlantInventory(toPayload());
-        setNotice('Plant inventory created with backend claim code.');
+    setDraft((current) => {
+      if (name === 'plantSpeciesId') {
+        const species = speciesOptions.find((item) => item.id === value);
+        return {
+          ...current,
+          plantSpeciesId: value,
+          speciesName: species ? getSpeciesLabel(species) : current.speciesName,
+        };
       }
-      resetForm();
+      return { ...current, [name]: value };
+    });
+  };
+
+  const handleGenerateCode = async (event) => {
+    event.preventDefault();
+    if (!selectedItem) return;
+    if (!draft.name.trim()) {
+      setError('Inventory name is required.');
+      return;
+    }
+
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      const result = await createAdminPlantInventory({
+        marketplaceItemId: selectedItem.id,
+        plantSpeciesId: draft.plantSpeciesId || null,
+        name: draft.name.trim(),
+        speciesName: draft.speciesName.trim() || selectedItem.name,
+        imageUrl: draft.imageUrl.trim() || selectedItem.imageUrl || null,
+        location: draft.location.trim() || defaultLocation,
+        careLevel: selectedItem.careLevel || null,
+        light: selectedItem.light || null,
+        water: selectedItem.water || null,
+        wateringCycleDays: Number(draft.wateringCycleDays || 3),
+        notes: draft.notes.trim() || null,
+      });
+      setGeneratedPlant(result);
+      setNotice('Claim code generated.');
       await loadData();
     } catch (err) {
-      setError(err?.message || 'Could not save plant inventory.');
+      setError(err?.message || 'Could not generate claim code.');
     } finally {
       setSaving(false);
     }
@@ -157,7 +182,6 @@ const AdminPlantInventory = () => {
     try {
       await deleteAdminPlantInventory(plant.id);
       setInventory((current) => current.filter((item) => item.id !== plant.id));
-      if (editingId === plant.id) resetForm();
       setNotice('Plant inventory deleted.');
     } catch (err) {
       setError(err?.message || 'Could not delete plant inventory.');
@@ -182,94 +206,225 @@ const AdminPlantInventory = () => {
     }
   };
 
+  const findMarketplaceName = (plant) =>
+    plantItems.find((item) => item.id === plant.marketplaceItemId)?.name || 'Marketplace plant';
+
   return (
     <AdminLayout>
       <section className="rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Plant inventory</p>
-        <h1 className="mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Physical plant inventory</h1>
+        <h1 className="mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Generate plant codes</h1>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-          Create physical plants only from marketplace items with category plant. Claim codes are generated by the backend.
+          Pick a plant from marketplace, generate one physical plant record, then send the claim code to the buyer.
         </p>
         {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
         {notice && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{notice}</p>}
 
-        <form onSubmit={handleSubmit} className="mt-6 grid gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40 md:grid-cols-2">
-          <div className="md:col-span-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white">{editingId ? 'Edit inventory plant' : 'Create inventory plant'}</h2>
-              <p className="text-xs font-semibold text-slate-400">Only plant marketplace items can be selected here.</p>
-            </div>
-            {editingId && <button type="button" onClick={resetForm} className="w-fit rounded-xl border border-slate-200 px-4 py-2 text-xs font-black text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700">Cancel edit</button>}
-          </div>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Marketplace plant item
-            <select name="marketplaceItemId" value={form.marketplaceItemId} onChange={updateField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-              <option value="">Select plant item</option>
-              {plantItems.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-            </select>
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Inventory name
-            <input name="name" value={form.name} onChange={updateField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Heartleaf #001" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Species name
-            <input name="speciesName" value={form.speciesName} onChange={updateField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Location
-            <input name="location" value={form.location} onChange={updateField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Shelf A-01" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Watering cycle days
-            <input name="wateringCycleDays" type="number" min="1" value={form.wateringCycleDays} onChange={updateField} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
-            Upload image
-            <input type="file" accept="image/*" onChange={handleUploadImage} disabled={uploading} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
-            Image URL
-            <input name="imageUrl" value={form.imageUrl} onChange={updateField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
-            Notes
-            <textarea name="notes" value={form.notes} onChange={updateField} rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
-          </label>
-          <div className="md:col-span-2">
-            <button type="submit" disabled={saving || uploading || plantItems.length === 0} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
-              {saving ? 'Saving...' : editingId ? 'Save inventory' : 'Create inventory'}
-            </button>
-          </div>
-        </form>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {loading ? (
-            <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">Loading plant inventory...</p>
-          ) : inventory.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">No physical plants in inventory yet.</p>
+            <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">Loading marketplace plants...</p>
+          ) : plantItems.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">No marketplace plant items found. Create a marketplace item with category plant first.</p>
           ) : (
-            inventory.map((plant) => (
-              <article key={plant.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex gap-3">
-                  {plant.imageUrl ? <img src={plant.imageUrl} alt={plant.name} className="h-16 w-16 rounded-2xl object-cover" /> : <div className="grid h-16 w-16 place-items-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800"><span className="material-symbols-outlined">potted_plant</span></div>}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-black text-slate-900 dark:text-white">{plant.name}</p>
-                    <p className="mt-1 text-xs font-semibold text-slate-400">{plant.location || 'No location'} - {plant.ownershipStatus}</p>
-                    <p className="mt-2 rounded-xl bg-[#4CAF50]/10 px-3 py-2 text-xs font-black text-[#4CAF50]">Code: {plant.ownershipCode || 'Not generated'}</p>
-                    {plant.userEmail && <p className="mt-2 text-xs font-bold text-slate-400">Claimed by {plant.userEmail}</p>}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <button type="button" onClick={() => startEdit(plant)} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300">Edit</button>
-                      <button type="button" onClick={() => handleRegenerate(plant)} disabled={plant.isClaimed || regeneratingId === plant.id} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300">{regeneratingId === plant.id ? 'Regenerating...' : 'Regenerate code'}</button>
-                      <button type="button" onClick={() => handleDelete(plant)} disabled={plant.isClaimed || deletingId === plant.id} className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-950/50 dark:text-red-300">{deletingId === plant.id ? 'Deleting...' : 'Delete'}</button>
+            plantItems.map((item) => {
+              const generatedCount = inventory.filter((plant) => plant.marketplaceItemId === item.id).length;
+              return (
+                <article key={item.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                  <div className="flex gap-3">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} className="h-20 w-20 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="grid h-20 w-20 place-items-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+                        <span className="material-symbols-outlined">potted_plant</span>
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-black text-slate-900 dark:text-white">{item.name}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-400">Generated codes: {generatedCount}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {item.careLevel && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Care {item.careLevel}</span>}
+                        {item.light && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Light {item.light}</span>}
+                        {item.water && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Water {item.water}</span>}
+                      </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => openGenerateModal(item)}
+                    className="mt-4 w-full rounded-2xl bg-[#4CAF50] px-4 py-3 text-sm font-black text-white transition hover:bg-[#43A047]"
+                  >
+                    Generate code
+                  </button>
+                </article>
+              );
+            })
+          )}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Generated inventory</p>
+            <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">Claim code list</h2>
+          </div>
+          <p className="text-sm font-bold text-slate-400">{inventory.length} records</p>
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-800">
+          {loading ? (
+            <p className="p-5 text-sm font-bold text-slate-400">Loading generated codes...</p>
+          ) : inventory.length === 0 ? (
+            <p className="p-5 text-sm font-bold text-slate-400">No generated plant codes yet.</p>
+          ) : (
+            inventory.map((plant) => (
+              <div key={plant.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-b-0 dark:border-slate-800 lg:grid-cols-[1.2fr_0.9fr_0.8fr_0.8fr_auto] lg:items-center">
+                <div className="flex items-center gap-3">
+                  {plant.imageUrl ? (
+                    <img src={plant.imageUrl} alt={plant.name} className="h-12 w-12 rounded-2xl object-cover" />
+                  ) : (
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+                      <span className="material-symbols-outlined text-xl">potted_plant</span>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-slate-900 dark:text-white">{plant.name}</p>
+                    <p className="text-xs font-semibold text-slate-400">{findMarketplaceName(plant)} - {plant.location || 'No location'}</p>
+                  </div>
                 </div>
-              </article>
+                <p className="rounded-xl bg-[#4CAF50]/10 px-3 py-2 text-xs font-black text-[#4CAF50]">Code: {plant.ownershipCode || 'Not generated'}</p>
+                <span className={`w-fit rounded-full px-3 py-1 text-[11px] font-black ${plant.isClaimed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
+                  {plant.isClaimed ? 'Claimed' : 'Unclaimed'}
+                </span>
+                <p className="text-xs font-bold text-slate-400">{plant.userEmail || 'No user yet'}</p>
+                <div className="flex flex-wrap gap-2 lg:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleRegenerate(plant)}
+                    disabled={plant.isClaimed || regeneratingId === plant.id}
+                    className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
+                  >
+                    {regeneratingId === plant.id ? 'Regenerating...' : 'Regenerate'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(plant)}
+                    disabled={plant.isClaimed || deletingId === plant.id}
+                    className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-950/50 dark:text-red-300"
+                  >
+                    {deletingId === plant.id ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
+              </div>
             ))
           )}
         </div>
       </section>
+
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
+          <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Generate code</p>
+                <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">{selectedItem.name}</h2>
+                <p className="mt-2 text-sm font-bold text-slate-400">Defaults are copied from marketplace item. Adjust location or note if needed.</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeGenerateModal}
+                className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700"
+                aria-label="Close generate code modal"
+              >
+                <span className="material-symbols-rounded text-xl">close</span>
+              </button>
+            </div>
+
+            {generatedPlant ? (
+              <div className="mt-6 rounded-3xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-5">
+                <p className="text-xs font-black uppercase tracking-widest text-[#4CAF50]">Generated successfully</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-[120px_1fr]">
+                  {generatedPlant.imageUrl ? (
+                    <img src={generatedPlant.imageUrl} alt={generatedPlant.name} className="h-28 w-full rounded-2xl object-cover" />
+                  ) : (
+                    <div className="grid h-28 place-items-center rounded-2xl bg-white text-[#4CAF50] dark:bg-slate-950">
+                      <span className="material-symbols-outlined text-5xl">potted_plant</span>
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900 dark:text-white">{generatedPlant.name}</h3>
+                    <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-lg font-black text-[#4CAF50] dark:bg-slate-950">
+                      {generatedPlant.ownershipCode || 'Code unavailable'}
+                    </p>
+                    <p className="mt-2 text-sm font-bold text-slate-500 dark:text-slate-400">
+                      Status: {generatedPlant.ownershipStatus || 'Unclaimed'} - Location: {generatedPlant.location || defaultLocation}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeGenerateModal}
+                  className="mt-5 rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#43A047]"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleGenerateCode} className="mt-6 grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                  Inventory name
+                  <input name="name" value={draft.name} onChange={updateDraft} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+                </label>
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                  Location
+                  <input name="location" value={draft.location} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+                </label>
+                {speciesOptions.length > 0 && (
+                  <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                    Plant species
+                    <select name="plantSpeciesId" value={draft.plantSpeciesId} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
+                      <option value="">No species selected</option>
+                      {speciesOptions.map((species) => (
+                        <option key={species.id} value={species.id}>
+                          {getSpeciesLabel(species)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                  Species name
+                  <input name="speciesName" value={draft.speciesName} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+                </label>
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                  Watering cycle days
+                  <input name="wateringCycleDays" type="number" min="1" value={draft.wateringCycleDays} onChange={updateDraft} required className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+                </label>
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+                  Image URL
+                  <input name="imageUrl" value={draft.imageUrl} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" />
+                </label>
+                <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
+                  Note
+                  <textarea name="notes" value={draft.notes} onChange={updateDraft} rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Optional sale note" />
+                </label>
+                <div className="md:col-span-2 rounded-2xl bg-slate-50 p-4 text-xs font-bold leading-5 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
+                  <p>Care level: {selectedItem.careLevel || 'N/A'} | Light: {selectedItem.light || 'N/A'} | Water: {selectedItem.water || 'N/A'}</p>
+                  <p className="mt-1">These care fields remain on the marketplace item and will be available during claim/profile display.</p>
+                </div>
+                <div className="md:col-span-2 flex flex-wrap gap-3">
+                  <button type="submit" disabled={saving} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
+                    {saving ? 'Generating...' : 'Generate code'}
+                  </button>
+                  <button type="button" onClick={closeGenerateModal} disabled={saving} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-black text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

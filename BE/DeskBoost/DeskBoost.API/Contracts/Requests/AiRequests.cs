@@ -4,6 +4,7 @@ namespace DeskBoost.API.Contracts.Requests;
 public class AiChatRequest
 {
     public Guid? PlantId { get; set; }
+    public Guid? DiagnosisResultId { get; set; }
     public string Message { get; set; } = string.Empty;
     public List<ChatHistoryItemRequest> History { get; set; } = [];
     public PlantContextRequest? PlantContext { get; set; }
