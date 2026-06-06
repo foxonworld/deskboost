@@ -61,19 +61,27 @@ namespace DeskBoost.API
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
-                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+                {
+                    var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]
+                        ?.Split(',', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (allowedOrigins is { Length: > 0 })
+                        policy.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
+                    else
+                        policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                });
             });
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.UseHttpsRedirection();
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseHttpsRedirection();
+            }
             app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();

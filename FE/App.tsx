@@ -1,5 +1,5 @@
 import React from "react";
-import { HashRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import AppRouter from "./routes/AppRouter";
 import FloatingHomeButton from "./components/FloatingHomeButton";
 import ThemeToggle from "./components/ThemeToggle";
@@ -11,7 +11,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const App: React.FC = () => {
   return (
-    <HashRouter>
+    <BrowserRouter>
       <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "fake-google-client-id"}>
         <I18nProvider>
           <AuthProvider>
@@ -26,7 +26,7 @@ const App: React.FC = () => {
           </AuthProvider>
         </I18nProvider>
       </GoogleOAuthProvider>
-    </HashRouter>
+    </BrowserRouter>
   );
 };
 
