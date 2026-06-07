@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DeskBoost</string>
+    <string name="title_activity_main">DeskBoost</string>
+    <string name="package_name">vn.deskboost.app</string>
+    <string name="custom_url_scheme">vn.deskboost.app</string>
+</resources>

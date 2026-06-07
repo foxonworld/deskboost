@@ -277,6 +277,12 @@ Do not remember:
 
 ## Current Sprint Memory - Post Phase 3B / June 2026
 
+- Mobile APK foundation completed for demo using Capacitor Android under `FE/android`. Mobile build uses `FE/.env.mobile`, `npm run build:mobile`, `npm run cap:sync`, then Gradle `assembleDebug`; debug APK output is `FE/android/app/build/outputs/apk/debug/app-debug.apk`.
+- Mobile runtime decisions: `VITE_MOBILE_APP=true` hides Google OAuth buttons and admin nav links for APK MVP; `VITE_ROUTER_MODE=hash` makes the APK use `HashRouter`, while normal web builds still use `BrowserRouter` because the env flag is absent.
+- Production mobile API base verified by emulator/browser and Swagger: `https://deskboost.onrender.com/api` (not `/api/v1`). `https://deskboost.onrender.com/api/marketplace-items?page=1&limit=12` works; adding `/api/v1` fails in the current production backend.
+- Mobile impact boundary: Capacitor changes are additive and mobile-mode gated; default web/Vercel behavior is unchanged except for extra dependencies/scripts and generated `FE/android` files. Existing web deploy should keep using its normal env/domain settings.
+- Mobile local build requirements on this machine: Gradle must use Android Studio JBR (`C:\Program Files\Android\Android Studio\jbr`) and Android SDK at `C:\Users\anhev\AppData\Local\Android\Sdk`; Java 8 fails Android Gradle plugin resolution.
+
 - Current CTO decision: Ownership/QR/Claim refactor is deferred. Do not implement Ownership/Claim UI, claim pages, QR generation, scanner/NFC, or fake ownership logic until backend inventory/claim APIs exist.
 - Current sprint priority order: P1 Admin Marketplace CRUD; P2 Admin Marketplace Feedback lifecycle only when backend endpoint exists; P3 audit Admin Plants; P4 audit Admin AI; P5 Ownership/QR/Claim system.
 - Known working FE integrations: Auth login/register/me; public marketplace list/detail; MyPlants list/create/update/delete; Profile GET/PUT; avatar/image upload; Reminder CRUD, mark done, calendar and ICS export; verified feedback read; user feedback submit; Admin summary/users and backend-driven admin unavailable states.

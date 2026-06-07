@@ -10,6 +10,7 @@ const Navbar = () => {
   const { user, isAuthenticated, isBootstrapping, isLoading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { t } = useI18n();
+  const isMobileApp = import.meta.env.VITE_MOBILE_APP === 'true';
   const isActive = (path) => location.pathname === path;
   const isAdmin = String(user?.role || '').toUpperCase() === 'ADMIN';
 
@@ -58,7 +59,7 @@ const Navbar = () => {
               </Link>
             ) : (
               <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                {isAdmin && (
+                {isAdmin && !isMobileApp && (
                   <Link to="/admin/overview" className={`hidden sm:inline-flex items-center gap-1 rounded-xl px-3 py-2 text-xs font-bold tracking-wide transition-colors ${location.pathname.startsWith('/admin') ? 'bg-primary text-white' : 'bg-primary/10 text-primary hover:bg-primary/20'}`}>
                     <span className="material-symbols-outlined text-base">admin_panel_settings</span>
                     {t('common.admin')}
@@ -99,7 +100,7 @@ const Navbar = () => {
               <span className="material-symbols-outlined text-lg">dashboard</span>
               {t('navbar.dashboard')}
             </Link>
-            {isAdmin && (
+            {isAdmin && !isMobileApp && (
               <Link onClick={closeMenu} to="/admin/overview" className={`${baseMobileLink} ${location.pathname.startsWith('/admin') ? 'bg-primary text-white' : 'bg-primary/10 text-primary'}`}>
                 <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
                 {t('common.admin')}

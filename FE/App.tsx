@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, HashRouter } from "react-router-dom";
 import AppRouter from "./routes/AppRouter";
 import FloatingHomeButton from "./components/FloatingHomeButton";
 import ThemeToggle from "./components/ThemeToggle";
@@ -10,9 +10,16 @@ import { I18nProvider } from "./i18n";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const App: React.FC = () => {
+  const Router =
+    import.meta.env.VITE_ROUTER_MODE === "hash" ? HashRouter : BrowserRouter;
+
   return (
-    <BrowserRouter>
-      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || "fake-google-client-id"}>
+    <Router>
+      <GoogleOAuthProvider
+        clientId={
+          import.meta.env.VITE_GOOGLE_CLIENT_ID || "fake-google-client-id"
+        }
+      >
         <I18nProvider>
           <AuthProvider>
             <CareProvider>
@@ -26,7 +33,7 @@ const App: React.FC = () => {
           </AuthProvider>
         </I18nProvider>
       </GoogleOAuthProvider>
-    </BrowserRouter>
+    </Router>
   );
 };
 

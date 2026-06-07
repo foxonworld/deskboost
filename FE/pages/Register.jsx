@@ -10,6 +10,7 @@ const Register = () => {
   const location = useLocation();
   const { register, loginWithGoogle, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
   const { t } = useI18n();
+  const isMobileApp = import.meta.env.VITE_MOBILE_APP === 'true';
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -110,6 +111,8 @@ const Register = () => {
             {isLoading ? t('common.saving') : isBootstrapping ? t('common.loading') : t('common.submit')}
           </button>
 
+          {!isMobileApp && (
+            <>
           <div className="relative flex items-center justify-center my-4">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
             <span className="relative px-4 bg-white dark:bg-slate-900 text-sm text-gray-500">Hoặc</span>
@@ -127,6 +130,9 @@ const Register = () => {
               width="400"
             />
           </div>
+
+            </>
+          )}
 
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">
