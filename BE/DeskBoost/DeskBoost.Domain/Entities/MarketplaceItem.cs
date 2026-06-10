@@ -15,4 +15,6 @@ public class MarketplaceItem : BaseEntity
     public string? Light { get; set; }
     public string? Water { get; set; }
     public string? AttributesJson { get; set; }
+
+    public ICollection<MarketplaceItemImage> Images { get; set; } = new List<MarketplaceItemImage>();
 }

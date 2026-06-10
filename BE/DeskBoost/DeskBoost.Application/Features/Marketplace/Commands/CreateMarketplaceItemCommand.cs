@@ -19,6 +19,7 @@ public record CreateMarketplaceItemCommand : IRequest<MarketplaceItemDto>
     public string? Light { get; init; }
     public string? Water { get; init; }
     public string? AttributesJson { get; init; }
+    public List<MarketplaceImageInputDto>? Images { get; init; }
 }
 
 public class CreateMarketplaceItemCommandHandler : IRequestHandler<CreateMarketplaceItemCommand, MarketplaceItemDto>
@@ -44,14 +45,43 @@ public class CreateMarketplaceItemCommandHandler : IRequestHandler<CreateMarketp
             AttributesJson = request.AttributesJson
         };
 
+        if (request.Images is { Count: > 0 })
+        {
+            foreach (var img in request.Images)
+            {
+                item.Images.Add(new MarketplaceItemImage
+                {
+                    ImageUrl = img.ImageUrl,
+                    SortOrder = img.SortOrder,
+                    IsPrimary = img.IsPrimary
+                });
+            }
+            item.ImageUrl = ResolvePrimaryImageUrl(item.Images);
+        }
+
         _db.MarketplaceItems.Add(item);
         await _db.SaveChangesAsync(ct);
 
-        return new MarketplaceItemDto(
+        return MapToDto(item);
+    }
+
+    private static string? ResolvePrimaryImageUrl(ICollection<MarketplaceItemImage> images)
+    {
+        var primary = images.FirstOrDefault(i => i.IsPrimary)
+                      ?? images.OrderBy(i => i.SortOrder).FirstOrDefault();
+        return primary?.ImageUrl;
+    }
+
+    internal static MarketplaceItemDto MapToDto(MarketplaceItem item) =>
+        new(
             item.Id, item.Name, item.Description,
             item.Category.ToApiString(),
             item.ImageUrl, item.PriceText, item.ContactUrl,
             item.Status.ToApiString(),
-            item.CareLevel, item.Light, item.Water, item.AttributesJson);
-    }
+            item.CareLevel, item.Light, item.Water, item.AttributesJson,
+            item.Images
+                .OrderBy(i => i.SortOrder)
+                .Select(i => new MarketplaceItemImageDto(i.Id, i.ImageUrl, i.SortOrder, i.IsPrimary))
+                .ToList()
+        );
 }

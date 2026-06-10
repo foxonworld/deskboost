@@ -13,4 +13,12 @@ public class MarketplaceItemUpsertRequest
     public string? Light { get; set; }
     public string? Water { get; set; }
     public string? AttributesJson { get; set; }
+    public List<MarketplaceImageInputRequest>? Images { get; set; }
+}
+
+public class MarketplaceImageInputRequest
+{
+    public string ImageUrl { get; set; } = string.Empty;
+    public int SortOrder { get; set; }
+    public bool IsPrimary { get; set; }
 }

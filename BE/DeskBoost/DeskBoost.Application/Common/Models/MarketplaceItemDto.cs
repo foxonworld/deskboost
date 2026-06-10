@@ -12,5 +12,6 @@ public record MarketplaceItemDto(
     string? CareLevel,
     string? Light,
     string? Water,
-    string? AttributesJson
+    string? AttributesJson,
+    IReadOnlyList<MarketplaceItemImageDto> Images
 );

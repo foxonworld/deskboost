@@ -1,5 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Application.Features.Marketplace.Commands;
 using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -29,15 +30,11 @@ public class GetMarketplaceItemsQueryHandler : IRequestHandler<GetMarketplaceIte
             .OrderByDescending(p => p.CreatedAt)
             .Skip((request.Page - 1) * request.Limit)
             .Take(request.Limit)
-            .Select(p => new MarketplaceItemDto(
-                p.Id, p.Name, p.Description,
-                p.Category.ToApiString(),
-                p.ImageUrl, p.PriceText, p.ContactUrl,
-                p.Status.ToApiString(),
-                p.CareLevel, p.Light, p.Water, p.AttributesJson))
+            .Include(p => p.Images)
             .ToListAsync(ct);
 
         var totalPages = (int)Math.Ceiling((double)total / request.Limit);
-        return new MarketplaceItemsListDto(items, new PaginationDto(request.Page, request.Limit, total, totalPages));
+        var dtos = items.Select(CreateMarketplaceItemCommandHandler.MapToDto).ToList();
+        return new MarketplaceItemsListDto(dtos, new PaginationDto(request.Page, request.Limit, total, totalPages));
     }
 }

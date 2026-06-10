@@ -282,7 +282,8 @@ public class AdminController : ControllerBase
             CareLevel = request.CareLevel,
             Light = request.Light,
             Water = request.Water,
-            AttributesJson = request.AttributesJson
+            AttributesJson = request.AttributesJson,
+            Images = request.Images?.Select(i => new DeskBoost.Application.Common.Models.MarketplaceImageInputDto(i.ImageUrl, i.SortOrder, i.IsPrimary)).ToList()
         }, ct);
         return StatusCode(201, result);
     }
@@ -306,7 +307,8 @@ public class AdminController : ControllerBase
                 CareLevel = request.CareLevel,
                 Light = request.Light,
                 Water = request.Water,
-                AttributesJson = request.AttributesJson
+                AttributesJson = request.AttributesJson,
+                Images = request.Images?.Select(i => new DeskBoost.Application.Common.Models.MarketplaceImageInputDto(i.ImageUrl, i.SortOrder, i.IsPrimary)).ToList()
             }, ct);
             return Ok(result);
         }

@@ -1,5 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Domain.Entities;
 using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,12 @@ public record UpdateMarketplaceItemCommand : IRequest<MarketplaceItemDto>
     public string? Light { get; init; }
     public string? Water { get; init; }
     public string? AttributesJson { get; init; }
+    /// <summary>
+    /// Khi null: giữ nguyên danh sách ảnh cũ.
+    /// Khi empty list: xóa hết ảnh.
+    /// Khi có phần tử: thay thế toàn bộ danh sách ảnh.
+    /// </summary>
+    public List<MarketplaceImageInputDto>? Images { get; init; }
 }
 
 public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketplaceItemCommand, MarketplaceItemDto>
@@ -30,7 +37,9 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
 
     public async Task<MarketplaceItemDto> Handle(UpdateMarketplaceItemCommand request, CancellationToken ct)
     {
-        var item = await _db.MarketplaceItems.FirstOrDefaultAsync(p => p.Id == request.Id, ct)
+        var item = await _db.MarketplaceItems
+            .Include(p => p.Images)
+            .FirstOrDefaultAsync(p => p.Id == request.Id, ct)
             ?? throw new InvalidOperationException("Không tìm thấy item.");
 
         if (!string.IsNullOrWhiteSpace(request.Name)) item.Name = request.Name.Trim();
@@ -44,15 +53,36 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
         if (request.Light is not null) item.Light = request.Light;
         if (request.Water is not null) item.Water = request.Water;
         if (request.AttributesJson is not null) item.AttributesJson = request.AttributesJson;
-        item.UpdatedAt = DateTime.UtcNow;
 
+        if (request.Images is not null)
+        {
+            _db.MarketplaceItemImages.RemoveRange(item.Images);
+            item.Images.Clear();
+
+            foreach (var img in request.Images)
+            {
+                item.Images.Add(new MarketplaceItemImage
+                {
+                    ImageUrl = img.ImageUrl,
+                    SortOrder = img.SortOrder,
+                    IsPrimary = img.IsPrimary
+                });
+            }
+
+            if (item.Images.Count > 0)
+                item.ImageUrl = ResolvePrimaryImageUrl(item.Images);
+        }
+
+        item.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return new MarketplaceItemDto(
-            item.Id, item.Name, item.Description,
-            item.Category.ToApiString(),
-            item.ImageUrl, item.PriceText, item.ContactUrl,
-            item.Status.ToApiString(),
-            item.CareLevel, item.Light, item.Water, item.AttributesJson);
+        return CreateMarketplaceItemCommandHandler.MapToDto(item);
+    }
+
+    private static string? ResolvePrimaryImageUrl(ICollection<MarketplaceItemImage> images)
+    {
+        var primary = images.FirstOrDefault(i => i.IsPrimary)
+                      ?? images.OrderBy(i => i.SortOrder).FirstOrDefault();
+        return primary?.ImageUrl;
     }
 }
