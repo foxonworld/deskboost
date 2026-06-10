@@ -38,7 +38,6 @@ public class CreateAdminPlantInventoryCommandHandler : IRequestHandler<CreateAdm
         if (item.Category != MarketplaceCategory.Plant)
             throw new InvalidOperationException("Sản phẩm này không phải loại cây (category phải là plant).");
 
-        // Validate PlantSpeciesId nếu được gửi, và lấy VietnameseName làm fallback cho SpeciesName
         string? speciesNameFallback = request.SpeciesName;
         if (request.PlantSpeciesId.HasValue)
         {
@@ -47,65 +46,72 @@ public class CreateAdminPlantInventoryCommandHandler : IRequestHandler<CreateAdm
             speciesNameFallback ??= species.VietnameseName;
         }
 
-        // 2. Generate unique code
-        string code;
-        do
+        // 2. Transaction wrapped in CreateExecutionStrategy for NpgsqlRetryingExecutionStrategy compatibility
+        AdminPlantInventoryDto result = null!;
+        var strategy = _db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            code = GenerateCode();
-        } while (await _db.Plants.AnyAsync(p => p.OwnershipCode == code, ct)
-              || await _db.PlantClaimCodes.AnyAsync(c => c.Code == code, ct));
-
-        // 3. Create plant without ClaimCodeId yet (will be linked after claimCode is saved)
-        var plant = new Plant
-        {
-            UserId = null,
-            MarketplaceItemId = request.MarketplaceItemId,
-            PlantSpeciesId = request.PlantSpeciesId,
-            Name = request.Name.Trim(),
-            SpeciesName = speciesNameFallback?.Trim(),
-            ImageUrl = request.ImageUrl,
-            Location = request.Location?.Trim(),
-            CareLevel = request.CareLevel ?? item.CareLevel,
-            Light = request.Light ?? item.Light,
-            Water = request.Water ?? item.Water,
-            WateringCycleDays = request.WateringCycleDays,
-            Notes = request.Notes?.Trim(),
-            OwnershipCode = code,
-            OwnershipStatus = OwnershipStatus.Unclaimed,
-            IsClaimed = false,
-            Status = PlantStatus.Healthy
-        };
-
-        // 4. Explicit transaction: Plant -> ClaimCode -> link back -> commit
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        try
-        {
-            _db.Plants.Add(plant);
-            await _db.SaveChangesAsync(ct);
-
-            var claimCode = new PlantClaimCode
+            // Generate unique code inside lambda so retries get a fresh code
+            string code;
+            do
             {
-                Code = code,
+                code = GenerateCode();
+            } while (await _db.Plants.AnyAsync(p => p.OwnershipCode == code, ct)
+                  || await _db.PlantClaimCodes.AnyAsync(c => c.Code == code, ct));
+
+            // Create fresh entities on each attempt
+            var plant = new Plant
+            {
+                UserId = null,
                 MarketplaceItemId = request.MarketplaceItemId,
-                PlantId = plant.Id,
-                Status = PlantClaimCodeStatus.Unclaimed
+                PlantSpeciesId = request.PlantSpeciesId,
+                Name = request.Name.Trim(),
+                SpeciesName = speciesNameFallback?.Trim(),
+                ImageUrl = request.ImageUrl,
+                Location = request.Location?.Trim(),
+                CareLevel = request.CareLevel ?? item.CareLevel,
+                Light = request.Light ?? item.Light,
+                Water = request.Water ?? item.Water,
+                WateringCycleDays = request.WateringCycleDays,
+                Notes = request.Notes?.Trim(),
+                OwnershipCode = code,
+                OwnershipStatus = OwnershipStatus.Unclaimed,
+                IsClaimed = false,
+                Status = PlantStatus.Healthy
             };
-            _db.PlantClaimCodes.Add(claimCode);
-            await _db.SaveChangesAsync(ct);
 
-            plant.ClaimCodeId = claimCode.Id;
-            plant.UpdatedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync(ct);
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            try
+            {
+                _db.Plants.Add(plant);
+                await _db.SaveChangesAsync(ct);
 
-            await tx.CommitAsync(ct);
+                var claimCode = new PlantClaimCode
+                {
+                    Code = code,
+                    MarketplaceItemId = request.MarketplaceItemId,
+                    PlantId = plant.Id,
+                    Status = PlantClaimCodeStatus.Unclaimed
+                };
+                _db.PlantClaimCodes.Add(claimCode);
+                await _db.SaveChangesAsync(ct);
 
-            return GetAdminPlantInventoryQueryHandler.ToDto(plant, null, claimCode);
-        }
-        catch
-        {
-            await tx.RollbackAsync(ct);
-            throw;
-        }
+                plant.ClaimCodeId = claimCode.Id;
+                plant.UpdatedAt = DateTime.UtcNow;
+                await _db.SaveChangesAsync(ct);
+
+                await tx.CommitAsync(ct);
+
+                result = GetAdminPlantInventoryQueryHandler.ToDto(plant, null, claimCode);
+            }
+            catch
+            {
+                await tx.RollbackAsync(ct);
+                throw;
+            }
+        });
+
+        return result;
     }
 
     private static string GenerateCode()
