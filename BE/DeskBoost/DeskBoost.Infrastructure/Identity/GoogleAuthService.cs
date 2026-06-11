@@ -13,11 +13,14 @@ public class GoogleAuthService : IGoogleAuthService
         var webClientId = configuration["Google:ClientId"]
             ?? throw new InvalidOperationException("Google:ClientId is not configured.");
 
-        // Accept both Web and Android client IDs so mobile tokens with either audience pass.
-        var androidClientId = configuration["Google:AndroidClientId"];
-        _audiences = androidClientId is not null
-            ? [webClientId, androidClientId]
-            : [webClientId];
+        // Collect all valid audiences: new Web, Android, and legacy Web (old GCP project).
+        // Remove nulls so missing optional keys are silently skipped.
+        _audiences = new[]
+        {
+            webClientId,
+            configuration["Google:AndroidClientId"],
+            configuration["Google:LegacyClientId"]
+        }.Where(id => id is not null).Cast<string>().ToList();
     }
 
     public async Task<GoogleUserInfo?> VerifyIdTokenAsync(string idToken)
