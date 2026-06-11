@@ -16,6 +16,7 @@ namespace DeskBoost.Infrastructure.Persistence
         public DbSet<DiagnosisResult> DiagnosisResults => Set<DiagnosisResult>();
         public DbSet<ChatHistory> ChatHistories => Set<ChatHistory>();
         public DbSet<MarketplaceItem> MarketplaceItems => Set<MarketplaceItem>();
+        public DbSet<MarketplaceItemImage> MarketplaceItemImages => Set<MarketplaceItemImage>();
         public DbSet<PlantClaimCode> PlantClaimCodes => Set<PlantClaimCode>();
         public DbSet<AiDialog> AiDialogs => Set<AiDialog>();
         public DbSet<AiMessage> AiMessages => Set<AiMessage>();

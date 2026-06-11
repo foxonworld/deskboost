@@ -1,5 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Domain.Entities;
 using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,12 @@ public record UpdateMarketplaceItemCommand : IRequest<MarketplaceItemDto>
     public string? Light { get; init; }
     public string? Water { get; init; }
     public string? AttributesJson { get; init; }
+    /// <summary>
+    /// Khi null: giữ nguyên danh sách ảnh cũ.
+    /// Khi empty list: xóa hết ảnh.
+    /// Khi có phần tử: thay thế toàn bộ danh sách ảnh.
+    /// </summary>
+    public List<MarketplaceImageInputDto>? Images { get; init; }
 }
 
 public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketplaceItemCommand, MarketplaceItemDto>
@@ -30,7 +37,10 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
 
     public async Task<MarketplaceItemDto> Handle(UpdateMarketplaceItemCommand request, CancellationToken ct)
     {
-        var item = await _db.MarketplaceItems.FirstOrDefaultAsync(p => p.Id == request.Id, ct)
+        // Load WITHOUT Include to avoid EF Core navigation-tracking conflicts
+        // when replacing the image list.
+        var item = await _db.MarketplaceItems
+            .FirstOrDefaultAsync(p => p.Id == request.Id, ct)
             ?? throw new InvalidOperationException("Không tìm thấy item.");
 
         if (!string.IsNullOrWhiteSpace(request.Name)) item.Name = request.Name.Trim();
@@ -44,15 +54,47 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
         if (request.Light is not null) item.Light = request.Light;
         if (request.Water is not null) item.Water = request.Water;
         if (request.AttributesJson is not null) item.AttributesJson = request.AttributesJson;
-        item.UpdatedAt = DateTime.UtcNow;
 
+        if (request.Images is not null)
+        {
+            // Delete old images via DbSet (bypass navigation collection entirely)
+            var oldImages = await _db.MarketplaceItemImages
+                .Where(i => i.MarketplaceItemId == item.Id)
+                .ToListAsync(ct);
+
+            if (oldImages.Count > 0)
+                _db.MarketplaceItemImages.RemoveRange(oldImages);
+
+            // Insert new images via DbSet with FK set explicitly
+            if (request.Images.Count > 0)
+            {
+                _db.MarketplaceItemImages.AddRange(request.Images.Select(img => new MarketplaceItemImage
+                {
+                    MarketplaceItemId = item.Id,
+                    ImageUrl = img.ImageUrl,
+                    SortOrder = img.SortOrder,
+                    IsPrimary = img.IsPrimary
+                }));
+
+                var primary = request.Images.FirstOrDefault(i => i.IsPrimary)
+                              ?? request.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+                item.ImageUrl = primary?.ImageUrl ?? item.ImageUrl;
+            }
+            else
+            {
+                item.ImageUrl = null;
+            }
+        }
+
+        item.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return new MarketplaceItemDto(
-            item.Id, item.Name, item.Description,
-            item.Category.ToApiString(),
-            item.ImageUrl, item.PriceText, item.ContactUrl,
-            item.Status.ToApiString(),
-            item.CareLevel, item.Light, item.Water, item.AttributesJson);
+        // Reload images from DB so MapToDto returns accurate list
+        item.Images = await _db.MarketplaceItemImages
+            .Where(i => i.MarketplaceItemId == item.Id)
+            .OrderBy(i => i.SortOrder)
+            .ToListAsync(ct);
+
+        return CreateMarketplaceItemCommandHandler.MapToDto(item);
     }
 }

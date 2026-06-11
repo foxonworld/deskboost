@@ -1,6 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
-using DeskBoost.Domain.Enums;
+using DeskBoost.Application.Features.Marketplace.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,13 +14,10 @@ public class GetMarketplaceItemByIdQueryHandler : IRequestHandler<GetMarketplace
 
     public async Task<MarketplaceItemDto?> Handle(GetMarketplaceItemByIdQuery request, CancellationToken ct)
     {
-        var p = await _db.MarketplaceItems.FirstOrDefaultAsync(p => p.Id == request.Id, ct);
+        var p = await _db.MarketplaceItems
+            .Include(x => x.Images)
+            .FirstOrDefaultAsync(x => x.Id == request.Id, ct);
         if (p is null) return null;
-        return new MarketplaceItemDto(
-            p.Id, p.Name, p.Description,
-            p.Category.ToApiString(),
-            p.ImageUrl, p.PriceText, p.ContactUrl,
-            p.Status.ToApiString(),
-            p.CareLevel, p.Light, p.Water, p.AttributesJson);
+        return CreateMarketplaceItemCommandHandler.MapToDto(p);
     }
 }

@@ -15,6 +15,7 @@ public interface IAppDbContext
     DbSet<PlantSpecies> PlantSpecies { get; }
     DbSet<Reminder> Reminders { get; }
     DbSet<MarketplaceItem> MarketplaceItems { get; }
+    DbSet<MarketplaceItemImage> MarketplaceItemImages { get; }
     DbSet<PlantClaimCode> PlantClaimCodes { get; }
     DbSet<AiDialog> AiDialogs { get; }
     DbSet<AiMessage> AiMessages { get; }

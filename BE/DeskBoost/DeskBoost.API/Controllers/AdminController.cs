@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using DeskBoost.API.Contracts.Requests;
+using Microsoft.EntityFrameworkCore;
 using DeskBoost.Application.Features.Admin.Commands;
 using DeskBoost.Application.Features.Admin.Queries;
 using DeskBoost.Application.Features.Feedback.Commands;
@@ -274,15 +275,16 @@ public class AdminController : ControllerBase
         {
             Name = request.Name,
             Description = request.Description,
-            Category = request.Category,
+            Category = request.Category ?? "plant",
             ImageUrl = request.ImageUrl,
             PriceText = request.PriceText,
             ContactUrl = request.ContactUrl,
-            Status = request.Status,
+            Status = request.Status ?? "active",
             CareLevel = request.CareLevel,
             Light = request.Light,
             Water = request.Water,
-            AttributesJson = request.AttributesJson
+            AttributesJson = request.AttributesJson,
+            Images = request.Images?.Select(i => new DeskBoost.Application.Common.Models.MarketplaceImageInputDto(i.ImageUrl, i.SortOrder, i.IsPrimary)).ToList()
         }, ct);
         return StatusCode(201, result);
     }
@@ -298,21 +300,26 @@ public class AdminController : ControllerBase
                 Id = id,
                 Name = request.Name,
                 Description = request.Description,
-                Category = request.Category,
+                Category = request.Category,          // null = giữ nguyên
                 ImageUrl = request.ImageUrl,
                 PriceText = request.PriceText,
                 ContactUrl = request.ContactUrl,
-                Status = request.Status,
+                Status = request.Status,               // null = giữ nguyên
                 CareLevel = request.CareLevel,
                 Light = request.Light,
                 Water = request.Water,
-                AttributesJson = request.AttributesJson
+                AttributesJson = request.AttributesJson,
+                Images = request.Images?.Select(i => new DeskBoost.Application.Common.Models.MarketplaceImageInputDto(i.ImageUrl, i.SortOrder, i.IsPrimary)).ToList()
             }, ct);
             return Ok(result);
         }
         catch (InvalidOperationException ex)
         {
             return NotFound(new { message = ex.Message });
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new { message = "Lỗi lưu dữ liệu ảnh.", detail = ex.InnerException?.Message });
         }
     }
 
