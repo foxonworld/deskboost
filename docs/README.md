@@ -1,101 +1,273 @@
-# DeskBoost Docs
+<div align="center">
 
-Active documentation index for DeskBoost EXE201 MVP.
+# DeskBoost 🌱
 
-## Source of Truth
+### AI-Powered Plant Care & Contact-First Marketplace Platform
 
-Use this directory as the active source of truth. Archived docs are historical/reference only and must not override active docs.
+AI diagnosis, care reminders, personal plant profiles, and a contact-first plant marketplace for desk plant owners.
 
-Authoritative docs:
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=fff)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=fff)
+![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=fff)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-EF_Core-4169E1?logo=postgresql&logoColor=fff)
+![Capacitor](https://img.shields.io/badge/Capacitor-Android-119EFF?logo=capacitor&logoColor=fff)
+![Status](https://img.shields.io/badge/Status-MVP-brightgreen)
+![Scope](https://img.shields.io/badge/EXE201-Portfolio%20Ready-informational)
 
-1. [`project-overview.md`](project-overview.md) — product scope, MVP guardrails, current status.
-2. [`api-contract.md`](api-contract.md) — backend/frontend API contract.
-3. [`backend-api-checklist-for-tuan.md`](backend-api-checklist-for-tuan.md) — backend handoff checklist for Tuấn.
-4. [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md) — future QR/Claim backend requirements.
-5. [`frontend-architecture.md`](frontend-architecture.md) — current frontend architecture and route/service map.
-6. [`ui-redesign-plan-vi.md`](ui-redesign-plan-vi.md), [`design-tokens-vi.md`](design-tokens-vi.md), [`motion-system-plan-vi.md`](motion-system-plan-vi.md) — frontend redesign/design/motion source docs.
-7. [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) — future Plant Code / QR / Claim planning.
-8. [`../plans/backend-plan.md`](../plans/backend-plan.md) — active backend implementation roadmap.
+</div>
 
-## Project Overview
+> [!NOTE]
+> DeskBoost is **contact-first**, not checkout-first. Users browse plants/products, review care context, then contact sellers through social channels. Cart, payment, shipping, and order workflows are intentionally outside the MVP.
 
-DeskBoost is a frontend-first EXE201 startup MVP for desk plant care, contact-only marketplace validation, manually verified customer feedback, AI diagnosis/chat, reminders, and lightweight admin.
+## Overview
 
-Core thesis: validate demand and trust first; do not build heavy ecommerce, ownership, or enterprise infrastructure before evidence exists.
+DeskBoost validates a focused startup thesis: people are more likely to buy and keep desk plants alive when product discovery, care support, and AI guidance live in one simple experience.
 
-## Recommended Reading Order
+| Goal                   | MVP Value                                                     |
+| ---------------------- | ------------------------------------------------------------- |
+| Plant care confidence  | Plant profiles, care notes, reminders, completion tracking    |
+| AI support             | Image diagnosis and plant-care chat through backend providers |
+| Marketplace validation | Public browsing plus direct seller contact                    |
+| Portfolio value        | Full-stack architecture, startup scope, mobile path           |
 
-For new developers, Roo, Codex, or reviewers:
+Built for EXE201 evaluation, lecturers, recruiters, and public GitHub visitors.
 
-1. [`project-overview.md`](project-overview.md)
-2. [`api-contract.md`](api-contract.md)
-3. [`frontend-architecture.md`](frontend-architecture.md)
-4. [`backend-api-checklist-for-tuan.md`](backend-api-checklist-for-tuan.md)
-5. [`../plans/backend-plan.md`](../plans/backend-plan.md)
-6. [`ui-redesign-plan-vi.md`](ui-redesign-plan-vi.md)
-7. [`design-tokens-vi.md`](design-tokens-vi.md)
-8. [`motion-system-plan-vi.md`](motion-system-plan-vi.md)
-9. [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md)
-10. [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md)
+## Features
 
-## Frontend Docs
+| 🌿 Plant Care       | 🛍️ Marketplace      | 🤖 AI                    | 🛠️ Admin              |
+| ------------------- | ------------------- | ------------------------ | --------------------- |
+| My Plants           | Product listing     | Image diagnosis          | Dashboard             |
+| Plant profiles      | Product detail      | Plant-care assistant     | User management       |
+| Care reminders      | Contact seller flow | Context-aware answers    | Plant inventory       |
+| Completion tracking | Verified feedback   | Dialog/history tracking  | Marketplace CRUD      |
+| Notifications       | No cart/checkout    | Quota monitoring support | Feedback verification |
 
-- [`frontend-architecture.md`](frontend-architecture.md) — stack, routes, services, UI/motion rules.
-- [`ui-redesign-plan-vi.md`](ui-redesign-plan-vi.md) — redesign direction.
-- [`design-tokens-vi.md`](design-tokens-vi.md) — visual tokens.
-- [`motion-system-plan-vi.md`](motion-system-plan-vi.md) — safe GSAP/motion rules.
+| Included                          | Excluded For MVP               |
+| --------------------------------- | ------------------------------ |
+| Contact-first marketplace         | Cart, checkout, payment        |
+| Manual/social purchase validation | Orders, shipping, refunds      |
+| Plant diagnosis and AI care chat  | General-purpose chatbot        |
+| Lightweight admin                 | Enterprise admin suite         |
+| Capacitor Android path            | Google Play production release |
 
-## Backend Docs
+## Tech Stack
 
-- [`api-contract.md`](api-contract.md) — API source of truth.
-- [`backend-api-checklist-for-tuan.md`](backend-api-checklist-for-tuan.md) — implementation checklist for Tuấn.
-- [`../plans/backend-plan.md`](../plans/backend-plan.md) — backend roadmap.
-- [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md) — future QR/Claim backend notes only.
+| Layer           | Technology                                                         |
+| --------------- | ------------------------------------------------------------------ |
+| Frontend        | React 19, Vite 6, TypeScript, JavaScript, React Router DOM 7       |
+| UI / Motion     | Tailwind-based UI, shared components, GSAP, `@gsap/react`          |
+| Mobile          | Capacitor Android, `FE/android`, `vn.deskboost.app`                |
+| Backend         | ASP.NET Core Web API, .NET 8, Clean Architecture                   |
+| Application     | CQRS, MediatR, FluentValidation, AutoMapper                        |
+| Database        | PostgreSQL, Entity Framework Core, migrations                      |
+| Auth / Security | JWT Bearer, Google Auth support, BCrypt                            |
+| Infra           | Cloudinary, Firebase Admin, Hangfire, Redis, Serilog, Swagger      |
+| AI              | Gemini-compatible assistant provider, plant diagnosis API provider |
+| Hosting         | Vercel/GitHub Pages/static frontend, Docker/.NET backend hosting   |
 
-## Future Planning Docs
+## Architecture
 
-- [`qr-claim-future-plan-vi.md`](qr-claim-future-plan-vi.md) — future Plant Code / QR / Claim.
-- [`backend-qr-claim-requirements-vi.md`](backend-qr-claim-requirements-vi.md) — backend requirements for that future phase.
+Frontend secrets stay out of the browser. The React app calls the ASP.NET Core API; the API owns auth, persistence, AI calls, image storage, and background infrastructure.
 
-QR/Claim is preserved, but remains future-only until explicitly approved for implementation.
+```mermaid
+graph TD
+    User[User / Admin] --> FE[React + Vite Frontend]
+    FE -->|REST / JSON| API[ASP.NET Core Web API]
+    API --> APP[Application Layer<br/>CQRS / MediatR]
+    APP --> DOMAIN[Domain Layer]
+    API --> INFRA[Infrastructure Layer]
+    INFRA --> DB[(PostgreSQL)]
+    INFRA --> Gemini[Gemini-compatible AI]
+    INFRA --> PlantID[Plant Diagnosis Provider]
+    INFRA --> Cloudinary[Cloudinary]
+    INFRA --> Redis[Redis]
+    INFRA --> Jobs[Hangfire Jobs]
+```
 
-## Current Implementation Status
+```mermaid
+flowchart LR
+    API[DeskBoost.API<br/>Controllers, JWT, Swagger, CORS] --> APP[DeskBoost.Application<br/>Use cases, Commands, Queries]
+    APP --> DOMAIN[DeskBoost.Domain<br/>Entities, Enums, Rules]
+    INFRA[DeskBoost.Infrastructure<br/>EF Core, Identity, External Services] --> APP
+    INFRA --> DOMAIN
+```
 
-- Frontend: active React 19 + Vite 6 SPA.
-- Backend: target ASP.NET Core Web API + PostgreSQL; handoff docs ready.
-- Marketplace: contact-only; no transaction workflow.
-- Feedback: manually verified feedback first.
-- AI: plant-care diagnosis/chat; not gated by claimed plants.
-- QR/Claim: planned future enhancement only.
+## Project Structure
 
-## Important Guardrails
+```text
+deskboost/
+├── BE/DeskBoost/
+│   ├── DeskBoost.API/              # ASP.NET Core API
+│   ├── DeskBoost.Application/      # CQRS use cases
+│   ├── DeskBoost.Domain/           # Entities and rules
+│   ├── DeskBoost.Infrastructure/   # EF Core, providers, jobs
+│   ├── DeskBoost.sln
+│   └── Dockerfile
+├── FE/
+│   ├── android/                    # Capacitor Android project
+│   ├── components/                 # Shared UI
+│   ├── context/                    # Auth/care contexts
+│   ├── i18n/                       # vi/en UI localization
+│   ├── pages/                      # Public, user, AI, admin pages
+│   ├── routes/                     # Router and guards
+│   ├── services/                   # API service layer
+│   ├── capacitor.config.ts
+│   └── package.json
+├── docs/                           # Product/API/architecture docs
+├── plans/                          # Planning notes
+└── DEPLOY_CHI_TIET.md              # Detailed deployment guide
+```
 
-- Marketplace remains contact-only: price/reference info + Zalo/Facebook/manual contact.
-- Verified feedback first: manual/social purchase → admin manually verifies feedback → public trust cards.
-- AI remains plant-care focused and usable without claimed plants.
-- My Plants remains free-add; claimed plants may become a future trusted subset only.
-- QR/Claim is future trust/context enhancement only; not AI gate, payment proof, anti-fraud, or ownership enforcement.
-- Admin stays lightweight; no enterprise dashboard.
-- No cart, checkout, payment, orders, shipping, refunds.
-- Do not expose AI/API keys in frontend/admin UI.
+## Setup
 
-## AI-Assisted Workflow Notes
+Prerequisites: Node.js, npm, Git, .NET 8 SDK, PostgreSQL. Optional: Docker, Android Studio, Capacitor CLI, EF CLI.
 
-- Start with this README, then [`project-overview.md`](project-overview.md), then the area-specific doc.
-- Prefer minimal diffs and local conventions.
-- Do not revive archived docs as active scope without updating this README and [`../plans/README.md`](../plans/README.md).
-- For frontend changes, check [`frontend-architecture.md`](frontend-architecture.md) plus redesign/token/motion docs.
-- For backend handoff, check [`api-contract.md`](api-contract.md), [`backend-api-checklist-for-tuan.md`](backend-api-checklist-for-tuan.md), and [`../plans/backend-plan.md`](../plans/backend-plan.md).
-- For QR/Claim, keep it future-only and preserve AI-not-gated/free-add My Plants rules.
+### Frontend
 
-## Archive
+```bash
+cd FE
+npm install
+npm run dev
+```
 
-Historical docs live in [`archive/`](archive/). They are historical/reference only.
+Local URL: `http://localhost:5173`
 
-Do not use archive docs as current source of truth unless an active doc explicitly points to them.
+```bash
+npm run lint
+npm run build
+npm run preview
+```
 
-- [`archive/changelog.md`](archive/changelog.md) — historical/reference only.
-- [`archive/exe201-scope-adjustment.md`](archive/exe201-scope-adjustment.md) — historical/reference only.
-- [`archive/frontend-adjustment-plan.md`](archive/frontend-adjustment-plan.md) — historical/reference only.
-- [`archive/frontend-redesign-implementation-roadmap-vi.md`](archive/frontend-redesign-implementation-roadmap-vi.md) — historical/reference only.
-- [`archive/mvp-scope.md`](archive/mvp-scope.md) — historical/reference only.
+### Backend
+
+```bash
+cd BE/DeskBoost
+dotnet restore
+dotnet build
+dotnet run --project DeskBoost.API/DeskBoost.API.csproj
+```
+
+```bash
+dotnet ef database update --project DeskBoost.Infrastructure --startup-project DeskBoost.API
+```
+
+## Environment Variables
+
+> [!IMPORTANT]
+> Never commit real API keys, database passwords, JWT secrets, provider credentials, cookies, private keys, or production `.env` files.
+
+| Area     | Example Key                                                            | Purpose                      |
+| -------- | ---------------------------------------------------------------------- | ---------------------------- |
+| Frontend | `VITE_API_URL`                                                         | Backend API base URL         |
+| Frontend | `VITE_GOOGLE_CLIENT_ID`                                                | Google OAuth client ID       |
+| Mobile   | `VITE_MOBILE_APP`                                                      | Mobile build flag            |
+| Backend  | `ConnectionStrings__DefaultConnection`                                 | PostgreSQL connection        |
+| Backend  | `Jwt__Key`                                                             | JWT signing secret           |
+| Backend  | `Gemini__ApiKey`                                                       | AI assistant provider key    |
+| Backend  | `PlantId__ApiKey`                                                      | Plant diagnosis provider key |
+| Backend  | `Cloudinary__CloudName`, `Cloudinary__ApiKey`, `Cloudinary__ApiSecret` | Image storage                |
+
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
+
+Use .NET user secrets or hosting-provider environment variables for backend secrets.
+
+## Deployment
+
+### Frontend
+
+| Platform                 | Notes                                                |
+| ------------------------ | ---------------------------------------------------- |
+| Vercel                   | `FE/vercel.json` includes SPA rewrite support        |
+| GitHub Pages             | `npm run deploy` publishes `dist` through `gh-pages` |
+| Netlify / Static Hosting | Compatible with Vite output                          |
+
+```bash
+cd FE
+npm install
+npm run build
+```
+
+Output: `FE/dist`
+
+### Backend
+
+| Platform          | Notes                           |
+| ----------------- | ------------------------------- |
+| Render            | Docker/.NET friendly            |
+| Azure App Service | Native .NET hosting             |
+| Railway / Fly.io  | Container-friendly alternatives |
+| Docker VPS        | Manual deployment path          |
+
+Backend Dockerfile: `BE/DeskBoost/Dockerfile`
+
+```text
+1. Provision PostgreSQL
+2. Configure backend env vars
+3. Run EF Core migrations
+4. Deploy ASP.NET Core API
+5. Set frontend VITE_API_URL
+6. Build and deploy FE/dist
+7. Smoke test auth, marketplace, plant care, AI, admin
+```
+
+## Screenshots
+
+![alt text](image.png)
+
+## Mobile Roadmap
+
+| Area             | Status                   |
+| ---------------- | ------------------------ |
+| Capacitor config | `FE/capacitor.config.ts` |
+| Android project  | `FE/android/`            |
+| App ID           | `vn.deskboost.app`       |
+| APK demo         | Gradle debug build path  |
+| Google Play      | Future milestone         |
+
+```bash
+cd FE
+npm run build:mobile
+npm run cap:sync
+npm run android:build:debug
+npm run android:open
+```
+
+| Mobile MVP                                                        | Future Native Improvements                                                                                     |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| My Plants, AI diagnosis, AI chat, reminders, marketplace browsing | Native camera/gallery, secure token storage, push notifications, offline/PWA improvements, Google Play release |
+
+<details>
+<summary>Out of current MVP scope</summary>
+
+Cart, checkout, payment, orders, shipping, refunds, enterprise admin dashboard, raw API key editing in frontend/admin UI, and chatbot behavior outside plant care.
+
+</details>
+
+## Team
+
+| Name           | Role                         | Focus                                               |
+| -------------- | ---------------------------- | --------------------------------------------------- |
+| DeskBoost Team | Product & Startup Validation | MVP scope, EXE201 evaluation, feedback loop         |
+| DeskBoost Team | Frontend                     | React/Vite SPA, UI, i18n, mobile-ready UX           |
+| DeskBoost Team | Backend                      | ASP.NET Core API, PostgreSQL, auth, admin workflows |
+| DeskBoost Team | AI & Mobile                  | Diagnosis, AI assistant, Capacitor Android path     |
+
+| Program                | Institution    |
+| ---------------------- | -------------- |
+| EXE201 Startup Project | FPT University |
+
+## License
+
+No license file is currently detected. Before public release, add a `LICENSE` file and confirm the selected license with the team.
+
+---
+
+<div align="center">
+
+**DeskBoost** — healthier desk plants, clearer care routines, and trust-first plant discovery.
+
+</div>

@@ -4,12 +4,14 @@ import UserLayout from '../components/UserLayout';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import { useCare } from '../context/CareContext';
 import { useI18n } from '../i18n';
+import { useAuth } from '../hooks/useAuth';
 import { getMyPlants } from '../services/plantApi';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
 
 const Dashboard = () => {
   const { t } = useI18n();
+  const { user } = useAuth();
   const { pendingTasks, loading: tasksLoading, error: tasksError, markDone } = useCare();
   const [plants, setPlants] = useState([]);
   const [plantsLoading, setPlantsLoading] = useState(true);
@@ -60,7 +62,9 @@ const Dashboard = () => {
       <div className="p-6 md:p-8 max-w-7xl mx-auto w-full space-y-8">
         <header className="flex items-center justify-between">
            <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-black dark:text-white text-slate-900">{t('dashboard.greeting')}</h1>
+            <h1 className="text-3xl font-black dark:text-white text-slate-900">
+              {t('dashboard.greeting', { name: user?.name || 'Sarah' })}
+            </h1>
             <p className="text-slate-500 dark:text-slate-400 font-medium tracking-tight">{t('dashboard.subtitle')}</p>
           </div>
           <div className="hidden sm:block relative w-64 group">

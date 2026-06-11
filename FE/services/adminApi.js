@@ -1,4 +1,5 @@
 import { del, get, patch, post, put } from "./api";
+import { normalizeMarketplaceImages } from "./marketplaceImages";
 
 const normalizeItems = (data) => (Array.isArray(data) ? data : data?.items || data?.data || []);
 const firstValue = (...values) =>
@@ -104,21 +105,47 @@ export const normalizePlantSpecies = (species = {}) => ({
   updatedAt: firstValue(species.updatedAt, species.UpdatedAt),
 });
 
-export const normalizeAdminMarketplacePlant = (plant = {}) => ({
-  ...plant,
-  id: firstValue(plant.id, plant.Id),
-  name: firstValue(plant.name, plant.Name),
-  description: firstValue(plant.description, plant.Description),
-  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl),
-  priceText: firstValue(plant.priceText, plant.PriceText),
-  category: firstValue(plant.category, plant.Category),
-  careLevel: firstValue(plant.careLevel, plant.CareLevel),
-  light: firstValue(plant.light, plant.Light),
-  water: firstValue(plant.water, plant.Water),
-  attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
-  contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
-  status: firstValue(plant.status, plant.Status),
-});
+export const normalizeAdminMarketplacePlant = (plant = {}) => {
+  const imageState = normalizeMarketplaceImages(plant);
+  return {
+    ...plant,
+    id: firstValue(plant.id, plant.Id),
+    name: firstValue(plant.name, plant.Name),
+    description: firstValue(plant.description, plant.Description),
+    image: imageState.primaryImage,
+    imageUrl: imageState.primaryImage,
+    images: imageState.images,
+    primaryImage: imageState.primaryImage,
+    priceText: firstValue(plant.priceText, plant.PriceText),
+    category: firstValue(plant.category, plant.Category),
+    careLevel: firstValue(plant.careLevel, plant.CareLevel),
+    light: firstValue(plant.light, plant.Light),
+    water: firstValue(plant.water, plant.Water),
+    attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
+    contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
+    status: firstValue(plant.status, plant.Status),
+  };
+};
+
+const getMarketplaceImageUrl = (image) => {
+  if (!image) return "";
+  if (typeof image === "string") return image;
+  return firstValue(image.imageUrl, image.ImageUrl, image.url, image.Url);
+};
+
+const toAdminMarketplacePayload = (payload = {}) => {
+  const urls = [payload.imageUrl, ...(Array.isArray(payload.images) ? payload.images : [])]
+    .map(getMarketplaceImageUrl)
+    .filter(Boolean)
+    .filter((url, index, items) => items.indexOf(url) === index);
+  const primary = payload.imageUrl && urls.includes(payload.imageUrl) ? payload.imageUrl : urls[0] || "";
+  return {
+    ...payload,
+    imageDraft: undefined,
+    imageUrl: primary,
+    images: urls.map((imageUrl, index) => ({ imageUrl, sortOrder: index, isPrimary: imageUrl === primary })),
+  };
+};
 
 export const normalizeAdminPlantInventory = (plant = {}) => ({
   ...plant,
@@ -213,10 +240,10 @@ export const getAdminMarketplacePlants = (params) =>
   }));
 
 export const createAdminMarketplacePlant = (payload) =>
-  post("/admin/marketplace-items", payload).then(normalizeAdminMarketplacePlant);
+  post("/admin/marketplace-items", toAdminMarketplacePayload(payload)).then(normalizeAdminMarketplacePlant);
 
 export const updateAdminMarketplacePlant = (id, payload) =>
-  put(`/admin/marketplace-items/${id}`, payload).then(normalizeAdminMarketplacePlant);
+  put(`/admin/marketplace-items/${id}`, toAdminMarketplacePayload(payload)).then(normalizeAdminMarketplacePlant);
 
 export const deleteAdminMarketplacePlant = (id) =>
   del(`/admin/marketplace-items/${id}`);

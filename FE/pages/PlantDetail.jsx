@@ -18,6 +18,7 @@ const PlantDetail = () => {
   const feedbackRevealedRef = useRef(false);
   const { plantId } = useParams();
   const [plant, setPlant] = useState(null);
+  const [selectedImage, setSelectedImage] = useState('');
   const [plantLoading, setPlantLoading] = useState(true);
   const [plantError, setPlantError] = useState('');
   const [feedbackItems, setFeedbackItems] = useState([]);
@@ -66,6 +67,25 @@ const PlantDetail = () => {
     ['forum', t('detail.trust.preClose'), t('detail.trust.channels')],
     ['payments', t('detail.trust.noPayment'), t('detail.trust.contactOnly')],
   ];
+  const galleryImages = plant?.images?.length ? plant.images : [plant?.image || plant?.imageUrl].filter(Boolean);
+  const activeImage = selectedImage || plant?.primaryImage || plant?.image || plant?.imageUrl || galleryImages[0] || '';
+  const hasGallery = galleryImages.length > 1;
+  const activeImageIndex = Math.max(0, galleryImages.indexOf(activeImage));
+
+  const selectGalleryImage = (imageUrl) => {
+    setSelectedImage(imageUrl);
+  };
+
+  const moveGalleryImage = (direction) => {
+    if (!galleryImages.length) return;
+    const currentIndex = galleryImages.indexOf(activeImage);
+    const nextIndex = (Math.max(0, currentIndex) + direction + galleryImages.length) % galleryImages.length;
+    setSelectedImage(galleryImages[nextIndex]);
+  };
+
+  useEffect(() => {
+    setSelectedImage(plant?.primaryImage || plant?.image || plant?.imageUrl || plant?.images?.[0] || '');
+  }, [plant]);
 
   useEffect(() => {
     let active = true;
@@ -167,13 +187,58 @@ const PlantDetail = () => {
           <div className="space-y-5">
             <Card padding="none" radius="hero" className="group overflow-hidden" data-motion="detail-hero">
               <div className="relative aspect-[4/3] bg-gray-100 dark:bg-gray-900">
-                <img src={plant.image} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt={plant.name} />
+                {activeImage ? (
+                  <img src={activeImage} className="h-full w-full bg-white object-contain p-3 transition-transform duration-500 group-hover:scale-[1.01] dark:bg-slate-950" alt={plant.name} />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-sm font-bold text-text-secondary dark:text-slate-400">{plant.name}</div>
+                )}
                 <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                   <Badge tone="overlay" icon="spa">{t('detail.careFit')}</Badge>
                   {plant.status === 'Out of Stock' ? <Badge tone="warning">{t('detail.outOfStock')}</Badge> : <Badge tone="overlay" icon="forum">{t('detail.canContact')}</Badge>}
                 </div>
+                {hasGallery && (
+                  <>
+                    <div className="absolute bottom-4 right-4 rounded-full bg-black/55 px-3 py-1 text-xs font-extrabold text-white shadow-sm backdrop-blur">
+                      {activeImageIndex + 1}/{galleryImages.length}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(-1)}
+                      className="absolute left-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111813] shadow-sm transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-950/80 dark:text-white"
+                      aria-label="Previous product image"
+                    >
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">chevron_left</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => moveGalleryImage(1)}
+                      className="absolute right-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111813] shadow-sm transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-950/80 dark:text-white"
+                      aria-label="Next product image"
+                    >
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">chevron_right</span>
+                    </button>
+                  </>
+                )}
               </div>
             </Card>
+
+            {hasGallery && (
+              <div className="flex gap-3 overflow-x-auto pb-1" aria-label="Marketplace product gallery" data-motion="detail-hero">
+                {galleryImages.map((imageUrl, index) => (
+                  <button
+                    key={`${imageUrl}-${index}`}
+                    type="button"
+                    onClick={() => selectGalleryImage(imageUrl)}
+                    className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border bg-white transition focus:outline-none focus:ring-4 focus:ring-primary/20 sm:h-24 sm:w-24 dark:bg-surface-dark ${activeImage === imageUrl ? 'border-primary ring-2 ring-primary/25' : 'border-[#E4EEE6] opacity-80 hover:border-primary/50 hover:opacity-100 dark:border-[#2A4532]'}`}
+                    aria-label={`View product image ${index + 1}`}
+                    aria-current={activeImage === imageUrl ? 'true' : undefined}
+                  >
+                    <img src={imageUrl} alt={`${plant.name} ${index + 1}`} className="h-full w-full object-cover" />
+                    {activeImage === imageUrl && <span className="absolute inset-x-2 bottom-2 h-1 rounded-full bg-primary" aria-hidden="true" />}
+                  </button>
+                ))}
+              </div>
+            )}
 
             <div className="grid grid-cols-3 gap-3" aria-label={t('detail.careSummaryAria')} data-motion="detail-hero">
               {careHighlights.map(item => (

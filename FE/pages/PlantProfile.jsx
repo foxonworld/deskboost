@@ -380,37 +380,135 @@ const PlantProfile = () => {
             </section>
 
             {isEditing && (
-              <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-wide text-[#4CAF50]">Edit profile</p>
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white">Cập nhật hồ sơ cây</h2>
+              <div 
+                className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm"
+                onClick={handleToggleEdit}
+              >
+                <div 
+                  className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="mb-6 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wide text-[#4CAF50]">Edit profile</p>
+                      <h2 className="text-2xl font-black text-slate-900 dark:text-white mt-1">Cập nhật hồ sơ cây</h2>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        type="button" 
+                        onClick={handleDelete} 
+                        disabled={isSaving} 
+                        className="rounded-xl bg-rose-50 px-4 py-2 text-xs font-black text-rose-600 hover:bg-rose-100 disabled:opacity-60 dark:bg-rose-950/30 dark:text-rose-400"
+                      >
+                        Xóa cây
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleToggleEdit}
+                        className="grid h-10 w-10 place-items-center rounded-full border border-slate-200 text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-400"
+                        aria-label="Đóng"
+                      >
+                        <span className="material-symbols-outlined text-xl">close</span>
+                      </button>
+                    </div>
                   </div>
-                  <button type="button" onClick={handleDelete} disabled={isSaving} className="rounded-xl bg-red-50 px-4 py-2 text-xs font-black text-red-600 hover:bg-red-100 disabled:opacity-60">Xóa cây</button>
+
+                  <form onSubmit={handleSave} className="space-y-5">
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">Tên gọi (nickname) *</label>
+                        <input 
+                          value={form.nickname} 
+                          onChange={(e) => updateField('nickname', e.target.value)} 
+                          required 
+                          className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                          placeholder="Ví dụ: Victor the Vine" 
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">Loài cây</label>
+                        <input 
+                          value={form.species} 
+                          onChange={(e) => updateField('species', e.target.value)} 
+                          className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                          placeholder="Ví dụ: Monstera Deliciosa" 
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">Vị trí đặt</label>
+                        <input 
+                          value={form.location} 
+                          onChange={(e) => updateField('location', e.target.value)} 
+                          className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                          placeholder="Ví dụ: Central Command (Desk)" 
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">Trạng thái</label>
+                        <input 
+                          value={form.status} 
+                          onChange={(e) => updateField('status', e.target.value)} 
+                          className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                          placeholder="Ví dụ: healthy" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs font-black uppercase tracking-wide text-slate-400">Ghi chú</label>
+                      <textarea 
+                        value={form.notes} 
+                        onChange={(e) => updateField('notes', e.target.value)} 
+                        rows={3} 
+                        className="w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                        placeholder="Ghi chú chi tiết về tình trạng hoặc cách chăm sóc cây..." 
+                      />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">
+                          {t('upload.imageFile')}
+                        </label>
+                        <input 
+                          type="file" 
+                          accept="image/jpeg,image/png,image/webp,image/gif" 
+                          onChange={handleImageFileChange} 
+                          disabled={isSaving || isUploading} 
+                          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold file:mr-3 file:rounded-lg file:border-0 file:bg-[#4CAF50] file:px-3 file:py-1.5 file:text-xs file:font-black file:text-white disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-400">Image URL</label>
+                        <input 
+                          value={form.imageUrl} 
+                          onChange={(e) => updateField('imageUrl', e.target.value)} 
+                          disabled={isSaving || isUploading} 
+                          className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-white" 
+                          placeholder="https://example.com/plant.jpg" 
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                      <button 
+                        type="button" 
+                        onClick={handleToggleEdit} 
+                        className="h-12 rounded-xl border border-slate-200 px-6 text-sm font-black text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                      <button 
+                        type="submit" 
+                        disabled={isSaving || isUploading} 
+                        className="h-12 rounded-xl bg-[#4CAF50] px-6 text-sm font-black text-white shadow-lg shadow-[#4CAF50]/20 hover:bg-[#43A047] disabled:opacity-60"
+                      >
+                        {isUploading ? t('upload.uploading') : isSaving ? t('common.saving') : t('userProfile.save')}
+                      </button>
+                    </div>
+                  </form>
                 </div>
-                <form onSubmit={handleSave} className="space-y-4">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <input value={form.nickname} onChange={(e) => updateField('nickname', e.target.value)} required className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Tên cây" />
-                    <input value={form.species} onChange={(e) => updateField('species', e.target.value)} className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Loài cây" />
-                    <input value={form.location} onChange={(e) => updateField('location', e.target.value)} className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Vị trí" />
-                    <input value={form.status} onChange={(e) => updateField('status', e.target.value)} className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Trạng thái" />
-                  </div>
-                  <textarea value={form.notes} onChange={(e) => updateField('notes', e.target.value)} rows={3} className="w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="Ghi chú" />
-                  <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
-                    <label className="space-y-2 text-xs font-black uppercase tracking-wide text-slate-400">
-                      {t('upload.imageFile')}
-                      <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleImageFileChange} disabled={isSaving || isUploading} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold file:mr-3 file:rounded-lg file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white" />
-                    </label>
-                    <label className="space-y-2 text-xs font-black uppercase tracking-wide text-slate-400">
-                      Image URL
-                      <input value={form.imageUrl} onChange={(e) => updateField('imageUrl', e.target.value)} disabled={isSaving || isUploading} className="h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold outline-none focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white" placeholder="https://example.com/plant.jpg" />
-                    </label>
-                    <button type="submit" disabled={isSaving || isUploading} className="h-12 rounded-xl bg-[#4CAF50] px-6 text-sm font-black text-white shadow-lg shadow-[#4CAF50]/20 disabled:opacity-60">
-                      {isUploading ? t('upload.uploading') : isSaving ? t('common.saving') : t('userProfile.save')}
-                    </button>
-                  </div>
-                </form>
-              </section>
+              </div>
             )}
           </>
         )}

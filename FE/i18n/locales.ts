@@ -142,6 +142,7 @@ const vi = {
   "admin.users.badge": "Người dùng",
   "admin.users.title": "Quản lý người dùng",
   "admin.users.description": "Danh sách tài khoản, xem chi tiết và cập nhật trạng thái từ endpoint admin thật.",
+  "admin.users.backendNote": "Tạo, sửa các trường hồ sơ và xóa người dùng cần các endpoint backend. Không lưu CRUD user admin mock ở đây.",
   "admin.users.backendUnavailable": "Chưa có dữ liệu người dùng admin. Backend cần endpoint: GET /api/admin/users.",
   "admin.users.loading": "Đang tải người dùng để rà soát admin...",
   "admin.users.emptyBackend": "Không tải được dữ liệu người dùng từ backend thật. Không hiển thị user mock.",
@@ -273,7 +274,7 @@ const vi = {
     "Tài khoản hiện tại là người dùng thường nên không thấy khu vực quản trị. Bạn vẫn có thể dùng Dashboard, My Plants, và AI Chat của mình.",
   "forbidden.dashboard": "Về Dashboard",
   "forbidden.home": "Trang chủ",
-  "dashboard.greeting": "Chào buổi sáng, Sarah! 🌱",
+  "dashboard.greeting": "Chào buổi sáng, {name}! 🌱",
   "dashboard.subtitle": "Monstera của bạn cần được chăm hôm nay.",
   "dashboard.search": "Tìm trong khu vườn...",
   "dashboard.totalPlants": "Tổng cây",
@@ -645,22 +646,22 @@ const vi = {
   "home.roadmap.badge": "Lộ trình tương lai",
   "home.roadmap.title": "Tầm nhìn tương lai DeskBoost",
   "home.roadmap.description":
-    "Lộ trình mở rộng các tính năng bổ trợ niềm tin và tự động hóa giúp hỗ trợ tốt hơn cho việc chăm cây bàn làm việc dài hạn mà không ảnh hưởng tới triết lý MVP tinh gọn.",
+    "DeskBoost hiện đã tập trung vào mã claim, hồ sơ cây cá nhân và nhắc chăm sóc cơ bản; các bước tiếp theo mở rộng thêm ngữ cảnh AI và tự động hóa mà vẫn giữ MVP tinh gọn.",
   "home.roadmap.step1.title": "Plant Claim Code",
   "home.roadmap.step1.desc":
-    "Admin tạo mã claim cho từng cây vật lý sau khi khách mua, rồi gửi mã đó cho người dùng.",
+    "Admin quản lý mã claim cho từng cây vật lý, gắn với người mua để liên kết cây thật với tài khoản.",
   "home.roadmap.step2.title": "Claim Plant Profile",
   "home.roadmap.step2.desc":
-    "Người dùng nhập mã claim để thêm cây vào My Plants và theo dõi hồ sơ chăm sóc.",
+    "Người dùng nhập mã claim để thêm cây vào My Plants, xem hồ sơ chăm sóc và tiếp tục theo dõi nhắc lịch.",
   "home.roadmap.step3.title": "AI Context Memory",
   "home.roadmap.step3.desc":
-    "Bộ nhớ AI thông minh giúp ghi nhớ lịch sử bệnh trạng để đưa ra chẩn đoán chính xác hơn theo thời gian.",
+    "Mở rộng lịch sử hội thoại và chẩn đoán thành ngữ cảnh dài hạn để AI tư vấn sát tình trạng từng cây hơn.",
   "home.roadmap.step4.title": "Weather Integration",
   "home.roadmap.step4.desc":
-    "Tự động điều chỉnh tần suất nhắc tưới dựa theo chỉ số thời tiết và nhiệt độ phòng.",
+    "Tự động gợi ý điều chỉnh lịch tưới dựa trên thời tiết, mùa và điều kiện phòng khi dữ liệu đủ tin cậy.",
   "home.roadmap.step5.title": "IoT Monitoring",
   "home.roadmap.step5.desc":
-    "Tích hợp các cảm biến đất và ánh sáng IoT siêu nhỏ để gửi cảnh báo tự động về máy tính.",
+    "Khảo sát tích hợp cảm biến đất và ánh sáng để gửi cảnh báo sớm, sau khi luồng chăm sóc thủ công ổn định.",
   "home.stats.badge": "Số liệu DeskBoost",
   "home.stats.title": "Góc xanh được bảo vệ bằng dữ liệu",
   "home.stats.diagnoses.val": "850+",
@@ -1258,7 +1259,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
     "The current account is a regular user, so the admin area is hidden. You can still use your Dashboard, My Plants, and AI Chat.",
   "forbidden.dashboard": "Back to Dashboard",
   "forbidden.home": "Home",
-  "dashboard.greeting": "Good morning, Sarah! 🌱",
+  "dashboard.greeting": "Good morning, {name}! 🌱",
   "dashboard.subtitle": "Your Monstera needs some love today.",
   "dashboard.search": "Search your jungle...",
   "dashboard.totalPlants": "Total Plants",
@@ -1587,22 +1588,22 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "home.roadmap.badge": "Future Roadmap",
   "home.roadmap.title": "DeskBoost Future Vision",
   "home.roadmap.description":
-    "Our long-term roadmap for expanding trust layers and digital care systems while maintaining a lightweight, focused MVP.",
+    "DeskBoost now centers on claim codes, personal plant profiles, and basic care reminders; the next steps add AI context and automation while keeping the MVP lean.",
   "home.roadmap.step1.title": "Plant Claim Code",
   "home.roadmap.step1.desc":
-    "Admin creates a claim code for each physical plant after purchase, then sends that code to the user.",
+    "Admin manages claim codes for each physical plant and links real purchases back to user accounts.",
   "home.roadmap.step2.title": "Claim Plant Profile",
   "home.roadmap.step2.desc":
-    "The user enters the claim code to add the plant to My Plants and track its care profile.",
+    "Users enter a claim code to add the plant to My Plants, view its care profile, and continue reminder tracking.",
   "home.roadmap.step3.title": "AI Context Memory",
   "home.roadmap.step3.desc":
-    "AI learns and remembers past diagnostic history to give highly accurate, customized advice.",
+    "Expand chat and diagnosis history into long-term context so AI can advise more closely for each plant.",
   "home.roadmap.step4.title": "Weather Integration",
   "home.roadmap.step4.desc":
-    "Auto-adjust care reminder frequencies based on local weather forecasts and indoor parameters.",
+    "Suggest watering schedule adjustments based on weather, season, and room conditions once the data is reliable.",
   "home.roadmap.step5.title": "IoT Monitoring",
   "home.roadmap.step5.desc":
-    "Integrate ultra-compact soil and light sensors to send automatic health alerts directly to your dashboard.",
+    "Explore soil and light sensor integration for early alerts after the manual care workflow is stable.",
   "home.stats.badge": "DeskBoost Impact",
   "home.stats.title": "Your office green space, backed by data",
   "home.stats.diagnoses.val": "850+",

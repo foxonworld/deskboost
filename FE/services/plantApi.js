@@ -1,4 +1,5 @@
 import { get, post, put, del } from "./api";
+import { normalizeMarketplaceImages } from "./marketplaceImages";
 
 const statusMap = {
   active: "Active",
@@ -41,28 +42,33 @@ const parsePrice = (priceText) => {
   return Number.isFinite(value) ? value : 0;
 };
 
-export const normalizeMarketplacePlant = (plant = {}) => ({
-  ...plant,
-  id: firstValue(plant.id, plant.Id),
-  name: firstValue(plant.name, plant.Name),
-  description: firstValue(plant.description, plant.Description),
-  image: firstValue(plant.image, plant.imageUrl, plant.ImageUrl),
-  imageUrl: firstValue(plant.imageUrl, plant.ImageUrl, plant.image),
-  price: plant.price ?? parsePrice(firstValue(plant.priceText, plant.PriceText)),
-  priceText: firstValue(plant.priceText, plant.PriceText),
-  category: firstValue(plant.category, plant.Category, "plant"),
-  careLevel: firstValue(plant.careLevel, plant.CareLevel),
-  light: firstValue(plant.light, plant.Light),
-  water: firstValue(plant.water, plant.Water),
-  attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
-  contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
-  tags: plant.tags || [firstValue(plant.careLevel, plant.CareLevel), firstValue(plant.light, plant.Light)].filter(Boolean),
-  difficulty: plant.difficulty || firstValue(plant.careLevel, plant.CareLevel),
-  status: statusMap[String(plant.status || "active").toLowerCase()] || plant.status || "Active",
-  ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
-  ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
-  isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),
-});
+export const normalizeMarketplacePlant = (plant = {}) => {
+  const imageState = normalizeMarketplaceImages(plant);
+  return {
+    ...plant,
+    id: firstValue(plant.id, plant.Id),
+    name: firstValue(plant.name, plant.Name),
+    description: firstValue(plant.description, plant.Description),
+    image: imageState.primaryImage,
+    imageUrl: imageState.primaryImage,
+    images: imageState.images,
+    primaryImage: imageState.primaryImage,
+    price: plant.price ?? parsePrice(firstValue(plant.priceText, plant.PriceText)),
+    priceText: firstValue(plant.priceText, plant.PriceText),
+    category: firstValue(plant.category, plant.Category, "plant"),
+    careLevel: firstValue(plant.careLevel, plant.CareLevel),
+    light: firstValue(plant.light, plant.Light),
+    water: firstValue(plant.water, plant.Water),
+    attributesJson: firstValue(plant.attributesJson, plant.AttributesJson),
+    contactUrl: firstValue(plant.contactUrl, plant.ContactUrl),
+    tags: plant.tags || [firstValue(plant.careLevel, plant.CareLevel), firstValue(plant.light, plant.Light)].filter(Boolean),
+    difficulty: plant.difficulty || firstValue(plant.careLevel, plant.CareLevel),
+    status: statusMap[String(plant.status || "active").toLowerCase()] || plant.status || "Active",
+    ownershipCode: firstValue(plant.ownershipCode, plant.OwnershipCode, plant.plantCode, plant.PlantCode),
+    ownershipStatus: firstValue(plant.ownershipStatus, plant.OwnershipStatus, plant.claimStatus, plant.ClaimStatus),
+    isClaimed: parseBoolean(firstValue(plant.isClaimed, plant.IsClaimed, plant.claimedAt, plant.ClaimedAt)),
+  };
+};
 
 export const normalizeMyPlant = (plant = {}) => ({
   ...plant,

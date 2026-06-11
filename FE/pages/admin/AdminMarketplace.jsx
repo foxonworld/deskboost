@@ -13,6 +13,8 @@ const emptyListingForm = {
   name: '',
   description: '',
   imageUrl: '',
+  imageDraft: '',
+  images: [],
   priceText: '',
   category: 'plant',
   careLevel: '',
@@ -62,6 +64,24 @@ const waterOptions = [
   { value: '1/14', labelKey: 'admin.water.1_14' },
 ];
 
+const getImageUrl = (image) => {
+  if (!image) return '';
+  if (typeof image === 'string') return image;
+  return image.imageUrl || image.url || image.ImageUrl || image.Url || '';
+};
+
+const buildImageItems = (images, primaryUrl = '') => {
+  const urls = [];
+  images.forEach((image) => {
+    const url = getImageUrl(image).trim();
+    if (url && !urls.includes(url)) urls.push(url);
+  });
+  const primary = primaryUrl && urls.includes(primaryUrl) ? primaryUrl : urls[0] || '';
+  return urls.map((imageUrl, index) => ({ imageUrl, sortOrder: index, isPrimary: imageUrl === primary }));
+};
+
+const getPrimaryImage = (images) => images.find((image) => image.isPrimary)?.imageUrl || images[0]?.imageUrl || '';
+
 const AdminMarketplace = () => {
   const [plants, setPlants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -97,7 +117,14 @@ const AdminMarketplace = () => {
     const { name, value } = event.target;
     setFormError('');
     setNotice('');
-    setForm((current) => ({ ...current, [name]: value }));
+    setForm((current) => {
+      if (name !== 'imageUrl') return { ...current, [name]: value };
+      return {
+        ...current,
+        imageUrl: value,
+        images: value.trim() ? buildImageItems([value, ...current.images], value.trim()) : current.images,
+      };
+    });
   };
 
   const resetForm = () => {
@@ -107,11 +134,14 @@ const AdminMarketplace = () => {
   };
 
   const startEdit = (plant) => {
+    const images = buildImageItems(plant.images?.length ? plant.images : [plant.imageUrl], plant.primaryImage || plant.imageUrl);
     setEditingId(plant.id);
     setForm({
       name: plant.name || '',
       description: plant.description || '',
-      imageUrl: plant.imageUrl || '',
+      imageUrl: getPrimaryImage(images) || plant.imageUrl || '',
+      imageDraft: '',
+      images,
       priceText: plant.priceText || '',
       category: plant.category || 'plant',
       careLevel: plant.careLevel || '',
@@ -125,6 +155,26 @@ const AdminMarketplace = () => {
     setNotice('');
   };
 
+  const setPrimaryImage = (imageUrl) => {
+    setForm((current) => ({ ...current, imageUrl, images: buildImageItems(current.images, imageUrl) }));
+  };
+
+  const removeImage = (imageUrl) => {
+    setForm((current) => {
+      const images = buildImageItems(current.images.filter((image) => image.imageUrl !== imageUrl), current.imageUrl === imageUrl ? '' : current.imageUrl);
+      return { ...current, imageUrl: current.imageUrl === imageUrl ? getPrimaryImage(images) : current.imageUrl, images };
+    });
+  };
+
+  const addImageUrl = () => {
+    const imageUrl = form.imageDraft.trim();
+    if (!imageUrl) return;
+    setForm((current) => {
+      const images = buildImageItems([...current.images, imageUrl], current.imageUrl || imageUrl);
+      return { ...current, imageUrl: getPrimaryImage(images), imageDraft: '', images };
+    });
+  };
+
   const handleUploadImage = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -133,7 +183,10 @@ const AdminMarketplace = () => {
     setNotice('');
     try {
       const imageUrl = await uploadImage(file);
-      setForm((current) => ({ ...current, imageUrl }));
+      setForm((current) => {
+        const images = buildImageItems([...current.images, imageUrl], current.imageUrl || imageUrl);
+        return { ...current, imageUrl: getPrimaryImage(images), images };
+      });
       setNotice(t('admin.marketplace.notice.uploaded'));
     } catch (err) {
       setFormError(err?.message || t('admin.marketplace.error.upload'));
@@ -149,8 +202,13 @@ const AdminMarketplace = () => {
     setFormError('');
     setNotice('');
     try {
+      const images = buildImageItems([form.imageUrl, ...form.images], form.imageUrl);
+      const imageUrl = getPrimaryImage(images);
       const payload = {
         ...form,
+        imageDraft: undefined,
+        imageUrl,
+        images,
         careLevel: isPlantCategory ? form.careLevel : null,
         light: isPlantCategory ? form.light : null,
         water: isPlantCategory ? form.water : null,
@@ -242,6 +300,40 @@ const AdminMarketplace = () => {
             {t('admin.field.uploadImage')}
             <input type="file" accept="image/*" onChange={handleUploadImage} disabled={uploading} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
           </label>
+          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-950 md:col-span-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <label className="flex-1 space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+                Ảnh sản phẩm
+                <input name="imageDraft" value={form.imageDraft} onChange={updateListingField} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="https://example.com/product.jpg" />
+              </label>
+              <button type="button" onClick={addImageUrl} disabled={!form.imageDraft.trim()} className="rounded-2xl border border-slate-200 px-4 py-3 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300">
+                Thêm ảnh
+              </button>
+            </div>
+            <label className="block space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
+              Tải thêm ảnh sản phẩm
+              <input type="file" accept="image/*" onChange={handleUploadImage} disabled={uploading} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none file:mr-3 file:rounded-xl file:border-0 file:bg-[#4CAF50] file:px-3 file:py-2 file:text-xs file:font-black file:text-white focus:border-[#4CAF50] disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950" />
+            </label>
+            {form.images.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {form.images.map((image) => (
+                  <div key={image.imageUrl} className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+                    <img src={image.imageUrl} alt="Marketplace product" className="h-32 w-full object-cover" />
+                    <div className="flex flex-wrap items-center gap-2 p-3">
+                      <button type="button" onClick={() => setPrimaryImage(image.imageUrl)} className={`rounded-xl px-3 py-2 text-xs font-black transition ${image.isPrimary ? 'bg-[#4CAF50] text-white' : 'border border-slate-200 text-slate-600 hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300'}`}>
+                        {image.isPrimary ? 'Ảnh chính' : 'Chọn chính'}
+                      </button>
+                      <button type="button" onClick={() => removeImage(image.imageUrl)} className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 dark:border-red-950/50 dark:text-red-300">
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-2xl border border-dashed border-slate-200 p-4 text-xs font-bold text-slate-400 dark:border-slate-700">Chưa có ảnh sản phẩm.</p>
+            )}
+          </div>
           {isPlantCategory ? (
             <>
               <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">

@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
 import { useI18n } from '../i18n';
 import { GoogleLogin } from '@react-oauth/google';
+import { signInWithNativeGoogle } from '../utils/nativeGoogleAuth';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -25,6 +26,18 @@ const Register = () => {
       navigate(redirectTo, { replace: true });
     } catch {
       // AuthContext owns friendly error state.
+    }
+  };
+
+  const handleNativeGoogleLogin = async () => {
+    clearError();
+    setFormError('');
+    try {
+      const idToken = await signInWithNativeGoogle();
+      await loginWithGoogle(idToken);
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      setFormError(err?.message || 'Dang ky Google that bai.');
     }
   };
 
@@ -111,7 +124,11 @@ const Register = () => {
             {isLoading ? t('common.saving') : isBootstrapping ? t('common.loading') : t('common.submit')}
           </button>
 
-          {!isMobileApp && (
+          {isMobileApp ? (
+            <button type="button" disabled={disabled} onClick={handleNativeGoogleLogin} className="h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm font-bold text-text-main shadow-sm transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-primary/10">
+              Dang ky voi Google
+            </button>
+          ) : (
             <>
           <div className="relative flex items-center justify-center my-4">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
