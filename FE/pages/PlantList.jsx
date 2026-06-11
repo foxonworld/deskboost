@@ -220,7 +220,35 @@ const PlantList = () => {
 
         {error && <StateNotice tone="warning" className="mb-6" data-motion="marketplace-fallback">{error}</StateNotice>}
 
-        <section className="sticky top-[65px] z-40 -mx-4 mb-8 border-y border-[#E4EEE6] bg-background-light/95 px-4 py-4 backdrop-blur-sm dark:border-[#2A4532] dark:bg-background-dark/95 md:mx-0 md:rounded-3xl md:border md:px-5">
+        <div className="mb-4 lg:hidden">
+          <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_auto]">
+            <label className="relative block">
+              <span className="sr-only">{t('market.searchLabel')}</span>
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">search</span>
+              <input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="min-h-11 w-full rounded-2xl border border-[#E4EEE6] bg-white pl-12 pr-4 text-sm font-semibold outline-none transition-all focus:ring-4 focus:ring-primary/20 dark:border-[#2A4532] dark:bg-surface-dark dark:text-white"
+                placeholder={t('market.searchPlaceholder')}
+              />
+            </label>
+            <label className="flex min-h-11 items-center gap-2 rounded-2xl border border-[#E4EEE6] bg-white px-4 text-sm font-semibold text-text-secondary dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
+              <span className="material-symbols-outlined text-base" aria-hidden="true">sort</span>
+              <span className="sr-only">{t('market.sortLabel')}</span>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-transparent font-bold text-[#111813] outline-none dark:text-white">
+                <option value="popular">{t('market.sort.popular')}</option>
+                <option value="priceAsc">{t('market.sort.priceAsc')}</option>
+                <option value="priceDesc">{t('market.sort.priceDesc')}</option>
+              </select>
+            </label>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-text-secondary dark:text-slate-400">
+            <span>{resultLabel} · {activeFilter === 'all' ? t('market.result.allCategories') : t(filters.find((filter) => filter.value === activeFilter)?.labelKey || 'market.result.allCategories')}</span>
+            <span>{t('market.result.contactOnly')}</span>
+          </div>
+        </div>
+
+        <section className="sticky top-[65px] z-40 -mx-4 mb-8 border-y border-[#E4EEE6] bg-background-light/95 px-4 py-3 backdrop-blur-sm dark:border-[#2A4532] dark:bg-background-dark/95 md:mx-0 md:rounded-3xl md:border md:px-5">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:pb-0">
               {filters.map(filter => (
@@ -229,7 +257,7 @@ const PlantList = () => {
                 </Chip>
               ))}
             </div>
-            <div className="grid gap-3 sm:grid-cols-[minmax(220px,1fr)_auto] lg:w-[520px]">
+            <div className="hidden lg:grid gap-3 sm:grid-cols-[minmax(220px,1fr)_auto] lg:w-[520px]">
               <label className="relative block">
                 <span className="sr-only">{t('market.searchLabel')}</span>
                 <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">search</span>
@@ -251,7 +279,7 @@ const PlantList = () => {
               </label>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-text-secondary dark:text-slate-400">
+          <div className="mt-3 hidden lg:flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-text-secondary dark:text-slate-400">
             <span>{resultLabel} · {activeFilter === 'all' ? t('market.result.allCategories') : t(filters.find((filter) => filter.value === activeFilter)?.labelKey || 'market.result.allCategories')}</span>
             <span>{t('market.result.contactOnly')}</span>
           </div>

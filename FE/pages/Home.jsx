@@ -8,6 +8,7 @@ import { getMarketplacePlants } from '../services/plantApi';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import Badge from '../components/Badge';
+import AppDownloadButton from '../components/AppDownloadButton';
 import { formatVND } from '../utils/currency';
 import { getRevealVars, motionDistances, motionDurations, motionEasings, usePrefersReducedMotion } from '../utils/motion';
 import { useI18n } from '../i18n';
@@ -124,7 +125,10 @@ const Home = () => {
                 </p>
               </div>
 
-              <div data-motion="home-hero" className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+              <div data-motion="home-hero" className="relative z-50 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+                <div className="w-full sm:w-auto">
+                  <AppDownloadButton variant="hero" />
+                </div>
                 <Button to="/plants" size="lg" className="w-full sm:w-auto">
                   {t('home.cta.marketplace')}
                 </Button>
@@ -132,8 +136,9 @@ const Home = () => {
                   variant="secondary"
                   size="lg"
                   onClick={() => navigate('/app/ai-chat')}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto border-primary/50 bg-primary/5 shadow-[0_0_20px_rgba(76,175,80,0.25)] ring-1 ring-primary/50 transition-all hover:shadow-[0_0_25px_rgba(76,175,80,0.35)] dark:border-primary/40 dark:shadow-[0_0_20px_rgba(76,175,80,0.15)]"
                 >
+                  <span className="material-symbols-outlined text-xl text-primary">auto_awesome</span>
                   {t('home.cta.aiCare')}
                 </Button>
               </div>

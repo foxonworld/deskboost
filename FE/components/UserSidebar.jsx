@@ -71,11 +71,11 @@ const UserSidebar = () => {
           aria-label={isMobileOpen ? t('userSidebar.closeNav') : t('userSidebar.openNav')}
           aria-expanded={isMobileOpen}
           onClick={() => setIsMobileOpen((value) => !value)}
-          className="fixed bottom-4 left-4 right-4 z-40 flex items-center justify-between rounded-2xl border border-primary/20 bg-surface-light px-4 py-3 text-left text-sm font-bold text-primary shadow-lg dark:bg-surface-dark"
+          className="fixed bottom-4 left-4 right-4 z-40 flex h-12 items-center justify-between rounded-2xl border border-primary/50 bg-surface-light/95 px-4 text-left text-sm font-bold text-primary shadow-[0_0_20px_rgba(76,175,80,0.25)] ring-2 ring-primary/30 backdrop-blur transition-all dark:border-primary/40 dark:bg-surface-dark/95 dark:shadow-[0_0_20px_rgba(76,175,80,0.15)]"
         >
           <span className="flex items-center gap-2">
             <span className="material-symbols-outlined">menu</span>
-            {t('userSidebar.nav')}
+            <span className="pl-3">{t('userSidebar.nav')}</span>
           </span>
           <span className="material-symbols-outlined">{isMobileOpen ? 'close' : 'expand_more'}</span>
         </button>

@@ -12,7 +12,7 @@ const FloatingHomeButton = () => {
   return (
     <button 
       onClick={() => navigate('/')}
-      className="fixed top-4 left-4 z-[60] bg-white/90 backdrop-blur border border-gray-100 size-11 rounded-xl shadow-lg shadow-black/5 hover:bg-primary hover:border-primary transition-all flex items-center justify-center group"
+      className="fixed bottom-4 left-4 md:bottom-8 md:left-8 z-[60] flex h-12 w-12 items-center justify-center rounded-2xl border border-gray-100 bg-white/90 shadow-lg shadow-black/5 backdrop-blur transition-all group hover:border-primary hover:bg-primary"
       title="Back to Home"
       aria-label="Home"
     >

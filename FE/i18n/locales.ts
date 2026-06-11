@@ -9,6 +9,17 @@ export type TranslationParams = Record<string, string | number>;
 export type TranslationKey = keyof typeof vi;
 
 const vi = {
+  "app.download": "Tải ứng dụng",
+  "app.download.android": "Tải APK Android",
+  "app.download.ios": "iOS Web App",
+  "app.download.ios.install": "Cài đặt iOS",
+  "app.download.ios.desc": "DeskBoost hiện hỗ trợ iOS dưới dạng Web App.",
+  "app.download.ios.howTo": "Cách thêm vào màn hình chính:",
+  "app.download.ios.step1": "Mở website DeskBoost bằng <strong>Safari</strong>.",
+  "app.download.ios.step2": "Nhấn nút <strong>Chia sẻ</strong> (biểu tượng mũi tên lên).",
+  "app.download.ios.step3": "Chọn <strong>Thêm vào Màn hình chính</strong>.",
+  "app.download.ios.step4": "Nhấn <strong>Thêm</strong>.",
+  "app.download.ios.gotIt": "Đã hiểu",
   "common.loading": "Đang tải dữ liệu...",
   "common.emptyTitle": "Chưa có dữ liệu",
   "common.submit": "Gửi",
@@ -994,6 +1005,17 @@ const vi = {
 };
 
 const en: Partial<Record<TranslationKey, TranslationValue>> = {
+  "app.download": "Download App",
+  "app.download.android": "Download Android APK",
+  "app.download.ios": "iOS Web App",
+  "app.download.ios.install": "Install iOS App",
+  "app.download.ios.desc": "DeskBoost currently supports iOS as a Web App.",
+  "app.download.ios.howTo": "How to add to Home Screen:",
+  "app.download.ios.step1": "Open DeskBoost in <strong>Safari</strong>.",
+  "app.download.ios.step2": "Tap the <strong>Share</strong> button (up arrow icon).",
+  "app.download.ios.step3": "Select <strong>Add to Home Screen</strong>.",
+  "app.download.ios.step4": "Tap <strong>Add</strong>.",
+  "app.download.ios.gotIt": "Got it",
   "common.loading": "Loading data...",
   "common.emptyTitle": "No data yet",
   "common.submit": "Submit",

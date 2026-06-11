@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import CareNotificationBell from './CareNotificationBell';
 import { useAuth } from '../hooks/useAuth';
 import { useI18n } from '../i18n';
+import AppDownloadButton from './AppDownloadButton';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            <AppDownloadButton variant="header" />
             {isAuthenticated && <CareNotificationBell />}
 
             {isBootstrapping ? (

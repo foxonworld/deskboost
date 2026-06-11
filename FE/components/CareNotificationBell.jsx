@@ -86,7 +86,7 @@ const CareNotificationBell = () => {
       {notificationOpen && (
         <div
           ref={panelRef}
-          className="absolute right-0 top-full mt-3 w-[380px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 z-[200] overflow-hidden"
+          className="fixed left-4 right-4 top-[72px] sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[380px] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl shadow-black/10 dark:shadow-black/40 z-[200] overflow-hidden"
           style={{ animation: 'slideDown 0.2s ease' }}
         >
           {/* ── Header ── */}
@@ -106,7 +106,7 @@ const CareNotificationBell = () => {
             </Link>
           </div>
 
-          <div className="max-h-[440px] overflow-y-auto">
+          <div className="max-h-[calc(100vh-180px)] sm:max-h-[440px] overflow-y-auto">
 
             {/* ── Section: Thông báo từ DeskBoost ── */}
             {(adminNotifs.length > 0 || notifsLoading) && (
