@@ -37,8 +37,9 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
 
     public async Task<MarketplaceItemDto> Handle(UpdateMarketplaceItemCommand request, CancellationToken ct)
     {
+        // Load WITHOUT Include to avoid EF Core navigation-tracking conflicts
+        // when replacing the image list.
         var item = await _db.MarketplaceItems
-            .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == request.Id, ct)
             ?? throw new InvalidOperationException("Không tìm thấy item.");
 
@@ -56,36 +57,44 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
 
         if (request.Images is not null)
         {
-            // Clear() alone triggers EF Core cascade orphan-delete for the required FK.
-            // Calling RemoveRange *before* Clear() causes a double-state conflict
-            // (entities already Deleted get processed again by the cascade handler → DbUpdateException).
-            item.Images.Clear();
+            // Delete old images via DbSet (bypass navigation collection entirely)
+            var oldImages = await _db.MarketplaceItemImages
+                .Where(i => i.MarketplaceItemId == item.Id)
+                .ToListAsync(ct);
 
-            foreach (var img in request.Images)
+            if (oldImages.Count > 0)
+                _db.MarketplaceItemImages.RemoveRange(oldImages);
+
+            // Insert new images via DbSet with FK set explicitly
+            if (request.Images.Count > 0)
             {
-                item.Images.Add(new MarketplaceItemImage
+                _db.MarketplaceItemImages.AddRange(request.Images.Select(img => new MarketplaceItemImage
                 {
-                    MarketplaceItemId = item.Id,   // set FK explicitly – don't rely solely on fixup
+                    MarketplaceItemId = item.Id,
                     ImageUrl = img.ImageUrl,
                     SortOrder = img.SortOrder,
                     IsPrimary = img.IsPrimary
-                });
-            }
+                }));
 
-            if (item.Images.Count > 0)
-                item.ImageUrl = ResolvePrimaryImageUrl(item.Images);
+                var primary = request.Images.FirstOrDefault(i => i.IsPrimary)
+                              ?? request.Images.OrderBy(i => i.SortOrder).FirstOrDefault();
+                item.ImageUrl = primary?.ImageUrl ?? item.ImageUrl;
+            }
+            else
+            {
+                item.ImageUrl = null;
+            }
         }
 
         item.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
-        return CreateMarketplaceItemCommandHandler.MapToDto(item);
-    }
+        // Reload images from DB so MapToDto returns accurate list
+        item.Images = await _db.MarketplaceItemImages
+            .Where(i => i.MarketplaceItemId == item.Id)
+            .OrderBy(i => i.SortOrder)
+            .ToListAsync(ct);
 
-    private static string? ResolvePrimaryImageUrl(ICollection<MarketplaceItemImage> images)
-    {
-        var primary = images.FirstOrDefault(i => i.IsPrimary)
-                      ?? images.OrderBy(i => i.SortOrder).FirstOrDefault();
-        return primary?.ImageUrl;
+        return CreateMarketplaceItemCommandHandler.MapToDto(item);
     }
 }
