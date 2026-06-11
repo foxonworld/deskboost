@@ -56,13 +56,16 @@ public class UpdateMarketplaceItemCommandHandler : IRequestHandler<UpdateMarketp
 
         if (request.Images is not null)
         {
-            _db.MarketplaceItemImages.RemoveRange(item.Images);
+            // Clear() alone triggers EF Core cascade orphan-delete for the required FK.
+            // Calling RemoveRange *before* Clear() causes a double-state conflict
+            // (entities already Deleted get processed again by the cascade handler → DbUpdateException).
             item.Images.Clear();
 
             foreach (var img in request.Images)
             {
                 item.Images.Add(new MarketplaceItemImage
                 {
+                    MarketplaceItemId = item.Id,   // set FK explicitly – don't rely solely on fixup
                     ImageUrl = img.ImageUrl,
                     SortOrder = img.SortOrder,
                     IsPrimary = img.IsPrimary
