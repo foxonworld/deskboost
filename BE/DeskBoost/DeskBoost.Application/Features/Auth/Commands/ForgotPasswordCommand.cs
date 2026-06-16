@@ -1,5 +1,4 @@
 using DeskBoost.Application.Common.Interfaces;
-using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,37 +6,47 @@ namespace DeskBoost.Application.Features.Auth.Commands;
 
 public record ForgotPasswordCommand(string Email) : IRequest<ForgotPasswordResult>;
 
-public record ForgotPasswordResult(bool Success, string Message,
-    // Token trả về trong dev/test — production nên gửi qua email thay vì expose
-    string? ResetToken = null);
+public record ForgotPasswordResult(bool Success, string Message, string? ResetToken = null);
 
 public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, ForgotPasswordResult>
 {
-    private readonly IAppDbContext _db;
+    private const string GenericSuccessMessage = "Neu email ton tai, huong dan dat lai mat khau da duoc gui.";
 
-    public ForgotPasswordCommandHandler(IAppDbContext db) => _db = db;
+    private readonly IAppDbContext _db;
+    private readonly IEmailService _emailService;
+    private readonly IEmailConfiguration _emailConfiguration;
+
+    public ForgotPasswordCommandHandler(
+        IAppDbContext db,
+        IEmailService emailService,
+        IEmailConfiguration emailConfiguration)
+    {
+        _db = db;
+        _emailService = emailService;
+        _emailConfiguration = emailConfiguration;
+    }
 
     public async Task<ForgotPasswordResult> Handle(ForgotPasswordCommand request, CancellationToken ct)
     {
         var emailLower = request.Email.Trim().ToLower();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == emailLower, ct);
 
-        // Trả success dù email không tồn tại (tránh email enumeration attack)
         if (user is null)
-            return new ForgotPasswordResult(true, "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi.");
+            return new ForgotPasswordResult(true, GenericSuccessMessage);
 
-        // Tạo reset token ngẫu nhiên (32 bytes base64url)
         var token = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32))
             .Replace("+", "-").Replace("/", "_").Replace("=", "");
 
         user.PasswordResetToken = token;
-        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddHours(2); // token hết hạn sau 2 giờ
+        user.PasswordResetTokenExpiresAt = DateTime.UtcNow.AddHours(2);
         user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
+        await _emailService.SendPasswordResetEmailAsync(user.Email, user.FullName, token, ct);
 
-        // TODO: Tích hợp email service để gửi link reset thay vì trả token trực tiếp
-        // Ví dụ link: https://yourdomain.com/#/reset-password?token={token}
-        return new ForgotPasswordResult(true, "Token đặt lại mật khẩu đã được tạo.", token);
+        return new ForgotPasswordResult(
+            true,
+            GenericSuccessMessage,
+            _emailConfiguration.ExposeResetTokenInResponse ? token : null);
     }
 }

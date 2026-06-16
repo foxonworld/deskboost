@@ -1,5 +1,6 @@
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Infrastructure.ExternalServices.Ai;
+using DeskBoost.Infrastructure.ExternalServices.Email;
 using DeskBoost.Infrastructure.ExternalServices.Storage;
 using DeskBoost.Infrastructure.Identity;
 using DeskBoost.Infrastructure.Persistence;
@@ -33,6 +34,9 @@ namespace DeskBoost.Infrastructure
             services.AddSingleton<IAiConfiguration, AiConfigurationService>();
             services.AddScoped<IStorageService, CloudinaryStorageService>();
             services.AddScoped<IAiQuotaService, AiQuotaService>();
+            services.AddScoped<SmtpEmailService>();
+            services.AddScoped<IEmailService>(p => p.GetRequiredService<SmtpEmailService>());
+            services.AddScoped<IEmailConfiguration>(p => p.GetRequiredService<SmtpEmailService>());
 
             return services;
         }
