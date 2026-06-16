@@ -34,9 +34,21 @@ namespace DeskBoost.Infrastructure
             services.AddSingleton<IAiConfiguration, AiConfigurationService>();
             services.AddScoped<IStorageService, CloudinaryStorageService>();
             services.AddScoped<IAiQuotaService, AiQuotaService>();
-            services.AddScoped<SmtpEmailService>();
-            services.AddScoped<IEmailService>(p => p.GetRequiredService<SmtpEmailService>());
-            services.AddScoped<IEmailConfiguration>(p => p.GetRequiredService<SmtpEmailService>());
+            services.AddScoped<IEmailConfiguration, EmailConfigurationService>();
+
+            if (string.Equals(configuration["Email:Provider"], "BrevoApi", StringComparison.OrdinalIgnoreCase))
+            {
+                services.AddHttpClient<IEmailService, BrevoEmailService>(client =>
+                {
+                    client.BaseAddress = new Uri(
+                        configuration["Brevo:BaseUrl"] ?? "https://api.brevo.com/v3/");
+                    client.Timeout = TimeSpan.FromSeconds(15);
+                });
+            }
+            else
+            {
+                services.AddScoped<IEmailService, SmtpEmailService>();
+            }
 
             return services;
         }

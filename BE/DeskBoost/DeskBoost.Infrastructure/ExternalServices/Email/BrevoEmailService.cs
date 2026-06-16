@@ -1,7 +1,5 @@
 using System.Net;
-using System.Net.Mail;
-using System.Net.Mime;
-using System.Text;
+using System.Net.Http.Json;
 using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
@@ -9,22 +7,24 @@ using Microsoft.Extensions.Logging;
 
 namespace DeskBoost.Infrastructure.ExternalServices.Email;
 
-public class SmtpEmailService : IEmailService
+public class BrevoEmailService : IEmailService
 {
+    private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<SmtpEmailService> _logger;
+    private readonly IEmailConfiguration _emailConfiguration;
+    private readonly ILogger<BrevoEmailService> _logger;
 
-    public SmtpEmailService(IConfiguration configuration, ILogger<SmtpEmailService> logger)
+    public BrevoEmailService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        IEmailConfiguration emailConfiguration,
+        ILogger<BrevoEmailService> logger)
     {
+        _httpClient = httpClient;
         _configuration = configuration;
+        _emailConfiguration = emailConfiguration;
         _logger = logger;
     }
-
-    public bool IsEnabled =>
-        bool.TryParse(_configuration["Email:Enabled"], out var enabled) && enabled;
-
-    public bool ExposeResetTokenInResponse =>
-        bool.TryParse(_configuration["Email:ExposeResetTokenInResponse"], out var exposeToken) && exposeToken;
 
     public async Task SendPasswordResetEmailAsync(
         string toEmail,
@@ -32,49 +32,58 @@ public class SmtpEmailService : IEmailService
         string resetToken,
         CancellationToken ct)
     {
-        if (!IsEnabled)
+        if (!_emailConfiguration.IsEnabled)
             return;
 
-        var host = GetRequired("Smtp:Host");
-        var port = int.TryParse(_configuration["Smtp:Port"], out var configuredPort)
-            ? configuredPort
-            : 587;
-        var user = GetRequired("Smtp:User");
-        var pass = GetRequired("Smtp:Pass");
+        var apiKey = GetRequired("Brevo:ApiKey");
         var fromAddress = GetRequired("Email:FromAddress");
         var fromName = _configuration["Email:FromName"] ?? "DeskBoost";
         var resetUrl = BuildResetUrl(resetToken);
 
-        using var message = new MailMessage
+        using var request = new HttpRequestMessage(HttpMethod.Post, "smtp/email");
+        request.Headers.Add("api-key", apiKey);
+        request.Content = JsonContent.Create(new
         {
-            From = new MailAddress(fromAddress, fromName, Encoding.UTF8),
-            Subject = "DeskBoost password reset",
-            SubjectEncoding = Encoding.UTF8,
-            BodyEncoding = Encoding.UTF8,
-            IsBodyHtml = true,
-            Body = BuildPasswordResetBody(fullName, resetUrl)
-        };
-        message.To.Add(new MailAddress(toEmail));
-        message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
-            $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}",
-            Encoding.UTF8,
-            MediaTypeNames.Text.Plain));
+            sender = new
+            {
+                name = fromName,
+                email = fromAddress
+            },
+            to = new[]
+            {
+                new
+                {
+                    email = toEmail,
+                    name = string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName.Trim()
+                }
+            },
+            subject = "DeskBoost password reset",
+            htmlContent = BuildPasswordResetBody(fullName, resetUrl),
+            textContent = $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}"
+        });
 
-        using var smtpClient = new SmtpClient(host, port)
-        {
-            EnableSsl = true,
-            Credentials = new NetworkCredential(user, pass)
-        };
-
+        HttpResponseMessage response;
         try
         {
-            await smtpClient.SendMailAsync(message, ct);
+            response = await _httpClient.SendAsync(request, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset email to {Email}", toEmail);
+            _logger.LogError(ex, "Failed to call Brevo email API for {Email}", toEmail);
             throw new ExternalServiceException("Khong the gui email dat lai mat khau. Vui long thu lai sau.");
         }
+
+        if (response.IsSuccessStatusCode)
+            return;
+
+        var errorBody = await response.Content.ReadAsStringAsync(ct);
+        _logger.LogError(
+            "Brevo email API failed for {Email}. StatusCode: {StatusCode}. Body: {Body}",
+            toEmail,
+            (int)response.StatusCode,
+            errorBody);
+
+        throw new ExternalServiceException("Khong the gui email dat lai mat khau. Vui long thu lai sau.");
     }
 
     private string GetRequired(string key)

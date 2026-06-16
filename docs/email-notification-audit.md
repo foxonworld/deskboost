@@ -51,10 +51,9 @@
 De xuat dung namespace config theo .NET style tren Render:
 
 ```env
-Smtp__Host=smtp-relay.brevo.com
-Smtp__Port=587
-Smtp__User=
-Smtp__Pass=
+Email__Provider=BrevoApi
+Brevo__BaseUrl=https://api.brevo.com/v3/
+Brevo__ApiKey=
 Email__FromName=DeskBoost
 Email__FromAddress=noreply@example.com
 Email__AppBaseUrl=https://www.deskboost.io.vn
@@ -63,7 +62,7 @@ Email__Enabled=true
 ```
 
 - Khong hardcode sender domain/email production trong code.
-- Khong commit credential SMTP vao repo.
+- Khong commit credential SMTP/API vao repo.
 - Nen tao `.env.example` hoac doc env sample chi gom placeholder.
 
 ## 7. Rui ro can chu y
