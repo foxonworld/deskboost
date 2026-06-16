@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { diagnosePlant, getAiQuota } from '../services/aiApi';
 import { getMyPlants } from '../services/plantApi';
@@ -214,6 +214,9 @@ const AIPlantAnalysis = () => {
           {diagnosisRemaining === null
             ? t('aiAnalysis.quotaFallback')
             : t('aiAnalysis.quotaStatus', { remaining: diagnosisRemaining, limit: diagnosisLimit })}
+        </StateNotice>
+        <StateNotice tone="info" className="text-sm">
+          Uploaded images and diagnosis context may be processed by Plant.id, Gemini/Google, Cloudinary, and hosting providers. <Link to="/privacy" className="font-bold text-primary hover:underline">Privacy Policy</Link>
         </StateNotice>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">

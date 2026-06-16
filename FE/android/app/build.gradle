@@ -1,5 +1,20 @@
 apply plugin: 'com.android.application'
 
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProperties = new Properties()
+def hasReleaseKeystore = false
+
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { stream ->
+        keystoreProperties.load(stream)
+    }
+    hasReleaseKeystore =
+        keystoreProperties['storeFile'] &&
+        keystoreProperties['storePassword'] &&
+        keystoreProperties['keyAlias'] &&
+        keystoreProperties['keyPassword']
+}
+
 android {
     namespace = "vn.deskboost.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +31,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseKeystore) {
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (hasReleaseKeystore) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -40,6 +68,16 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def isReleaseTask = taskGraph.allTasks.any { task ->
+        task.name.toLowerCase().contains('release')
+    }
+
+    if (isReleaseTask && !hasReleaseKeystore) {
+        throw new GradleException('Release signing requires FE/android/keystore.properties. See docs/release/android-release-signing.md.')
+    }
 }
 
 apply from: 'capacitor.build.gradle'

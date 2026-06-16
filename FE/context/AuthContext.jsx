@@ -1,13 +1,14 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
-import { getCurrentUser, login as loginApi, loginGoogle as loginGoogleApi, register as registerApi } from "../services/authApi";
-import { clearStoredAuth, getStoredToken, getStoredUser, saveAuth } from "../utils/authStorage";
+import { getCurrentUser, login as loginApi, loginGoogle as loginGoogleApi, logout as logoutApi, register as registerApi } from "../services/authApi";
+import { clearStoredAuth, getStoredRefreshToken, getStoredToken, getStoredUser, saveAuth } from "../utils/authStorage";
 
 export const AuthContext = createContext(null);
 
 const getStoredSession = () => {
   const token = getStoredToken();
+  const refreshToken = getStoredRefreshToken();
   const user = getStoredUser();
-  return { token, user };
+  return { token, refreshToken, user };
 };
 
 const initialState = () => ({
@@ -44,9 +45,10 @@ export const AuthProvider = ({ children }) => {
 
       try {
         const user = await getCurrentUser();
-        saveAuth({ accessToken: token, user });
+        const nextToken = getStoredToken();
+        saveAuth({ accessToken: nextToken, refreshToken: getStoredRefreshToken(), user });
         if (active) {
-          setState({ token, user, isAuthenticated: true, isBootstrapping: false, isLoading: false, error: null });
+          setState({ token: nextToken, user, isAuthenticated: true, isBootstrapping: false, isLoading: false, error: null });
         }
       } catch {
         clearStoredAuth();
@@ -66,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
 
   const finishSuccess = (data) => {
-    if (!data?.accessToken || !data?.user) {
+    if (!data?.accessToken || !data?.refreshToken || !data?.user) {
       throw new Error("Sign-in response was incomplete. Please try again.");
     }
 
@@ -108,8 +110,16 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     setState((current) => ({ ...current, isLoading: true, error: null }));
-    clearStoredAuth();
-    setState({ user: null, token: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null });
+    const refreshToken = getStoredRefreshToken();
+
+    try {
+      if (refreshToken) await logoutApi(refreshToken);
+    } catch {
+      // Local cleanup is required even when backend revoke is unavailable.
+    } finally {
+      clearStoredAuth();
+      setState({ user: null, token: null, isAuthenticated: false, isBootstrapping: false, isLoading: false, error: null });
+    }
   }, []);
 
   const updateUser = useCallback((user) => {

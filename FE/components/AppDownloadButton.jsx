@@ -2,6 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useI18n } from '../i18n';
 
+const renderInstallStep = (text) => {
+  const parts = String(text).split(/<strong>(.*?)<\/strong>/g);
+  return parts.map((part, index) =>
+    index % 2 === 1 ? <strong key={index}>{part}</strong> : <React.Fragment key={index}>{part}</React.Fragment>
+  );
+};
+
 const AppDownloadButton = ({ variant = 'hero' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showIOSModal, setShowIOSModal] = useState(false);
@@ -53,7 +60,7 @@ const AppDownloadButton = ({ variant = 'hero' }) => {
               <a
                 href="https://github.com/foxonworld/deskboost/releases/download/v1.0.0/DeskBoost.apk"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-text-main hover:bg-primary/10 hover:text-primary dark:text-white dark:hover:bg-primary/20 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
@@ -90,10 +97,10 @@ const AppDownloadButton = ({ variant = 'hero' }) => {
             <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800/50">
               <p className="mb-2 text-sm font-bold text-text-main dark:text-white">{t('app.download.ios.howTo')}</p>
               <ol className="list-decimal space-y-2 pl-4 text-sm text-text-secondary dark:text-slate-300">
-                <li dangerouslySetInnerHTML={{ __html: t('app.download.ios.step1') }} />
-                <li dangerouslySetInnerHTML={{ __html: t('app.download.ios.step2') }} />
-                <li dangerouslySetInnerHTML={{ __html: t('app.download.ios.step3') }} />
-                <li dangerouslySetInnerHTML={{ __html: t('app.download.ios.step4') }} />
+                <li>{renderInstallStep(t('app.download.ios.step1'))}</li>
+                <li>{renderInstallStep(t('app.download.ios.step2'))}</li>
+                <li>{renderInstallStep(t('app.download.ios.step3'))}</li>
+                <li>{renderInstallStep(t('app.download.ios.step4'))}</li>
               </ol>
             </div>
             <button

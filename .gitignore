@@ -1,8 +1,46 @@
 # =========================================================================
-# DeskBoost — .gitignore tiêu chuẩn cho .NET & React
+# DeskBoost - .gitignore for .NET, React, Capacitor, and local tooling
 # =========================================================================
 
-# 1. Các thư mục build và file tạm của .NET (C#)
+# Local AI agents and tool state
+.agent/
+.roo/
+.playwright-mcp/
+.claude/settings.local.json
+**/.claude/settings.local.json
+
+# Environment files
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Logs
+*.log
+logs/
+**/logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Frontend dependencies and builds
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+.next/
+out/
+build/
+.eslintcache
+.parcel-cache
+.cache/
+
+# .NET build artifacts
 **/bin/
 **/obj/
 [Bb]in/
@@ -11,52 +49,36 @@
 *.userosscache
 *.sln.docstates
 
-# 2. Thư mục cấu hình của IDE
-.vs/
-.vscode/
+# Android and Capacitor build artifacts
+**/android/.gradle/
+**/android/app/build/
+**/android/build/
+*.apk
+*.aab
+*.apks
+
+# Android signing and local service files
+*.jks
+*.keystore
+*.p12
+*.pem
+keystore.properties
+google-services.json
+
+# IDE-local state
 .idea/
+.vs/
 *.suo
-*.user
-*.userosscache
-*.sln.docstates
 *.lscache
 
-# 3. Node.js và React (Frontend)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# 4. Thư mục build của React/Next.js/Vite
-dist/
-.next/
-out/
-build/
-.eslintcache
-.parcel-cache
-.cache/
-
-# 5. Các file tạm của hệ điều hành
+# OS files
 Thumbs.db
 ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
-# 6. Các thư mục tạm và file rác khác
-.agent/
-.roo/
-.idea/
-
-# Claude Code local settings
-.claude/settings.local.json
-
-# Local app settings with real credentials (use appsettings.json as template)
+# Local app settings with real credentials (use appsettings.example.json as template)
 **/appsettings.Development.json
 **/appsettings.Local.json
 **/appsettings.Production.json

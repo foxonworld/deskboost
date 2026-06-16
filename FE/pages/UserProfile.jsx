@@ -258,6 +258,20 @@ const UserProfile = () => {
                   {t('userProfile.claimEntry.cta')}
                 </Link>
               </div>
+
+              <div className="bg-white dark:bg-slate-900 p-8 rounded-[40px] border border-slate-50 dark:border-slate-800 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <span className="material-symbols-outlined text-3xl text-red-500" aria-hidden="true">delete_forever</span>
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-widest text-red-500">Account deletion</p>
+                    <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-white">Request deletion</h3>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">DeskBoost currently supports manual account deletion requests.</p>
+                  </div>
+                </div>
+                <Link to="/account-deletion" className="mt-5 inline-flex w-full justify-center rounded-2xl border border-red-200 px-5 py-3 text-xs font-black uppercase tracking-widest text-red-500 transition hover:border-red-500 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-500/10">
+                  Account deletion info
+                </Link>
+              </div>
             </div>
 
             <div className="lg:col-span-2 space-y-8">

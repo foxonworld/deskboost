@@ -23,8 +23,13 @@ namespace DeskBoost.API.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ILogger<AdminController> _logger;
 
-    public AdminController(ISender sender) => _sender = sender;
+    public AdminController(ISender sender, ILogger<AdminController> logger)
+    {
+        _sender = sender;
+        _logger = logger;
+    }
 
     // ── Summary ──────────────────────────────────────────────────────────────
 
@@ -55,9 +60,18 @@ public class AdminController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Status))
             return BadRequest(new { message = "Status không hợp lệ." });
+        var currentAdminId = GetCurrentUserId();
+        if (currentAdminId is null) return Unauthorized(new { message = "Khong xac thuc duoc admin hien tai." });
+
         try
         {
-            var result = await _sender.Send(new UpdateAdminUserStatusCommand(id, request.Status), ct);
+            var result = await _sender.Send(new UpdateAdminUserStatusCommand(id, request.Status, currentAdminId.Value), ct);
+            _logger.LogInformation(
+                "Admin user mutation succeeded. Action={Action} ActorAdminId={ActorAdminId} TargetUserId={TargetUserId} MutationType={MutationType}",
+                "UpdateUserStatus",
+                currentAdminId.Value,
+                id,
+                "StatusUpdate");
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -70,6 +84,9 @@ public class AdminController : ControllerBase
     [HttpPut("users/{id:guid}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateAdminUserRequest request, CancellationToken ct)
     {
+        var currentAdminId = GetCurrentUserId();
+        if (currentAdminId is null) return Unauthorized(new { message = "Khong xac thuc duoc admin hien tai." });
+
         try
         {
             var result = await _sender.Send(new UpdateAdminUserCommand
@@ -79,8 +96,15 @@ public class AdminController : ControllerBase
                 Email = request.Email,
                 Phone = request.Phone,
                 AvatarUrl = request.AvatarUrl,
-                Role = request.Role
+                Role = request.Role,
+                CurrentAdminUserId = currentAdminId.Value
             }, ct);
+            _logger.LogInformation(
+                "Admin user mutation succeeded. Action={Action} ActorAdminId={ActorAdminId} TargetUserId={TargetUserId} MutationType={MutationType}",
+                "UpdateUser",
+                currentAdminId.Value,
+                id,
+                string.IsNullOrWhiteSpace(request.Role) ? "ProfileUpdate" : "ProfileOrRoleUpdate");
             return Ok(result);
         }
         catch (InvalidOperationException ex)
@@ -93,9 +117,18 @@ public class AdminController : ControllerBase
     [HttpDelete("users/{id:guid}")]
     public async Task<IActionResult> DeleteUser(Guid id, CancellationToken ct)
     {
+        var currentAdminId = GetCurrentUserId();
+        if (currentAdminId is null) return Unauthorized(new { message = "Khong xac thuc duoc admin hien tai." });
+
         try
         {
-            await _sender.Send(new DeleteAdminUserCommand(id), ct);
+            await _sender.Send(new DeleteAdminUserCommand(id, currentAdminId.Value), ct);
+            _logger.LogInformation(
+                "Admin user mutation succeeded. Action={Action} ActorAdminId={ActorAdminId} TargetUserId={TargetUserId} MutationType={MutationType}",
+                "DeleteUser",
+                currentAdminId.Value,
+                id,
+                "SoftDelete");
             return NoContent();
         }
         catch (InvalidOperationException ex)

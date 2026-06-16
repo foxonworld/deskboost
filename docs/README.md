@@ -1,3 +1,29 @@
+## Public Documentation Index
+
+Core public docs:
+
+- Root project guide: `../README.md`
+- License: `../LICENSE`
+- Security policy: `../SECURITY.md`
+- Changelog: `../CHANGELOG.md`
+- Privacy policy draft: `../PRIVACY.md`
+- Account deletion request draft: `ACCOUNT_DELETION.md`
+
+Release/readiness docs:
+
+- Google Play readiness: `release/google-play-readiness.md`
+- Security remediation plan: `release/security-remediation-plan.md`
+- Production deployment runbook: `release/production-deployment-runbook.md`
+- Privacy data inventory: `release/privacy-data-inventory.md`
+- Google Play Data Safety draft: `release/google-play-data-safety-draft.md`
+- Android build runbook: `release/android-build-runbook.md`
+- Android release signing runbook: `release/android-release-signing.md`
+- Google OAuth Android verification: `release/google-oauth-android-verification.md`
+
+Status note: DeskBoost is still MVP/pre-production. Gate B/public GitHub readiness remains pending manual key rotation, Git history secret scan, and fresh clone validation.
+
+Deployment note: `release/production-deployment-runbook.md` is the CP-15 source of truth for production deployment planning. Older deployment notes may contain provider-specific assumptions and should be cross-checked.
+
 <div align="center">
 
 # DeskBoost 🌱

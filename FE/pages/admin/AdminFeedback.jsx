@@ -314,7 +314,7 @@ const AdminFeedback = () => {
                       <p className="text-xs font-black text-slate-500 dark:text-slate-400">Public images</p>
                       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
                         {feedback.publicImageUrls.map((url) => (
-                          <a key={url} href={url} target="_blank" rel="noreferrer" className="block shrink-0">
+                          <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block shrink-0">
                             <img src={url} alt="Public feedback evidence" className="h-20 w-20 rounded-xl object-cover" />
                           </a>
                         ))}
@@ -329,7 +329,7 @@ const AdminFeedback = () => {
                       {feedback.evidenceImageUrls?.length > 0 && (
                         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                           {feedback.evidenceImageUrls.map((url) => (
-                            <a key={url} href={url} target="_blank" rel="noreferrer" className="block shrink-0">
+                            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block shrink-0">
                               <img src={url} alt="Private feedback evidence" className="h-20 w-20 rounded-xl object-cover" />
                             </a>
                           ))}

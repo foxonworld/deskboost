@@ -1,4 +1,5 @@
 using DeskBoost.API.Contracts.Requests;
+using DeskBoost.API.Validation;
 using DeskBoost.Application.Features.AiDiagnosis.Commands;
 using DeskBoost.Application.Features.AiDiagnosis.Queries;
 using DeskBoost.Application.Features.AiDialogs.Commands;
@@ -7,7 +8,9 @@ using DeskBoost.Application.Features.AiQuota.Queries;
 using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace DeskBoost.API.Controllers;
@@ -49,6 +52,7 @@ public class AiController : ControllerBase
 
     /// <summary>POST /api/ai/chat</summary>
     [HttpPost("chat")]
+    [EnableRateLimiting("AiChatUser")]
     public async Task<IActionResult> Chat([FromBody] AiChatRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Message))
@@ -99,17 +103,18 @@ public class AiController : ControllerBase
 
     /// <summary>POST /api/ai/diagnose</summary>
     [HttpPost("diagnose")]
-    [DisableRequestSizeLimit]
+    [EnableRateLimiting("AiDiagnoseUser")]
+    [RequestSizeLimit(ImageFileValidator.MaxImageBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = ImageFileValidator.MaxImageBytes)]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Diagnose([FromForm] DiagnoseFormRequest request, CancellationToken ct)
     {
-        if (request.Image is null)
-            return BadRequest(new { message = "Vui lòng cung cấp ảnh để chẩn đoán." });
+        var image = await ImageFileValidator.ValidateAsync(request.Image, ct);
 
         try
         {
             var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            using var stream = request.Image.OpenReadStream();
+            using var stream = image.File.OpenReadStream();
             var result = await _sender.Send(new DiagnosePlantCommand
             {
                 ImageStream = stream,

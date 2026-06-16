@@ -17,7 +17,9 @@ export const normalizeUser = (user = {}) => ({
 
 const normalizeAuthResponse = (data = {}) => ({
   ...data,
-  user: normalizeUser(data.user),
+  accessToken: data.accessToken || data.AccessToken,
+  refreshToken: data.refreshToken || data.RefreshToken,
+  user: normalizeUser(data.user || data.User),
 });
 
 const normalizeError = (err) => {
@@ -63,6 +65,22 @@ export const resetPassword = async (token, newPassword) => {
 };
 
 export const getCurrentUser = async () => normalizeUser(await get("/auth/me"));
+
+export const refreshToken = async (token) => {
+  try {
+    return normalizeAuthResponse(await post("/auth/refresh-token", { refreshToken: token }));
+  } catch (err) {
+    normalizeError(err);
+  }
+};
+
+export const logout = async (refreshToken) => {
+  try {
+    return await post("/auth/logout", { refreshToken });
+  } catch (err) {
+    normalizeError(err);
+  }
+};
 
 export const loginGoogle = async (idToken) => {
   try {

@@ -13,7 +13,10 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, bool>
     public async Task<bool> Handle(LogoutCommand request, CancellationToken ct)
     {
         var token = await _db.RefreshTokens
-            .FirstOrDefaultAsync(r => r.Token == request.RefreshToken && !r.IsRevoked, ct);
+            .FirstOrDefaultAsync(r =>
+                r.Token == request.RefreshToken &&
+                r.UserId == request.CurrentUserId &&
+                !r.IsRevoked, ct);
 
         if (token is null) return false;
 

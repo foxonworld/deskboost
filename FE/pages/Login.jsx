@@ -130,6 +130,9 @@ const Login = () => {
 
           <div className="text-center pt-4">
             <p className="text-sm text-text-secondary">{t('login.noAccount')} <Link to="/register" state={location.state} className="text-text-main font-bold hover:underline">{t('login.signUp')}</Link></p>
+            <p className="mt-3 text-xs font-medium text-text-secondary">
+              By signing in, you can review the <Link to="/privacy" className="font-bold text-primary hover:underline">Privacy Policy</Link>.
+            </p>
           </div>
         </form>
       </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { getAiQuota, getMyAiDialog, getMyAiDialogs, sendPlantContextChatMessage } from '../services/aiApi';
 import { getMyPlants } from '../services/plantApi';
@@ -430,6 +430,9 @@ const AIChat = () => {
             {chatRemaining === null
               ? t('aiChat.quotaFallback')
               : t('aiChat.quotaStatus', { remaining: chatRemaining, limit: chatLimit })}
+          </StateNotice>
+          <StateNotice tone="info" className="mt-3 text-xs">
+            Chat messages and plant context may be processed by Gemini/Google and hosting providers. <Link to="/privacy" className="font-bold text-primary hover:underline">Privacy Policy</Link>
           </StateNotice>
           {error && <StateNotice tone="error" className="mt-5 text-xs">{error}</StateNotice>}
         </Card>

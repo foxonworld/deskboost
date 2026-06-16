@@ -5,6 +5,7 @@
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
 const TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "deskboost.refreshToken";
 
 export class ApiError extends Error {
   constructor(message, status, code, details) {
@@ -19,14 +20,23 @@ export class ApiError extends Error {
 export const getAccessToken = () =>
   localStorage.getItem(TOKEN_KEY) || localStorage.getItem("token");
 
+export const getRefreshToken = () =>
+  localStorage.getItem(REFRESH_TOKEN_KEY) || localStorage.getItem("refreshToken");
+
 export const setAccessToken = (token) => {
   if (token) localStorage.setItem(TOKEN_KEY, token);
 };
 
+export const setRefreshToken = (token) => {
+  if (token) localStorage.setItem(REFRESH_TOKEN_KEY, token);
+};
+
 export const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem("authUser");
   localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
   localStorage.removeItem("role");
   localStorage.removeItem("isLoggedIn");
 };
@@ -75,14 +85,48 @@ const parseResponse = async (res) => {
       (text && !contentType.includes("application/json") ? text : null) ||
       res.statusText ||
       "Request failed";
-    if (res.status === 401) clearAuth();
     throw new ApiError(message, res.status, payload.code, payload.details || payload);
   }
 
   return data;
 };
 
-export const request = async (path, options = {}) => {
+const isAuthPath = (path) =>
+  ["/auth/login", "/auth/register", "/auth/google", "/auth/refresh-token", "/auth/logout"].some((authPath) =>
+    path.startsWith(authPath)
+  );
+
+const refreshAccessToken = async () => {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return false;
+
+  try {
+    const res = await fetch(buildUrl("/auth/refresh-token"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refreshToken }),
+    });
+    const data = await parseResponse(res);
+
+    if (!data?.accessToken || !data?.refreshToken) return false;
+
+    setAccessToken(data.accessToken);
+    setRefreshToken(data.refreshToken);
+    if (data.user) localStorage.setItem("authUser", JSON.stringify(data.user));
+    return true;
+  } catch {
+    clearAuth();
+    return false;
+  }
+};
+
+const shouldTryRefresh = (path, res, body, retried) =>
+  res.status === 401 && !retried && !isAuthPath(path) && !(body instanceof FormData);
+
+const shouldRefreshWithoutRetry = (path, res, body, retried) =>
+  res.status === 401 && !retried && !isAuthPath(path) && body instanceof FormData;
+
+export const request = async (path, options = {}, retried = false) => {
   const { method = "GET", body, params, ...rest } = options;
   const res = await fetch(buildUrl(path, params), {
     method,
@@ -91,6 +135,16 @@ export const request = async (path, options = {}) => {
       body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     ...rest,
   });
+
+  if (shouldTryRefresh(path, res, body, retried) && await refreshAccessToken()) {
+    return request(path, options, true);
+  }
+
+  if (shouldRefreshWithoutRetry(path, res, body, retried) && await refreshAccessToken()) {
+    throw new ApiError("Session refreshed. Please retry this action.", 401, "AUTH_RETRY_REQUIRED");
+  }
+
+  if (res.status === 401) clearAuth();
   return parseResponse(res);
 };
 
@@ -100,7 +154,7 @@ export const put = (path, body) => request(path, { method: "PUT", body });
 export const patch = (path, body) => request(path, { method: "PATCH", body });
 export const del = (path) => request(path, { method: "DELETE" });
 
-export const requestText = async (path, options = {}) => {
+export const requestText = async (path, options = {}, retried = false) => {
   const { method = "GET", body, params, ...rest } = options;
   const res = await fetch(buildUrl(path, params), {
     method,
@@ -109,6 +163,15 @@ export const requestText = async (path, options = {}) => {
       body instanceof FormData ? body : body ? JSON.stringify(body) : undefined,
     ...rest,
   });
+
+  if (shouldTryRefresh(path, res, body, retried) && await refreshAccessToken()) {
+    return requestText(path, options, true);
+  }
+
+  if (shouldRefreshWithoutRetry(path, res, body, retried) && await refreshAccessToken()) {
+    throw new ApiError("Session refreshed. Please retry this action.", 401, "AUTH_RETRY_REQUIRED");
+  }
+
   const text = await res.text();
 
   if (!res.ok) {

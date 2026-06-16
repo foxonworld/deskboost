@@ -2,6 +2,8 @@
 
 > Dành cho lần deploy đầu tiên. Đọc hết một bước trước khi làm.
 
+> CP-15 note: Deployment source-of-truth is `docs/release/production-deployment-runbook.md`. This legacy step-by-step guide may contain provider-specific assumptions and must be cross-checked before use.
+
 ---
 
 ## TRƯỚC KHI BẮT ĐẦU — Chuẩn bị tài khoản
@@ -16,6 +18,8 @@ Cần có 4 tài khoản (tất cả đều free):
 | Vercel | https://vercel.com | Chạy Frontend React |
 
 > Đăng nhập tất cả trước khi bắt đầu để tránh gián đoạn.
+
+> Security: Do not commit real connection strings or API keys. Configure production secrets in hosting environment variables.
 
 ---
 
@@ -106,7 +110,7 @@ GitHub sẽ hỏi username/password → nhập thông tin GitHub.
 3. Nhấn **"New project"**
 4. Điền:
    - **Name:** `deskboost-prod`
-   - **Database Password:** đặt mật khẩu mạnh, ví dụ `DeskBoost@2024!Prod`
+   - **Database Password:** đặt mật khẩu mạnh, ví dụ `YOUR_DB_PASSWORD`
      → **COPY LẠI NGAY**, sẽ cần ở bước sau
    - **Region:** `Southeast Asia (Singapore)`
    - **Plan:** Free
@@ -129,12 +133,12 @@ Sau khi project sẵn sàng:
 
 5. **Chuyển sang format cho .NET** (format khác với URI trên):
    ```
-   Host=db.xxxxxxxxxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=DeskBoost@2024!Prod;SSL Mode=Require;Trust Server Certificate=true
+   Host=db.xxxxxxxxxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=YOUR_DB_PASSWORD;SSL Mode=Require;Trust Server Certificate=true
    ```
    
    Thay:
    - `xxxxxxxxxxxx` = chuỗi random trong URL Supabase của bạn
-   - `DeskBoost@2024!Prod` = password bạn đã đặt ở bước 3.1
+   - `YOUR_DB_PASSWORD` = password bạn đã đặt ở bước 3.1
 
 > Lưu string này vào Notepad — sẽ dùng ở bước 4 và bước 5.
 
@@ -151,7 +155,7 @@ cd d:\DOWLOAD\SU26\EXE201\BE\DeskBoost
 Set connection string (thay bằng string thật của bạn từ bước 3.2):
 
 ```powershell
-$env:ConnectionStrings__DefaultConnection = "Host=db.xxxxxxxxxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=DeskBoost@2024!Prod;SSL Mode=Require;Trust Server Certificate=true"
+$env:ConnectionStrings__DefaultConnection = "Host=db.xxxxxxxxxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=YOUR_DB_PASSWORD;SSL Mode=Require;Trust Server Certificate=true"
 ```
 
 Chạy migration:

@@ -113,7 +113,7 @@ const Register = () => {
           <div className="flex items-start gap-2 py-2">
             <input type="checkbox" required disabled={disabled} checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-0.5 rounded border-gray-300 text-primary focus:ring-primary h-4 w-4 disabled:opacity-60 disabled:cursor-not-allowed" id="terms" />
             <label htmlFor="terms" className="text-xs text-text-secondary leading-5">
-              {t('register.termsPrefix')} <span className="text-primary font-bold">{t('register.termsService')}</span> {t('register.termsAnd')} <span className="text-primary font-bold">{t('register.privacyPolicy')}</span>
+              {t('register.termsPrefix')} <span className="text-primary font-bold">{t('register.termsService')}</span> {t('register.termsAnd')} <Link to="/privacy" className="text-primary font-bold hover:underline">{t('register.privacyPolicy')}</Link>
             </label>
           </div>
 

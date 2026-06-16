@@ -3,8 +3,12 @@
 **Stack:** React (Vite + HashRouter) → Vercel | ASP.NET Core 8 → Render | Supabase PostgreSQL
 
 **Domain mục tiêu:**
-- FE : `https://deskboost.io.vn`
-- API: `https://api.deskboost.io.vn`
+- FE : `https://<web-domain>`
+- API: `https://<api-host>`
+
+> Security: Do not commit real connection strings or API keys. Configure production secrets in hosting environment variables.
+>
+> CP-15 note: Deployment source-of-truth is `docs/release/production-deployment-runbook.md`. This older guide is provider-specific and must be cross-checked before use.
 
 ---
 
@@ -33,14 +37,14 @@
 **File:** `BE/DeskBoost/DeskBoost.API/Program.cs`
 
 ```
-✅ Swagger luôn bật (cả Production) → test được sau deploy
+✅ Swagger development-only → `/swagger` should be unavailable in Production
 ✅ UseHttpsRedirection chỉ bật ở Development → tránh redirect loop trên Render
-✅ CORS đọc từ Cors:AllowedOrigins config → restrict domain production, fallback AllowAnyOrigin khi không set
+✅ CORS đọc từ Cors:AllowedOrigins config → restrict domain production; Production sẽ không start nếu thiếu origin cấu hình
 ```
 
 CORS sẽ hoạt động như sau:
 - Development (không set env var): `AllowAnyOrigin` → thoải mái dev
-- Production (set `Cors__AllowedOrigins` trên Render): chỉ cho phép đúng domain FE
+- Production (bắt buộc set `Cors__AllowedOrigins` trên Render): chỉ cho phép đúng domain FE
 
 ### A2. FE — vite.config.ts đã fix
 
@@ -92,7 +96,7 @@ Mở PowerShell, chạy trong thư mục dự án:
 cd d:\DOWLOAD\SU26\EXE201\BE\DeskBoost
 
 # Dán connection string Supabase vào đây
-$env:ConnectionStrings__DefaultConnection = "Host=db.hylytnvaaveiimavxeqo.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=YOUR_PW;SSL Mode=Require;Trust Server Certificate=true"
+$env:ConnectionStrings__DefaultConnection = "Host=db.xxxxxxxxxxxx.supabase.co;Port=5432;Database=postgres;Username=postgres;Password=YOUR_DB_PASSWORD;SSL Mode=Require;Trust Server Certificate=true"
 
 # Cài dotnet-ef nếu chưa có
 dotnet tool install --global dotnet-ef
@@ -181,7 +185,7 @@ Diagnosis__ConfidenceThreshold  = 0.2
 #### 4c. Kiểm tra deploy thành công
 
 - Chờ 3–5 phút, xem tab **Logs** không có lỗi đỏ
-- Mở: `https://<tên-service>.onrender.com/swagger` → phải thấy Swagger UI
+- Do not use Swagger for Production smoke; `/swagger` should be unavailable in Production.
 
 ---
 
@@ -235,7 +239,7 @@ https://deskboost.io.vn,https://www.deskboost.io.vn,https://deskboost-xxxx.verce
    Value : deskboost-api.onrender.com
    ```
 3. Vào nơi quản lý domain → thêm CNAME record đó
-4. Chờ 5–30 phút → test `https://api.deskboost.io.vn/swagger`
+4. Chờ 5–30 phút → test API domain theo runbook, không dùng `/swagger` trong Production
 
 #### 6b. DNS cho FE (deskboost.io.vn → Vercel)
 
@@ -271,7 +275,7 @@ Render Free ngủ sau 15 phút không có request → request đầu tiên mất
 
 Dùng [UptimeRobot](https://uptimerobot.com) (free):
 1. Tạo monitor loại **HTTP(s)**
-2. URL: `https://api.deskboost.io.vn/swagger/index.html`
+2. URL: use an existing safe API route or FE URL from `docs/release/production-deployment-runbook.md`
 3. Interval: **14 minutes**
 4. → Service luôn thức, FE không bị chậm lần đầu
 
@@ -294,7 +298,7 @@ $body = '{"email":"smoketest@test.com","password":"Test1234!"}'
 $res = Invoke-WebRequest -Uri "$BASE/auth/login" -Method POST `
   -ContentType "application/json" -Body $body -UseBasicParsing
 $token = ($res.Content | ConvertFrom-Json).accessToken
-Write-Host "Token: $token"
+Write-Host "Token received: [REDACTED]"
 
 # Gọi endpoint có auth
 Invoke-WebRequest -Uri "$BASE/plants" -Method GET `
@@ -304,7 +308,7 @@ Invoke-WebRequest -Uri "$BASE/plants" -Method GET `
 #### Checklist luồng FE
 
 ```
-[ ] Swagger mở được tại https://api.deskboost.io.vn/swagger
+[ ] `/swagger` unavailable in Production
 [ ] Đăng ký tài khoản mới
 [ ] Đăng nhập / đăng xuất
 [ ] Google OAuth login

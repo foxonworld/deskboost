@@ -5,6 +5,7 @@ using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace DeskBoost.API.Controllers;
@@ -20,6 +21,7 @@ public class AuthController : ControllerBase
     /// <summary>POST /api/auth/register</summary>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthStrict")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -44,6 +46,7 @@ public class AuthController : ControllerBase
     /// <summary>POST /api/auth/login</summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthLogin")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
@@ -61,12 +64,15 @@ public class AuthController : ControllerBase
     /// <summary>POST /api/auth/refresh-token</summary>
     [HttpPost("refresh-token")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthRefresh")]
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(request.Token))
+        var refreshToken = string.IsNullOrWhiteSpace(request.Token) ? request.RefreshToken : request.Token;
+
+        if (string.IsNullOrWhiteSpace(refreshToken))
             throw new ValidationException("Refresh token không được để trống.");
 
-        var result = await _sender.Send(new RefreshTokenCommand { Token = request.Token }, ct);
+        var result = await _sender.Send(new RefreshTokenCommand { Token = refreshToken }, ct);
         return Ok(result);
     }
 
@@ -75,7 +81,13 @@ public class AuthController : ControllerBase
     [Authorize]
     public async Task<IActionResult> Logout([FromBody] LogoutRequest request, CancellationToken ct)
     {
-        await _sender.Send(new LogoutCommand { RefreshToken = request.RefreshToken }, ct);
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        await _sender.Send(new LogoutCommand
+        {
+            RefreshToken = request.RefreshToken,
+            CurrentUserId = userId
+        }, ct);
         return NoContent();
     }
 
@@ -96,6 +108,7 @@ public class AuthController : ControllerBase
     /// <summary>POST /api/auth/forgot-password</summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting("PasswordRecovery")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Email))
@@ -117,6 +130,7 @@ public class AuthController : ControllerBase
     /// <summary>POST /api/auth/google</summary>
     [HttpPost("google")]
     [AllowAnonymous]
+    [EnableRateLimiting("AuthLogin")]
     public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.IdToken))
