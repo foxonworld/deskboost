@@ -15,6 +15,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
+  const routeNotice = location.state?.notice || '';
 
   const handleGoogleSuccess = async (credentialResponse) => {
     clearError();
@@ -96,6 +97,7 @@ const Login = () => {
             <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className={`${formControlClass} h-12`} placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           {shownError && <StateNotice tone="error" className="text-center">{shownError}</StateNotice>}
+          {!shownError && routeNotice && <StateNotice tone="success" className="text-center">{routeNotice}</StateNotice>}
           <button type="submit" disabled={disabled} className={`${primaryButtonClass} h-12 w-full`}>
             {isLoading && <Spinner className="text-lg" />}
             {isLoading ? t('common.loading') : isBootstrapping ? t('common.loading') : t('login.submit')}
