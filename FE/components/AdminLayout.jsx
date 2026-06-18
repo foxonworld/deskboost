@@ -9,6 +9,8 @@ const adminItems = [
   { labelKey: 'admin.nav.plants', hintKey: 'admin.nav.plantsHint', icon: 'potted_plant', path: '/admin/plants' },
   { labelKey: 'admin.nav.inventory', hintKey: 'admin.nav.inventoryHint', icon: 'inventory_2', path: '/admin/plant-inventory' },
   { labelKey: 'admin.nav.marketplace', hintKey: 'admin.nav.marketplaceHint', icon: 'storefront', path: '/admin/marketplace' },
+  { labelKey: 'admin.nav.reminderOps', hintKey: 'admin.nav.reminderOpsHint', icon: 'event_note', path: '/admin/reminder-operations' },
+  { labelKey: 'admin.nav.emailOps', hintKey: 'admin.nav.emailOpsHint', icon: 'outgoing_mail', path: '/admin/email-operations' },
   { labelKey: 'admin.nav.feedback', hintKey: 'admin.nav.feedbackHint', icon: 'rate_review', path: '/admin/feedback' },
   { labelKey: 'admin.nav.ai', hintKey: 'admin.nav.aiHint', icon: 'smart_toy', path: '/admin/ai' },
   { labelKey: 'admin.nav.notifications', hintKey: 'admin.nav.notificationsHint', icon: 'campaign', path: '/admin/notifications' },

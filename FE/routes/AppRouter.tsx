@@ -28,6 +28,8 @@ const AdminMarketplace = lazy(() => import("../pages/admin/AdminMarketplace"));
 const AdminFeedback = lazy(() => import("../pages/admin/AdminFeedback"));
 const AdminAI = lazy(() => import("../pages/admin/AdminAI"));
 const AdminNotifications = lazy(() => import("../pages/admin/AdminNotifications"));
+const AdminReminderOperations = lazy(() => import("../pages/admin/AdminReminderOperations"));
+const AdminEmailOperations = lazy(() => import("../pages/admin/AdminEmailOperations"));
 
 const RouteFallback = () => (
   <div className="flex min-h-[50vh] items-center justify-center text-sm text-gray-500">
@@ -80,6 +82,8 @@ const AppRouter: React.FC = () => {
         <Route path="/admin/feedback" element={admin(<AdminFeedback />)} />
         <Route path="/admin/ai" element={admin(<AdminAI />)} />
         <Route path="/admin/notifications" element={admin(<AdminNotifications />)} />
+        <Route path="/admin/reminder-operations" element={admin(<AdminReminderOperations />)} />
+        <Route path="/admin/email-operations" element={admin(<AdminEmailOperations />)} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
