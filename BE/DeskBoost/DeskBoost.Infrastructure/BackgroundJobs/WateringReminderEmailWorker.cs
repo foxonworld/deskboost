@@ -33,7 +33,6 @@ public class WateringReminderEmailWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("WateringReminderEmailWorker started. Enabled={Enabled}, IntervalMinutes={IntervalMinutes}, BatchSize={BatchSize}, DueLookbackHours={DueLookbackHours}", IsReminderEmailEnabled(), GetIntervalMinutes(), GetBatchSize(), GetDueLookbackHours());
         using var timer = new PeriodicTimer(TimeSpan.FromMinutes(GetIntervalMinutes()));
 
         while (!stoppingToken.IsCancellationRequested)
