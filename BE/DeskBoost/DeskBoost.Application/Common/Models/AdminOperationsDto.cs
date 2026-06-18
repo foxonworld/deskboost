@@ -1,4 +1,4 @@
-﻿namespace DeskBoost.Application.Common.Models;
+namespace DeskBoost.Application.Common.Models;
 
 public record AdminOperationsPaginationDto(int Page, int Limit, int Total, int TotalPages);
 
@@ -72,4 +72,8 @@ public record AdminEmailOperationsLogRowDto(
 public record AdminEmailOperationsListDto(
     IReadOnlyList<AdminEmailOperationsLogRowDto> Items,
     AdminOperationsPaginationDto Pagination
+);
+
+public record ReminderGovernanceRequestDto(
+    string Reason
 );

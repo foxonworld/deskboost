@@ -1,7 +1,8 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
-import { getAdminReminders, getReminderOpsSummary } from '../../services/adminOperationsApi';
+import { getAdminReminders, getReminderOpsSummary, disableReminder, enableReminder } from '../../services/adminOperationsApi';
+import ReasonModal from '../../components/admin/ReasonModal';
 
 const formatNumber = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
 const formatDate = (value) => {
@@ -69,6 +70,12 @@ const AdminReminderOperations = () => {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', careType: '', status: '', isActive: '', dueBucket: '', emailStatus: '', riskLevel: '', sort: 'dueat_asc' });
 
+  // Modal State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+
   const query = useMemo(() => ({
     ...filters,
     isActive: filters.isActive === '' ? undefined : filters.isActive === 'true',
@@ -108,6 +115,46 @@ const AdminReminderOperations = () => {
   const clearFilters = () => {
     setPagination((current) => ({ ...current, page: 1 }));
     setFilters({ search: '', careType: '', status: '', isActive: '', dueBucket: '', emailStatus: '', riskLevel: '', sort: 'dueat_asc' });
+  };
+
+  const handleAction = (row) => {
+    const isDisabling = row.isActive;
+    setModalConfig({
+      reminderId: row.id,
+      title: isDisabling ? 'Disable reminder' : 'Enable reminder',
+      targetSummary: `${row.title} (${row.plantName}) - ${row.userEmail}`,
+      effectSummary: isDisabling 
+        ? 'This keeps the reminder record but stops future reminder email processing.' 
+        : 'This allows the reminder to appear in normal reminder processing again.',
+      confirmLabel: isDisabling ? 'Disable reminder' : 'Enable reminder',
+      actionType: isDisabling ? 'disable' : 'enable',
+    });
+    setModalError('');
+    setModalOpen(true);
+  };
+
+  const submitModal = async (reason) => {
+    if (!modalConfig) return;
+    setModalLoading(true);
+    setModalError('');
+    try {
+      if (modalConfig.actionType === 'disable') {
+        await disableReminder(modalConfig.reminderId, reason);
+      } else {
+        await enableReminder(modalConfig.reminderId, reason);
+      }
+      
+      setModalOpen(false);
+      
+      // Refresh current page
+      const [summaryData, listData] = await Promise.all([getReminderOpsSummary(), getAdminReminders(query)]);
+      setSummary(summaryData);
+      setRows(listData.items || []);
+    } catch (err) {
+      setModalError(err?.message || 'Action failed.');
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   const metrics = [
@@ -187,7 +234,7 @@ const AdminReminderOperations = () => {
             <div className="overflow-x-auto">
               <table className="min-w-[1180px] w-full text-left text-sm">
                 <thead className="sticky top-0 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-950/60">
-                  <tr>{['Risk','User','Email','Plant','Reminder','Care Type','Due Date','Repeat Rule','Status','Active','Email Status','Last Email'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
+                  <tr>{['Risk','User','Email','Plant','Reminder','Care Type','Due Date','Repeat Rule','Status','Active','Email Status','Last Email','Actions'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {rows.map((row) => (
@@ -204,6 +251,15 @@ const AdminReminderOperations = () => {
                       <td className="px-4 py-4"><Badge value={row.isActive ? 'active' : 'disabled'} map={{ active: statusClass.sent, disabled: statusClass['never-sent'] }} /></td>
                       <td className="px-4 py-4"><Badge value={row.lastEmailStatus} /><p className="mt-1 text-[11px] text-slate-400">{row.emailSendCount} sent</p></td>
                       <td className="px-4 py-4 text-slate-500">{formatDate(row.lastEmailSentAt)}</td>
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={() => handleAction(row)}
+                          disabled={modalLoading}
+                          className="rounded-xl border border-slate-200 px-3 py-1 text-[11px] font-black uppercase text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                          {row.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -219,6 +275,18 @@ const AdminReminderOperations = () => {
           </div>
         </section>
       </div>
+
+      <ReasonModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={submitModal}
+        title={modalConfig?.title}
+        targetSummary={modalConfig?.targetSummary}
+        effectSummary={modalConfig?.effectSummary}
+        confirmLabel={modalConfig?.confirmLabel}
+        loading={modalLoading}
+        error={modalError}
+      />
     </AdminLayout>
   );
 };

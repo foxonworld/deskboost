@@ -1,7 +1,8 @@
-﻿using DeskBoost.Application.Features.Admin.Queries;
+using DeskBoost.Application.Features.Admin.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace DeskBoost.API.Controllers;
 
@@ -75,4 +76,26 @@ public class AdminOperationsController : ControllerBase
             page,
             limit,
             sort), ct));
+
+    [HttpPut("reminder-operations/reminders/{id:guid}/disable")]
+    public async Task<IActionResult> DisableReminder(Guid id, [FromBody] DeskBoost.Application.Common.Models.ReminderGovernanceRequestDto request, CancellationToken ct)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        await _sender.Send(new DeskBoost.Application.Features.Admin.Commands.DisableReminderGovernanceCommand(id, adminId, request.Reason, ipAddress, userAgent), ct);
+        return Ok(new { message = "Đã vô hiệu hóa reminder." });
+    }
+
+    [HttpPut("reminder-operations/reminders/{id:guid}/enable")]
+    public async Task<IActionResult> EnableReminder(Guid id, [FromBody] DeskBoost.Application.Common.Models.ReminderGovernanceRequestDto request, CancellationToken ct)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        await _sender.Send(new DeskBoost.Application.Features.Admin.Commands.EnableReminderGovernanceCommand(id, adminId, request.Reason, ipAddress, userAgent), ct);
+        return Ok(new { message = "Đã kích hoạt reminder." });
+    }
 }

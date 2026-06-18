@@ -25,6 +25,7 @@ namespace DeskBoost.Infrastructure.Persistence
         public DbSet<Notification> Notifications => Set<Notification>();
         public DbSet<NotificationRead> NotificationReads => Set<NotificationRead>();
         public DbSet<EmailDeliveryLog> EmailDeliveryLogs => Set<EmailDeliveryLog>();
+        public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

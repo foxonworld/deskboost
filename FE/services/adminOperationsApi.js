@@ -1,4 +1,4 @@
-﻿import { get } from "./api";
+import { get } from "./api";
 
 const firstValue = (...values) =>
   values.find((value) => value !== undefined && value !== null) ?? "";
@@ -93,3 +93,9 @@ export const getEmailLogs = (params) =>
     items: normalizeItems(data).map(normalizeEmailOpsLog),
     pagination: normalizePagination(data),
   }));
+
+export const disableReminder = (id, reason) =>
+  import("./api").then(({ put }) => put(`/admin/reminder-operations/reminders/${id}/disable`, { reason }));
+
+export const enableReminder = (id, reason) =>
+  import("./api").then(({ put }) => put(`/admin/reminder-operations/reminders/${id}/enable`, { reason }));
