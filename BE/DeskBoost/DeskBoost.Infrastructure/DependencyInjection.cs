@@ -1,4 +1,5 @@
 using DeskBoost.Application.Common.Interfaces;
+using DeskBoost.Infrastructure.BackgroundJobs;
 using DeskBoost.Infrastructure.ExternalServices.Ai;
 using DeskBoost.Infrastructure.ExternalServices.Email;
 using DeskBoost.Infrastructure.ExternalServices.Storage;
@@ -35,6 +36,7 @@ namespace DeskBoost.Infrastructure
             services.AddScoped<IStorageService, CloudinaryStorageService>();
             services.AddScoped<IAiQuotaService, AiQuotaService>();
             services.AddScoped<IEmailConfiguration, EmailConfigurationService>();
+            services.AddHostedService<WateringReminderEmailWorker>();
 
             if (string.Equals(configuration["Email:Provider"], "BrevoApi", StringComparison.OrdinalIgnoreCase))
             {

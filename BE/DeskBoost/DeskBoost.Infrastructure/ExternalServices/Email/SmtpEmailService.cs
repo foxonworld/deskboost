@@ -3,6 +3,7 @@ using System.Net.Mail;
 using System.Net.Mime;
 using System.Text;
 using DeskBoost.Application.Common.Interfaces;
+using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -26,11 +27,7 @@ public class SmtpEmailService : IEmailService
     public bool ExposeResetTokenInResponse =>
         bool.TryParse(_configuration["Email:ExposeResetTokenInResponse"], out var exposeToken) && exposeToken;
 
-    public async Task SendPasswordResetEmailAsync(
-        string toEmail,
-        string fullName,
-        string resetToken,
-        CancellationToken ct)
+    public async Task SendEmailAsync(EmailMessage message, CancellationToken ct)
     {
         if (!IsEnabled)
             return;
@@ -43,20 +40,19 @@ public class SmtpEmailService : IEmailService
         var pass = GetRequired("Smtp:Pass");
         var fromAddress = GetRequired("Email:FromAddress");
         var fromName = _configuration["Email:FromName"] ?? "DeskBoost";
-        var resetUrl = BuildResetUrl(resetToken);
 
-        using var message = new MailMessage
+        using var mail = new MailMessage
         {
             From = new MailAddress(fromAddress, fromName, Encoding.UTF8),
-            Subject = "DeskBoost password reset",
+            Subject = message.Subject,
             SubjectEncoding = Encoding.UTF8,
             BodyEncoding = Encoding.UTF8,
             IsBodyHtml = true,
-            Body = BuildPasswordResetBody(fullName, resetUrl)
+            Body = message.HtmlContent
         };
-        message.To.Add(new MailAddress(toEmail));
-        message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
-            $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}",
+        mail.To.Add(new MailAddress(message.ToEmail, message.ToName ?? message.ToEmail, Encoding.UTF8));
+        mail.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(
+            message.TextContent,
             Encoding.UTF8,
             MediaTypeNames.Text.Plain));
 
@@ -68,13 +64,30 @@ public class SmtpEmailService : IEmailService
 
         try
         {
-            await smtpClient.SendMailAsync(message, ct);
+            await smtpClient.SendMailAsync(mail, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send password reset email to {Email}", toEmail);
-            throw new ExternalServiceException("Khong the gui email dat lai mat khau. Vui long thu lai sau.");
+            _logger.LogError(ex, "Failed to send email to {Email}", message.ToEmail);
+            throw new ExternalServiceException("Khong the gui email. Vui long thu lai sau.");
         }
+    }
+
+    public Task SendPasswordResetEmailAsync(
+        string toEmail,
+        string fullName,
+        string resetToken,
+        CancellationToken ct)
+    {
+        var resetUrl = BuildResetUrl(resetToken);
+        var message = new EmailMessage(
+            toEmail,
+            string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName.Trim(),
+            "DeskBoost password reset",
+            BuildPasswordResetBody(fullName, resetUrl),
+            $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}");
+
+        return SendEmailAsync(message, ct);
     }
 
     private string GetRequired(string key)

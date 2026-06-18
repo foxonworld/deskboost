@@ -23,5 +23,6 @@ public interface IAppDbContext
     DbSet<AiUsage> AiUsages { get; }
     DbSet<Notification> Notifications { get; }
     DbSet<NotificationRead> NotificationReads { get; }
+    DbSet<EmailDeliveryLog> EmailDeliveryLogs { get; }
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

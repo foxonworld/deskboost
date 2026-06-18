@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using DeskBoost.Application.Common.Interfaces;
+using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Exceptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -9,6 +10,7 @@ namespace DeskBoost.Infrastructure.ExternalServices.Email;
 
 public class BrevoEmailService : IEmailService
 {
+    private const int MaxProviderErrorLength = 500;
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly IEmailConfiguration _emailConfiguration;
@@ -26,11 +28,7 @@ public class BrevoEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendPasswordResetEmailAsync(
-        string toEmail,
-        string fullName,
-        string resetToken,
-        CancellationToken ct)
+    public async Task SendEmailAsync(EmailMessage message, CancellationToken ct)
     {
         if (!_emailConfiguration.IsEnabled)
             return;
@@ -38,7 +36,6 @@ public class BrevoEmailService : IEmailService
         var apiKey = GetRequired("Brevo:ApiKey");
         var fromAddress = GetRequired("Email:FromAddress");
         var fromName = _configuration["Email:FromName"] ?? "DeskBoost";
-        var resetUrl = BuildResetUrl(resetToken);
 
         using var request = new HttpRequestMessage(HttpMethod.Post, "smtp/email");
         request.Headers.Add("api-key", apiKey);
@@ -53,13 +50,13 @@ public class BrevoEmailService : IEmailService
             {
                 new
                 {
-                    email = toEmail,
-                    name = string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName.Trim()
+                    email = message.ToEmail,
+                    name = string.IsNullOrWhiteSpace(message.ToName) ? message.ToEmail : message.ToName.Trim()
                 }
             },
-            subject = "DeskBoost password reset",
-            htmlContent = BuildPasswordResetBody(fullName, resetUrl),
-            textContent = $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}"
+            subject = message.Subject,
+            htmlContent = message.HtmlContent,
+            textContent = message.TextContent
         });
 
         HttpResponseMessage response;
@@ -69,8 +66,8 @@ public class BrevoEmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to call Brevo email API for {Email}", toEmail);
-            throw new ExternalServiceException("Khong the gui email dat lai mat khau. Vui long thu lai sau.");
+            _logger.LogError(ex, "Failed to call Brevo email API for {Email}", message.ToEmail);
+            throw new ExternalServiceException("Khong the gui email. Vui long thu lai sau.");
         }
 
         if (response.IsSuccessStatusCode)
@@ -79,11 +76,28 @@ public class BrevoEmailService : IEmailService
         var errorBody = await response.Content.ReadAsStringAsync(ct);
         _logger.LogError(
             "Brevo email API failed for {Email}. StatusCode: {StatusCode}. Body: {Body}",
-            toEmail,
+            message.ToEmail,
             (int)response.StatusCode,
-            errorBody);
+            Truncate(errorBody, MaxProviderErrorLength));
 
-        throw new ExternalServiceException("Khong the gui email dat lai mat khau. Vui long thu lai sau.");
+        throw new ExternalServiceException("Khong the gui email. Vui long thu lai sau.");
+    }
+
+    public Task SendPasswordResetEmailAsync(
+        string toEmail,
+        string fullName,
+        string resetToken,
+        CancellationToken ct)
+    {
+        var resetUrl = BuildResetUrl(resetToken);
+        var message = new EmailMessage(
+            toEmail,
+            string.IsNullOrWhiteSpace(fullName) ? toEmail : fullName.Trim(),
+            "DeskBoost password reset",
+            BuildPasswordResetBody(fullName, resetUrl),
+            $"DeskBoost password reset\n\nOpen this link to reset your password: {resetUrl}");
+
+        return SendEmailAsync(message, ct);
     }
 
     private string GetRequired(string key)
@@ -127,5 +141,13 @@ public class BrevoEmailService : IEmailService
         </body>
         </html>
         """;
+    }
+
+    private static string Truncate(string value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
+            return value;
+
+        return value[..maxLength];
     }
 }
