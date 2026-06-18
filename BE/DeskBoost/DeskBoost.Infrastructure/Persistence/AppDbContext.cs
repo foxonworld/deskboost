@@ -1,4 +1,4 @@
-using DeskBoost.Application.Common.Interfaces;
+﻿using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +26,7 @@ namespace DeskBoost.Infrastructure.Persistence
         public DbSet<NotificationRead> NotificationReads => Set<NotificationRead>();
         public DbSet<EmailDeliveryLog> EmailDeliveryLogs => Set<EmailDeliveryLog>();
         public DbSet<AdminAuditLog> AdminAuditLogs => Set<AdminAuditLog>();
+        public DbSet<UserEmailPreference> UserEmailPreferences => Set<UserEmailPreference>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

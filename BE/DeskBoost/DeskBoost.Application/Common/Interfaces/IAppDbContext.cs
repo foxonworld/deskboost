@@ -1,4 +1,4 @@
-using DeskBoost.Domain.Entities;
+﻿using DeskBoost.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -25,5 +25,6 @@ public interface IAppDbContext
     DbSet<NotificationRead> NotificationReads { get; }
     DbSet<EmailDeliveryLog> EmailDeliveryLogs { get; }
     DbSet<AdminAuditLog> AdminAuditLogs { get; }
+    DbSet<UserEmailPreference> UserEmailPreferences { get; }
     Task<int> SaveChangesAsync(CancellationToken ct);
 }

@@ -1,4 +1,4 @@
-import { get } from "./api";
+﻿import { get, put } from "./api";
 
 const firstValue = (...values) =>
   values.find((value) => value !== undefined && value !== null) ?? "";
@@ -11,6 +11,21 @@ const normalizePagination = (data = {}) => {
     limit: Number(firstValue(pagination.limit, pagination.Limit, 20)),
     total: Number(firstValue(pagination.total, pagination.Total, 0)),
     totalPages: Number(firstValue(pagination.totalPages, pagination.TotalPages, 0)),
+  };
+};
+
+const normalizeEmailPreference = (preference) => {
+  if (!preference) return null;
+  return {
+    userId: firstValue(preference.userId, preference.UserId),
+    emailEnabled: Boolean(firstValue(preference.emailEnabled, preference.EmailEnabled, true)),
+    reminderEmailEnabled: Boolean(firstValue(preference.reminderEmailEnabled, preference.ReminderEmailEnabled, true)),
+    adminNotificationEmailEnabled: Boolean(firstValue(preference.adminNotificationEmailEnabled, preference.AdminNotificationEmailEnabled, true)),
+    securityEmailEnabled: Boolean(firstValue(preference.securityEmailEnabled, preference.SecurityEmailEnabled, true)),
+    suppressedReason: firstValue(preference.suppressedReason, preference.SuppressedReason),
+    suppressedByAdminId: firstValue(preference.suppressedByAdminId, preference.SuppressedByAdminId),
+    suppressedAt: firstValue(preference.suppressedAt, preference.SuppressedAt),
+    updatedAt: firstValue(preference.updatedAt, preference.UpdatedAt),
   };
 };
 
@@ -45,6 +60,7 @@ export const normalizeReminderOpsRow = (row = {}) => ({
   lastEmailSentAt: firstValue(row.lastEmailSentAt, row.LastEmailSentAt),
   emailSendCount: Number(firstValue(row.emailSendCount, row.EmailSendCount, 0)),
   riskLevel: firstValue(row.riskLevel, row.RiskLevel),
+  emailPreference: normalizeEmailPreference(firstValue(row.emailPreference, row.EmailPreference)),
 });
 
 export const normalizeEmailOpsSummary = (summary = {}) => ({
@@ -74,6 +90,7 @@ export const normalizeEmailOpsLog = (row = {}) => ({
   errorMessage: firstValue(row.errorMessage, row.ErrorMessage),
   relatedEntityType: firstValue(row.relatedEntityType, row.RelatedEntityType),
   relatedEntityId: firstValue(row.relatedEntityId, row.RelatedEntityId),
+  emailPreference: normalizeEmailPreference(firstValue(row.emailPreference, row.EmailPreference)),
 });
 
 export const getReminderOpsSummary = () =>
@@ -95,7 +112,13 @@ export const getEmailLogs = (params) =>
   }));
 
 export const disableReminder = (id, reason) =>
-  import("./api").then(({ put }) => put(`/admin/reminder-operations/reminders/${id}/disable`, { reason }));
+  put(`/admin/reminder-operations/reminders/${id}/disable`, { reason });
 
 export const enableReminder = (id, reason) =>
-  import("./api").then(({ put }) => put(`/admin/reminder-operations/reminders/${id}/enable`, { reason }));
+  put(`/admin/reminder-operations/reminders/${id}/enable`, { reason });
+
+export const suppressReminderEmail = (userId, reason) =>
+  put(`/admin/email-operations/users/${userId}/reminder-email/suppress`, { reason }).then(normalizeEmailPreference);
+
+export const unsuppressReminderEmail = (userId, reason) =>
+  put(`/admin/email-operations/users/${userId}/reminder-email/unsuppress`, { reason }).then(normalizeEmailPreference);

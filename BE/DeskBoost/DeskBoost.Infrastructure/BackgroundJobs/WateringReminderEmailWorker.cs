@@ -1,4 +1,4 @@
-using DeskBoost.Application.Common.Interfaces;
+﻿using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Features.Reminders.Emails;
 using DeskBoost.Domain.Entities;
 using DeskBoost.Domain.Enums;
@@ -94,10 +94,14 @@ public class WateringReminderEmailWorker : BackgroundService
             var users = await db.Users
                 .Where(u => userIds.Contains(u.Id))
                 .ToDictionaryAsync(u => u.Id, ct);
+            var preferences = await db.UserEmailPreferences
+                .AsNoTracking()
+                .Where(p => userIds.Contains(p.UserId))
+                .ToDictionaryAsync(p => p.UserId, ct);
 
             foreach (var reminder in reminders)
             {
-                await ProcessReminderAsync(db, emailService, users, reminder, appBaseUrl, ct);
+                await ProcessReminderAsync(db, emailService, users, preferences, reminder, appBaseUrl, ct);
             }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
@@ -113,6 +117,7 @@ public class WateringReminderEmailWorker : BackgroundService
         AppDbContext db,
         IEmailService emailService,
         IReadOnlyDictionary<Guid, User> users,
+        IReadOnlyDictionary<Guid, UserEmailPreference> preferences,
         Reminder reminder,
         string appBaseUrl,
         CancellationToken ct)
@@ -122,6 +127,12 @@ public class WateringReminderEmailWorker : BackgroundService
 
         if (!user.IsActive || user.Status != UserStatus.Active || string.IsNullOrWhiteSpace(user.Email))
             return;
+
+        if (preferences.TryGetValue(user.Id, out var preference) && (!preference.EmailEnabled || !preference.ReminderEmailEnabled))
+        {
+            await WriteSuppressedLogAsync(db, user, reminder, ct);
+            return;
+        }
 
         var message = WateringReminderEmailTemplate.Build(
             user.Email.Trim(),
@@ -197,6 +208,37 @@ public class WateringReminderEmailWorker : BackgroundService
             _logger.LogError(ex, "Failed to mark reminder email delivery log {LogId} as sent after provider success.", log.Id);
         }
     }
+
+
+    private async Task WriteSuppressedLogAsync(AppDbContext db, User user, Reminder reminder, CancellationToken ct)
+    {
+        var log = new EmailDeliveryLog
+        {
+            Category = Category,
+            RecipientUserId = user.Id,
+            RecipientEmail = user.Email.Trim(),
+            Subject = "Watering reminder skipped",
+            Provider = _configuration["Email:Provider"] ?? "Unknown",
+            Status = "skipped",
+            IdempotencyKey = BuildIdempotencyKey(reminder),
+            RelatedEntityType = RelatedEntityType,
+            RelatedEntityId = reminder.Id,
+            ErrorCode = "REMINDER_EMAIL_SUPPRESSED",
+            ErrorMessage = "Reminder email disabled for user"
+        };
+
+        db.EmailDeliveryLogs.Add(log);
+
+        try
+        {
+            await db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            db.Entry(log).State = EntityState.Detached;
+        }
+    }
+
 
     private bool IsReminderEmailEnabled() =>
         bool.TryParse(_configuration["ReminderEmail:Enabled"], out var enabled) && enabled;

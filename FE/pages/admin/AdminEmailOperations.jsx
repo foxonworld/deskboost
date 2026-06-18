@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
-import { getEmailLogs, getEmailOpsSummary } from '../../services/adminOperationsApi';
+import ReasonModal from '../../components/admin/ReasonModal';
+import { getEmailLogs, getEmailOpsSummary, suppressReminderEmail, unsuppressReminderEmail } from '../../services/adminOperationsApi';
 
 const formatNumber = (value) => new Intl.NumberFormat('vi-VN').format(Number(value || 0));
 const formatDate = (value) => {
@@ -19,11 +20,29 @@ const statusClass = {
   skipped: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
 };
 
+const preferenceClass = {
+  on: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300',
+  suppressed: 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
+  off: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+};
+
+const getPreferenceState = (preference) => {
+  if (preference?.emailEnabled === false) return 'off';
+  if (preference?.reminderEmailEnabled === false) return 'suppressed';
+  return 'on';
+};
+
 const Badge = ({ value }) => (
   <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black uppercase ${statusClass[value] || statusClass.skipped}`}>
     {value || 'N/A'}
   </span>
 );
+
+const EmailPreferenceBadge = ({ preference }) => {
+  const state = getPreferenceState(preference);
+  const label = state === 'off' ? 'Global email off' : state === 'suppressed' ? 'Reminder email suppressed' : 'Reminder email on';
+  return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${preferenceClass[state]}`}>{label}</span>;
+};
 
 const MetricCard = ({ label, value, note, icon }) => (
   <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -59,6 +78,11 @@ const AdminEmailOperations = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ search: '', category: '', status: '', dateFrom: '', dateTo: '', provider: '', userId: '', relatedEntityType: '', relatedEntityId: '', sort: 'created_desc' });
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalConfig, setModalConfig] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const query = useMemo(() => ({ ...filters, page: pagination.page, limit: pagination.limit }), [filters, pagination.page, pagination.limit]);
 
@@ -103,6 +127,49 @@ const AdminEmailOperations = () => {
     if (preset === 'reminders') setFilters((current) => ({ ...current, category: 'watering_reminder', relatedEntityType: 'Reminder' }));
   };
 
+  const handlePreferenceAction = (row) => {
+    if (!row.recipientUserId) return;
+    const isSuppressed = row.emailPreference?.reminderEmailEnabled === false;
+    setModalConfig({
+      userId: row.recipientUserId,
+      actionType: isSuppressed ? 'unsuppress' : 'suppress',
+      title: isSuppressed ? 'Allow reminder email for user?' : 'Suppress reminder email for user?',
+      targetSummary: `${row.userName || row.recipientEmail} - ${row.recipientEmail}`,
+      effectSummary: isSuppressed
+        ? 'Reminder emails can be sent again if global email and worker settings are enabled.'
+        : 'Reminders stay active in the app. Only reminder emails are stopped.',
+      confirmLabel: isSuppressed ? 'Allow reminder email' : 'Suppress reminder email',
+    });
+    setModalError('');
+    setSuccessMessage('');
+    setModalOpen(true);
+  };
+
+  const submitPreferenceModal = async (reason) => {
+    if (!modalConfig) return;
+    setModalLoading(true);
+    setModalError('');
+    try {
+      const updated = modalConfig.actionType === 'suppress'
+        ? await suppressReminderEmail(modalConfig.userId, reason)
+        : await unsuppressReminderEmail(modalConfig.userId, reason);
+
+      setRows((current) => current.map((row) => (
+        row.recipientUserId === modalConfig.userId ? { ...row, emailPreference: updated } : row
+      )));
+      const [summaryData, listData] = await Promise.all([getEmailOpsSummary(), getEmailLogs(query)]);
+      setSummary(summaryData);
+      setRows(listData.items || []);
+      setPagination(listData.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 });
+      setSuccessMessage(modalConfig.actionType === 'suppress' ? 'Reminder email suppressed.' : 'Reminder email allowed.');
+      setModalOpen(false);
+    } catch (err) {
+      setModalError(err?.message || 'Action failed.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   const quotaPercent = Number(summary?.dailyQuotaPercent || 0);
   const metrics = [
     ['Sent today', formatNumber(summary?.sentToday), 'Counts local sent logs', 'mark_email_read'],
@@ -122,7 +189,7 @@ const AdminEmailOperations = () => {
             <div>
               <h1 className="text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Email Operations</h1>
               <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-                Read-only delivery health, local quota estimate, and sanitized failure visibility.
+                Delivery health, local quota estimate, sanitized failure visibility, and per-user reminder email governance.
               </p>
             </div>
             <button type="button" onClick={() => setPagination((current) => ({ ...current }))} className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] dark:border-slate-700 dark:text-slate-300">
@@ -130,6 +197,7 @@ const AdminEmailOperations = () => {
               Refresh
             </button>
           </div>
+          {successMessage && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{successMessage}</p>}
           {quotaPercent >= 70 && (
             <p className={`mt-4 rounded-2xl px-4 py-3 text-sm font-bold ${quotaPercent >= 90 ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'}`}>
               Local daily quota estimate is at {quotaPercent}%.
@@ -181,15 +249,19 @@ const AdminEmailOperations = () => {
             <div className="p-8 text-center"><p className="text-sm font-black text-slate-700 dark:text-slate-200">No email logs match these filters.</p><button onClick={clearFilters} className="mt-3 text-sm font-black text-[#4CAF50]">Clear filters</button></div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-[1120px] w-full text-left text-sm">
+              <table className="min-w-[1240px] w-full text-left text-sm">
                 <thead className="sticky top-0 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-950/60">
-                  <tr>{['Status','Recipient','Category','Subject','Provider','Sent At','Created At','Error','Related Entity'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
+                  <tr>{['Status','Recipient','Category','Subject','Provider','Sent At','Created At','Error','Related Entity','Actions'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {rows.map((row) => (
                     <tr key={row.id} className="align-top hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="px-4 py-4"><Badge value={row.status} /></td>
-                      <td className="px-4 py-4"><p className="font-black text-slate-900 dark:text-white">{row.recipientEmail}</p><p className="mt-1 text-xs text-slate-400">{row.userName || row.recipientUserId || 'No user link'}</p></td>
+                      <td className="px-4 py-4">
+                        <p className="font-black text-slate-900 dark:text-white">{row.recipientEmail}</p>
+                        <p className="mt-1 text-xs text-slate-400">{row.userName || row.recipientUserId || 'No user link'}</p>
+                        {row.recipientUserId && <div className="mt-2"><EmailPreferenceBadge preference={row.emailPreference} /></div>}
+                      </td>
                       <td className="px-4 py-4 text-slate-500">{row.category}</td>
                       <td className="px-4 py-4 font-bold text-slate-700 dark:text-slate-200">{row.subject}</td>
                       <td className="px-4 py-4 text-slate-500">{row.provider || 'N/A'}</td>
@@ -197,6 +269,20 @@ const AdminEmailOperations = () => {
                       <td className="px-4 py-4 text-slate-500">{formatDate(row.createdAt)}</td>
                       <td className="px-4 py-4"><p className="font-bold text-rose-600 dark:text-rose-300">{row.errorCode || 'None'}</p>{row.errorMessage && <p className="mt-1 max-w-xs text-xs leading-5 text-slate-400">{row.errorMessage}</p>}</td>
                       <td className="px-4 py-4 text-slate-500"><p>{row.relatedEntityType || 'N/A'}</p><p className="mt-1 text-[11px]">{row.relatedEntityId || ''}</p></td>
+                      <td className="px-4 py-4">
+                        {row.recipientUserId ? (
+                          <button
+                            type="button"
+                            onClick={() => handlePreferenceAction(row)}
+                            disabled={modalLoading}
+                            className="rounded-xl border border-slate-200 px-3 py-1 text-[11px] font-black uppercase text-slate-600 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                          >
+                            {row.emailPreference?.reminderEmailEnabled === false ? 'Unsuppress' : 'Suppress'}
+                          </button>
+                        ) : (
+                          <span title="No linked user." className="text-xs font-bold text-slate-400">No action</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -212,6 +298,18 @@ const AdminEmailOperations = () => {
           </div>
         </section>
       </div>
+
+      <ReasonModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={submitPreferenceModal}
+        title={modalConfig?.title}
+        targetSummary={modalConfig?.targetSummary}
+        effectSummary={modalConfig?.effectSummary}
+        confirmLabel={modalConfig?.confirmLabel || 'Confirm'}
+        loading={modalLoading}
+        error={modalError}
+      />
     </AdminLayout>
   );
 };

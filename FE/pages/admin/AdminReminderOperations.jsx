@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { getAdminReminders, getReminderOpsSummary, disableReminder, enableReminder } from '../../services/adminOperationsApi';
@@ -35,6 +35,21 @@ const Badge = ({ value, map = statusClass }) => (
   </span>
 );
 
+
+const emailPreferenceClass = {
+  suppressed: 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300',
+  off: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+};
+
+const EmailPreferenceBadge = ({ preference }) => {
+  if (preference?.emailEnabled === false) {
+    return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${emailPreferenceClass.off}`}>Global email off</span>;
+  }
+  if (preference?.reminderEmailEnabled === false) {
+    return <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${emailPreferenceClass.suppressed}`}>Reminder email suppressed</span>;
+  }
+  return null;
+};
 const MetricCard = ({ label, value, note, icon }) => (
   <article className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div className="flex items-start justify-between gap-3">
@@ -241,7 +256,7 @@ const AdminReminderOperations = () => {
                     <tr key={row.id} className="align-top hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="px-4 py-4"><Badge value={row.riskLevel} map={riskClass} /></td>
                       <td className="px-4 py-4"><Link to={`/admin/users?userId=${row.userId}`} className="font-black text-slate-900 hover:text-[#4CAF50] dark:text-white">{row.userName}</Link><p className="mt-1 text-[11px] font-bold text-[#4CAF50]">View user</p></td>
-                      <td className="px-4 py-4 text-slate-500">{row.userEmail}</td>
+                      <td className="px-4 py-4 text-slate-500"><p>{row.userEmail}</p><div className="mt-2"><EmailPreferenceBadge preference={row.emailPreference} /></div></td>
                       <td className="px-4 py-4"><span className="font-bold text-slate-700 dark:text-slate-200">{row.plantName}</span></td>
                       <td className="px-4 py-4 font-bold text-slate-700 dark:text-slate-200">{row.title}</td>
                       <td className="px-4 py-4 text-slate-500">{row.careType}</td>

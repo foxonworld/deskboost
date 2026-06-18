@@ -1,5 +1,6 @@
 ﻿using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Domain.Entities;
 using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -110,6 +111,10 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
             .ToDictionaryAsync(x => x.UserId, x => x.Count, ct);
 
         var reminderIds = rawRows.Select(x => x.reminder.Id).ToHashSet();
+        var userIds = rawRows.Select(x => x.user.Id).Distinct().ToList();
+        var preferences = await _db.UserEmailPreferences.AsNoTracking()
+            .Where(p => userIds.Contains(p.UserId))
+            .ToDictionaryAsync(p => p.UserId, ct);
         var emailLogs = await _db.EmailDeliveryLogs.AsNoTracking()
             .Where(l => l.RelatedEntityType != null && l.RelatedEntityId.HasValue && reminderIds.Contains(l.RelatedEntityId.Value))
             .ToListAsync(ct);
@@ -140,7 +145,8 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
                 lastLog?.Status ?? "never-sent",
                 lastLog?.SentAt,
                 logs.Count(l => string.Equals(l.Status, "sent", StringComparison.OrdinalIgnoreCase)),
-                ToRiskLevel(activeCount)
+                ToRiskLevel(activeCount),
+                ToPreferenceDto(x.user.Id, preferences.GetValueOrDefault(x.user.Id))
             );
         }).ToList();
 
@@ -163,6 +169,19 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
 
         return new AdminReminderOperationsListDto(items, new AdminOperationsPaginationDto(page, limit, total, totalPages));
     }
+
+    private static UserEmailPreferenceDto ToPreferenceDto(Guid userId, UserEmailPreference? preference) => preference is null
+        ? new UserEmailPreferenceDto(userId, true, true, true, true, null, null, null, null)
+        : new UserEmailPreferenceDto(
+            preference.UserId,
+            preference.EmailEnabled,
+            preference.ReminderEmailEnabled,
+            preference.AdminNotificationEmailEnabled,
+            preference.SecurityEmailEnabled,
+            preference.SuppressedReason,
+            preference.SuppressedByAdminId,
+            preference.SuppressedAt,
+            preference.UpdatedAt);
 
     private static IEnumerable<AdminReminderOperationsRowDto> SortRows(IEnumerable<AdminReminderOperationsRowDto> rows, string? sort) =>
         (sort ?? string.Empty).Trim().ToLowerInvariant() switch

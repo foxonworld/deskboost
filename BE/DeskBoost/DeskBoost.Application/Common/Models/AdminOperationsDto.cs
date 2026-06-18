@@ -1,6 +1,18 @@
-namespace DeskBoost.Application.Common.Models;
+﻿namespace DeskBoost.Application.Common.Models;
 
 public record AdminOperationsPaginationDto(int Page, int Limit, int Total, int TotalPages);
+
+public record UserEmailPreferenceDto(
+    Guid UserId,
+    bool EmailEnabled,
+    bool ReminderEmailEnabled,
+    bool AdminNotificationEmailEnabled,
+    bool SecurityEmailEnabled,
+    string? SuppressedReason,
+    Guid? SuppressedByAdminId,
+    DateTime? SuppressedAt,
+    DateTime? UpdatedAt
+);
 
 public record AdminReminderOperationsSummaryDto(
     int TotalReminders,
@@ -32,7 +44,8 @@ public record AdminReminderOperationsRowDto(
     string LastEmailStatus,
     DateTime? LastEmailSentAt,
     int EmailSendCount,
-    string RiskLevel
+    string RiskLevel,
+    UserEmailPreferenceDto EmailPreference
 );
 
 public record AdminReminderOperationsListDto(
@@ -66,7 +79,8 @@ public record AdminEmailOperationsLogRowDto(
     string? ErrorCode,
     string? ErrorMessage,
     string? RelatedEntityType,
-    Guid? RelatedEntityId
+    Guid? RelatedEntityId,
+    UserEmailPreferenceDto? EmailPreference
 );
 
 public record AdminEmailOperationsListDto(

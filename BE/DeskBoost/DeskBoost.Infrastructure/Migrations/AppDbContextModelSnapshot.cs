@@ -87,6 +87,7 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.ToTable("AdminAuditLogs");
                 });
 
+
             modelBuilder.Entity("DeskBoost.Domain.Entities.AiDialog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -932,6 +933,58 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("DeskBoost.Domain.Entities.UserEmailPreference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AdminNotificationEmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("ReminderEmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("SecurityEmailEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid?>("SuppressedByAdminId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SuppressedReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("SuppressedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserEmailPreferences");
+                });
             modelBuilder.Entity("DeskBoost.Domain.Entities.AiDialog", b =>
                 {
                     b.HasOne("DeskBoost.Domain.Entities.Plant", "Plant")
@@ -1101,6 +1154,17 @@ namespace DeskBoost.Infrastructure.Migrations
                     b.Navigation("Plant");
                 });
 
+
+            modelBuilder.Entity("DeskBoost.Domain.Entities.UserEmailPreference", b =>
+                {
+                    b.HasOne("DeskBoost.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
             modelBuilder.Entity("DeskBoost.Domain.Entities.AiDialog", b =>
                 {
                     b.Navigation("Messages");

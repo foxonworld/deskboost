@@ -1,5 +1,6 @@
 ﻿using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
+using DeskBoost.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -144,6 +145,9 @@ public class GetAdminEmailOperationsLogsQueryHandler : IRequestHandler<GetAdminE
         var users = await _db.Users.AsNoTracking()
             .Where(u => userIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => string.IsNullOrWhiteSpace(u.FullName) ? u.Email : u.FullName, ct);
+        var preferences = await _db.UserEmailPreferences.AsNoTracking()
+            .Where(p => userIds.Contains(p.UserId))
+            .ToDictionaryAsync(p => p.UserId, ct);
 
         var items = logs.Select(l => new AdminEmailOperationsLogRowDto(
             l.Id,
@@ -159,7 +163,8 @@ public class GetAdminEmailOperationsLogsQueryHandler : IRequestHandler<GetAdminE
             l.ErrorCode,
             SanitizeError(l.ErrorMessage),
             l.RelatedEntityType,
-            l.RelatedEntityId
+            l.RelatedEntityId,
+            l.RecipientUserId.HasValue ? ToPreferenceDto(l.RecipientUserId.Value, preferences.GetValueOrDefault(l.RecipientUserId.Value)) : null
         )).ToList();
 
         var totalPages = total == 0 ? 0 : (int)Math.Ceiling(total / (double)limit);
@@ -173,6 +178,19 @@ public class GetAdminEmailOperationsLogsQueryHandler : IRequestHandler<GetAdminE
         _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
     };
 
+    private static UserEmailPreferenceDto ToPreferenceDto(Guid userId, UserEmailPreference? preference) => preference is null
+        ? new UserEmailPreferenceDto(userId, true, true, true, true, null, null, null, null)
+        : new UserEmailPreferenceDto(
+            preference.UserId,
+            preference.EmailEnabled,
+            preference.ReminderEmailEnabled,
+            preference.AdminNotificationEmailEnabled,
+            preference.SecurityEmailEnabled,
+            preference.SuppressedReason,
+            preference.SuppressedByAdminId,
+            preference.SuppressedAt,
+            preference.UpdatedAt);
+
     private static string? SanitizeError(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return value;
@@ -180,4 +198,3 @@ public class GetAdminEmailOperationsLogsQueryHandler : IRequestHandler<GetAdminE
         return sanitized.Length <= 500 ? sanitized : sanitized[..500];
     }
 }
-

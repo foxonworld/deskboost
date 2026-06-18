@@ -1,3 +1,4 @@
+﻿using DeskBoost.Application.Features.Admin.Commands;
 using DeskBoost.Application.Features.Admin.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -77,6 +78,28 @@ public class AdminOperationsController : ControllerBase
             limit,
             sort), ct));
 
+
+    [HttpPut("email-operations/users/{userId:guid}/reminder-email/suppress")]
+    public async Task<IActionResult> SuppressReminderEmail(Guid userId, [FromBody] DeskBoost.Application.Common.Models.ReminderGovernanceRequestDto request, CancellationToken ct)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        var result = await _sender.Send(new SuppressReminderEmailCommand(userId, adminId, request.Reason, ipAddress, userAgent), ct);
+        return Ok(result);
+    }
+
+    [HttpPut("email-operations/users/{userId:guid}/reminder-email/unsuppress")]
+    public async Task<IActionResult> UnsuppressReminderEmail(Guid userId, [FromBody] DeskBoost.Application.Common.Models.ReminderGovernanceRequestDto request, CancellationToken ct)
+    {
+        var adminId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+        var result = await _sender.Send(new UnsuppressReminderEmailCommand(userId, adminId, request.Reason, ipAddress, userAgent), ct);
+        return Ok(result);
+    }
     [HttpPut("reminder-operations/reminders/{id:guid}/disable")]
     public async Task<IActionResult> DisableReminder(Guid id, [FromBody] DeskBoost.Application.Common.Models.ReminderGovernanceRequestDto request, CancellationToken ct)
     {
@@ -85,7 +108,7 @@ public class AdminOperationsController : ControllerBase
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         await _sender.Send(new DeskBoost.Application.Features.Admin.Commands.DisableReminderGovernanceCommand(id, adminId, request.Reason, ipAddress, userAgent), ct);
-        return Ok(new { message = "Đã vô hiệu hóa reminder." });
+        return Ok(new { message = "ÄÃ£ vÃ´ hiá»‡u hÃ³a reminder." });
     }
 
     [HttpPut("reminder-operations/reminders/{id:guid}/enable")]
@@ -96,6 +119,6 @@ public class AdminOperationsController : ControllerBase
         var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
         await _sender.Send(new DeskBoost.Application.Features.Admin.Commands.EnableReminderGovernanceCommand(id, adminId, request.Reason, ipAddress, userAgent), ct);
-        return Ok(new { message = "Đã kích hoạt reminder." });
+        return Ok(new { message = "ÄÃ£ kÃ­ch hoáº¡t reminder." });
     }
 }
