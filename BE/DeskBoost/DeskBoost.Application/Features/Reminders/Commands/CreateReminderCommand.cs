@@ -1,7 +1,8 @@
-using DeskBoost.Application.Common.Interfaces;
+﻿using DeskBoost.Application.Common.Interfaces;
 using DeskBoost.Application.Common.Models;
 using DeskBoost.Domain.Entities;
 using DeskBoost.Domain.Enums;
+using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,7 @@ public record CreateReminderCommand : IRequest<ReminderDto>
 
 public class CreateReminderCommandHandler : IRequestHandler<CreateReminderCommand, ReminderDto>
 {
+    private const int ActiveReminderLimit = 30;
     private readonly IAppDbContext _db;
 
     public CreateReminderCommandHandler(IAppDbContext db) => _db = db;
@@ -29,6 +31,8 @@ public class CreateReminderCommandHandler : IRequestHandler<CreateReminderComman
         var plant = await _db.Plants
             .FirstOrDefaultAsync(p => p.Id == request.PlantId && p.UserId == request.UserId, ct)
             ?? throw new InvalidOperationException("Không tìm thấy cây hoặc cây không thuộc người dùng này.");
+
+        await EnsureActiveReminderLimitAsync(request.UserId, ct);
 
         var reminder = new Reminder
         {
@@ -42,6 +46,8 @@ public class CreateReminderCommandHandler : IRequestHandler<CreateReminderComman
             Status = ReminderStatus.Pending
         };
 
+        await EnsureActiveReminderLimitAsync(request.UserId, ct);
+
         _db.Reminders.Add(reminder);
         await _db.SaveChangesAsync(ct);
 
@@ -50,5 +56,19 @@ public class CreateReminderCommandHandler : IRequestHandler<CreateReminderComman
             reminder.CareType.ToApiString(), reminder.DueAt,
             reminder.RepeatRule.ToApiString(), reminder.Status.ToApiString(),
             reminder.LastDoneAt, reminder.Notes, reminder.CreatedAt, reminder.UpdatedAt);
+    }
+
+    private async Task EnsureActiveReminderLimitAsync(Guid userId, CancellationToken ct)
+    {
+        var isNormalUser = await _db.Users.AsNoTracking()
+            .AnyAsync(u => u.Id == userId && u.Role == UserRole.USER, ct);
+        if (!isNormalUser)
+            return;
+
+        var currentActiveReminders = await _db.Reminders.AsNoTracking()
+            .CountAsync(r => r.UserId == userId && r.IsActive && r.Status == ReminderStatus.Pending, ct);
+
+        if (currentActiveReminders >= ActiveReminderLimit)
+            throw new ActiveReminderLimitReachedException(ActiveReminderLimit, currentActiveReminders);
     }
 }

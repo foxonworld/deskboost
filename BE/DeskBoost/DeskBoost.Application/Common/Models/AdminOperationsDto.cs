@@ -44,6 +44,7 @@ public record AdminReminderOperationsRowDto(
     string LastEmailStatus,
     DateTime? LastEmailSentAt,
     int EmailSendCount,
+    int ActiveReminderCountForUser,
     string RiskLevel,
     UserEmailPreferenceDto EmailPreference
 );

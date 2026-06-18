@@ -1,6 +1,7 @@
-using DeskBoost.API.Contracts.Requests;
+﻿using DeskBoost.API.Contracts.Requests;
 using DeskBoost.Application.Features.Reminders.Commands;
 using DeskBoost.Application.Features.Reminders.Queries;
+using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +33,7 @@ public class RemindersController : ControllerBase
     public async Task<IActionResult> Create([FromBody] CreateReminderRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.Title))
-            return BadRequest(new { message = "Tiêu đề reminder không được để trống." });
+            return BadRequest(new { message = "TiÃªu Ä‘á» reminder khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng." });
 
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         try
@@ -48,6 +49,16 @@ public class RemindersController : ControllerBase
                 Notes = request.Notes
             }, ct);
             return StatusCode(201, result);
+        }
+        catch (ActiveReminderLimitReachedException ex)
+        {
+            return Conflict(new
+            {
+                code = ex.Code,
+                message = ex.Message,
+                limit = ex.Limit,
+                currentActiveReminders = ex.CurrentActiveReminders
+            });
         }
         catch (InvalidOperationException ex)
         {
@@ -102,7 +113,7 @@ public class RemindersController : ControllerBase
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var result = await _sender.Send(new GetReminderCalendarQuery(id, userId, format), ct);
-        if (result is null) return NotFound(new { message = "Không tìm thấy reminder." });
+        if (result is null) return NotFound(new { message = "KhÃ´ng tÃ¬m tháº¥y reminder." });
 
         if (format?.ToLower() == "ics")
         {

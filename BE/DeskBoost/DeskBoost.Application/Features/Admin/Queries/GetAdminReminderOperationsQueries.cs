@@ -37,7 +37,7 @@ public class GetAdminReminderOperationsSummaryQueryHandler : IRequestHandler<Get
 
         var activeCounts = await _db.Reminders
             .AsNoTracking()
-            .Where(r => r.IsActive)
+            .Where(r => r.IsActive && r.Status == ReminderStatus.Pending)
             .GroupBy(r => r.UserId)
             .Select(g => new { UserId = g.Key, Count = g.Count() })
             .ToListAsync(ct);
@@ -52,7 +52,7 @@ public class GetAdminReminderOperationsSummaryQueryHandler : IRequestHandler<Get
             Fertilizing: await _db.Reminders.AsNoTracking().CountAsync(r => r.CareType == CareType.Fertilizing, ct),
             Other: await _db.Reminders.AsNoTracking().CountAsync(r => r.CareType == CareType.Repotting || r.CareType == CareType.Other, ct),
             PendingEmailLoadNext24h: await _db.Reminders.AsNoTracking().CountAsync(r => r.IsActive && r.Status == ReminderStatus.Pending && r.CareType == CareType.Watering && r.DueAt >= now && r.DueAt <= next24h, ct),
-            CriticalUsers: activeCounts.Count(x => x.Count >= 100)
+            CriticalUsers: activeCounts.Count(x => x.Count >= 50)
         );
     }
 }
@@ -105,7 +105,7 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
 
         var rawRows = await query.ToListAsync(ct);
         var activeCounts = await _db.Reminders.AsNoTracking()
-            .Where(r => r.IsActive)
+            .Where(r => r.IsActive && r.Status == ReminderStatus.Pending)
             .GroupBy(r => r.UserId)
             .Select(g => new { UserId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.UserId, x => x.Count, ct);
@@ -145,6 +145,7 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
                 lastLog?.Status ?? "never-sent",
                 lastLog?.SentAt,
                 logs.Count(l => string.Equals(l.Status, "sent", StringComparison.OrdinalIgnoreCase)),
+                activeCount,
                 ToRiskLevel(activeCount),
                 ToPreferenceDto(x.user.Id, preferences.GetValueOrDefault(x.user.Id))
             );
@@ -216,8 +217,8 @@ public class GetAdminReminderOperationsRemindersQueryHandler : IRequestHandler<G
 
     private static string ToRiskLevel(int activeReminderCount) => activeReminderCount switch
     {
-        >= 100 => "critical",
-        >= 50 => "high",
+        >= 50 => "critical",
+        >= 30 => "high",
         >= 20 => "warning",
         _ => "normal"
     };

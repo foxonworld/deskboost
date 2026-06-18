@@ -59,6 +59,7 @@ export const normalizeReminderOpsRow = (row = {}) => ({
   lastEmailStatus: firstValue(row.lastEmailStatus, row.LastEmailStatus),
   lastEmailSentAt: firstValue(row.lastEmailSentAt, row.LastEmailSentAt),
   emailSendCount: Number(firstValue(row.emailSendCount, row.EmailSendCount, 0)),
+  activeReminderCountForUser: Number(firstValue(row.activeReminderCountForUser, row.ActiveReminderCountForUser, 0)),
   riskLevel: firstValue(row.riskLevel, row.RiskLevel),
   emailPreference: normalizeEmailPreference(firstValue(row.emailPreference, row.EmailPreference)),
 });

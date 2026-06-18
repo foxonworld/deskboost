@@ -247,14 +247,15 @@ const AdminReminderOperations = () => {
             <div className="p-8 text-center"><p className="text-sm font-black text-slate-700 dark:text-slate-200">No reminders match these filters.</p><button onClick={clearFilters} className="mt-3 text-sm font-black text-[#4CAF50]">Clear filters</button></div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-[1180px] w-full text-left text-sm">
+              <table className="min-w-[1260px] w-full text-left text-sm">
                 <thead className="sticky top-0 bg-slate-50 text-[11px] uppercase tracking-wider text-slate-400 dark:bg-slate-950/60">
-                  <tr>{['Risk','User','Email','Plant','Reminder','Care Type','Due Date','Repeat Rule','Status','Active','Email Status','Last Email','Actions'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
+                  <tr>{['Risk','Active reminders','User','Email','Plant','Reminder','Care Type','Due Date','Repeat Rule','Status','Active','Email Status','Last Email','Actions'].map((h) => <th key={h} className="px-4 py-3 font-black">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {rows.map((row) => (
                     <tr key={row.id} className="align-top hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                       <td className="px-4 py-4"><Badge value={row.riskLevel} map={riskClass} /></td>
+                      <td className="px-4 py-4"><span className="font-black text-slate-900 dark:text-white">{formatNumber(row.activeReminderCountForUser)}</span><p className="mt-1 text-[11px] text-slate-400">active pending</p></td>
                       <td className="px-4 py-4"><Link to={`/admin/users?userId=${row.userId}`} className="font-black text-slate-900 hover:text-[#4CAF50] dark:text-white">{row.userName}</Link><p className="mt-1 text-[11px] font-bold text-[#4CAF50]">View user</p></td>
                       <td className="px-4 py-4 text-slate-500"><p>{row.userEmail}</p><div className="mt-2"><EmailPreferenceBadge preference={row.emailPreference} /></div></td>
                       <td className="px-4 py-4"><span className="font-bold text-slate-700 dark:text-slate-200">{row.plantName}</span></td>

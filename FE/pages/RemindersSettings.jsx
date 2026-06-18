@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
@@ -140,6 +140,7 @@ const RemindersSettings = () => {
   const [actionId, setActionId] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [limitBlocked, setLimitBlocked] = useState(false);
 
   const loadReminders = async () => {
     setLoading(true);
@@ -198,6 +199,7 @@ const RemindersSettings = () => {
     event.preventDefault();
     setSaving(true);
     setError('');
+    setLimitBlocked(false);
     try {
       if (editingId) {
         const updated = await updateReminder(editingId, form);
@@ -274,6 +276,14 @@ const RemindersSettings = () => {
     }));
   };
 
+
+  const handleManageReminders = () => {
+    setActiveFilter('all');
+    setEditingId('');
+    window.requestAnimationFrame(() => {
+      document.getElementById('reminder-management-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
   const handleAddToCalendar = (reminder) =>
     withReminderAction(reminder.id, async () => {
       const calendar = await getReminderCalendar(reminder.id);
@@ -311,7 +321,18 @@ const RemindersSettings = () => {
           </span>
         </div>
 
-        {error && <StateNotice tone="error">{error}</StateNotice>}
+        {error && (
+          <StateNotice tone="error">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <span>{error}</span>
+              {limitBlocked && (
+                <button type="button" onClick={handleManageReminders} className="inline-flex items-center justify-center rounded-xl bg-white px-4 py-2 text-xs font-black text-red-700 shadow-sm transition hover:bg-red-100 dark:bg-red-950/40 dark:text-red-200 dark:hover:bg-red-900/50">
+                  Manage reminders
+                </button>
+              )}
+            </div>
+          </StateNotice>
+        )}
         {notice && <StateNotice tone="success">{notice}</StateNotice>}
 
         <div className="rounded-3xl border border-[#A5D6A7] bg-[#F0FDF4] dark:bg-[#4CAF50]/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -400,7 +421,7 @@ const RemindersSettings = () => {
             </div>
           </form>
 
-          <div className="p-4 space-y-3">
+          <div id="reminder-management-list" className="p-4 space-y-3">
             {loading && <LoadingState message={t('reminders.loading')} />}
             {!loading && filteredReminders.length === 0 && (
               <EmptyState icon="event_available" title={t('reminders.emptyTitle')} description={t('reminders.emptyDescription')} />
@@ -434,9 +455,9 @@ const RemindersSettings = () => {
                       </div>
                       <div className="mt-2 flex items-center gap-2 flex-wrap text-xs font-bold text-slate-500">
                         <span className={`${cfg.color} flex items-center gap-1`}><span className="material-symbols-outlined text-sm">{cfg.icon}</span>{t(cfg.labelKey)}</span>
-                        <span>·</span>
+                        <span>Â·</span>
                         <span>{frequencyLabels[reminder.frequency] ? t(frequencyLabels[reminder.frequency]) : reminder.frequency}</span>
-                        <span>·</span>
+                        <span>Â·</span>
                         <span>{t('reminders.dueAt', { date: reminder.dueDate, time: reminder.time })}</span>
                       </div>
                       {reminder.completedAt && recurring && (
