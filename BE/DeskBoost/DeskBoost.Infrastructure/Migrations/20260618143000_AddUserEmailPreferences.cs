@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace DeskBoost.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    [Migration("20260618143000_AddUserEmailPreferences")]
     public partial class AddUserEmailPreferences : Migration
     {
         /// <inheritdoc />
