@@ -161,8 +161,11 @@ public class WateringReminderEmailWorker : BackgroundService
         {
             await db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        catch (DbUpdateException ex)
         {
+            if (!IsUniqueViolation(ex))
+                throw;
+
             db.Entry(log).State = EntityState.Detached;
             return;
         }
@@ -233,8 +236,11 @@ public class WateringReminderEmailWorker : BackgroundService
         {
             await db.SaveChangesAsync(ct);
         }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        catch (DbUpdateException ex)
         {
+            if (!IsUniqueViolation(ex))
+                throw;
+
             db.Entry(log).State = EntityState.Detached;
         }
     }
@@ -267,8 +273,19 @@ public class WateringReminderEmailWorker : BackgroundService
         return $"watering-reminder:{reminder.Id}:{roundedTicks}";
     }
 
-    private static bool IsUniqueViolation(DbUpdateException ex) =>
-        ex.InnerException is PostgresException postgresException && postgresException.SqlState == PostgresErrorCodes.UniqueViolation;
+    private static bool IsUniqueViolation(DbUpdateException ex)
+    {
+        for (Exception? current = ex; current is not null; current = current.InnerException)
+        {
+            if (current is PostgresException postgresException &&
+                postgresException.SqlState == PostgresErrorCodes.UniqueViolation)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private static string Truncate(string value, int maxLength)
     {
