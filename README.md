@@ -1,156 +1,273 @@
-# DeskBoost
+<div align="center">
 
-DeskBoost is an EXE-Capstone student startup MVP for desk plant discovery, plant-care tracking, and AI-assisted plant support.
+# DeskBoost 🌱
 
-## Current status
+### AI-Powered Plant Care & Contact-First Marketplace Platform
 
-- MVP / EXE-Capstone / student startup project.
-- Public website and public repository preparation are in progress.
-- Android and Google Play preparation are in progress.
-- Not production ready, not Google Play ready, and not public GitHub ready until the blockers below are resolved.
+AI diagnosis, care reminders, personal plant profiles, and a contact-first plant marketplace for desk plant owners.
 
-Main blockers before public release:
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=111)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=fff)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=fff)
+![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet&logoColor=fff)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-EF_Core-4169E1?logo=postgresql&logoColor=fff)
+![Capacitor](https://img.shields.io/badge/Capacitor-Android-119EFF?logo=capacitor&logoColor=fff)
+![Status](https://img.shields.io/badge/Status-MVP-brightgreen)
+![Scope](https://img.shields.io/badge/EXE201-Portfolio%20Ready-informational)
 
-- Manual key rotation/revocation is still pending.
-- Git history secret scan and purge decision are still pending.
-- Fresh clone validation is still pending.
-- JDK 21, upload key, signed AAB, and Play Console submission are still pending.
-- Official support/security contact is still pending.
+</div>
+
+> [!NOTE]
+> DeskBoost is **contact-first**, not checkout-first. Users browse plants/products, review care context, then contact sellers through social channels. Cart, payment, shipping, and order workflows are intentionally outside the MVP.
+
+## Overview
+
+DeskBoost validates a focused startup thesis: people are more likely to buy and keep desk plants alive when product discovery, care support, and AI guidance live in one simple experience.
+
+| Goal                   | MVP Value                                                     |
+| ---------------------- | ------------------------------------------------------------- |
+| Plant care confidence  | Plant profiles, care notes, reminders, completion tracking    |
+| AI support             | Image diagnosis and plant-care chat through backend providers |
+| Marketplace validation | Public browsing plus direct seller contact                    |
+| Portfolio value        | Full-stack architecture, startup scope, mobile path           |
+
+Built for EXE201 evaluation, lecturers, recruiters, and public GitHub visitors.
 
 ## Features
 
-- Email/password register and login.
-- Google Login via backend ID-token verification.
-- Contact-only marketplace for browsing plants and contacting sellers outside the app.
-- My Plants with plant profiles, notes, and care history.
-- AI plant diagnosis from uploaded images.
-- AI plant-care chat with plant context.
-- Care reminders and calendar-oriented workflows.
-- Admin dashboard for users, plant inventory, marketplace items, feedback, AI usage, and notifications.
-- Ownership/claim-code workflows are part of the roadmap and release hardening notes.
+| 🌿 Plant Care       | 🛍️ Marketplace      | 🤖 AI                    | 🛠️ Admin              |
+| ------------------- | ------------------- | ------------------------ | --------------------- |
+| My Plants           | Product listing     | Image diagnosis          | Dashboard             |
+| Plant profiles      | Product detail      | Plant-care assistant     | User management       |
+| Care reminders      | Contact seller flow | Context-aware answers    | Plant inventory       |
+| Completion tracking | Verified feedback   | Dialog/history tracking  | Marketplace CRUD      |
+| Notifications       | No cart/checkout    | Quota monitoring support | Feedback verification |
 
-## Tech stack
+| Included                          | Excluded For MVP               |
+| --------------------------------- | ------------------------------ |
+| Contact-first marketplace         | Cart, checkout, payment        |
+| Manual/social purchase validation | Orders, shipping, refunds      |
+| Plant diagnosis and AI care chat  | General-purpose chatbot        |
+| Lightweight admin                 | Enterprise admin suite         |
+| Capacitor Android path            | Google Play production release |
 
-| Area | Stack |
-|---|---|
-| Frontend | React 19, Vite 6, React Router 7, TypeScript/JavaScript |
-| Backend | ASP.NET Core / .NET 8 Web API |
-| Database | PostgreSQL, Entity Framework Core |
-| Mobile | Capacitor Android, package `vn.deskboost.app` |
-| Auth | JWT, refresh tokens, Google Login |
-| AI | Gemini-compatible AI, Plant.id |
-| Storage | Cloudinary |
+## Tech Stack
 
-## Architecture overview
+| Layer           | Technology                                                         |
+| --------------- | ------------------------------------------------------------------ |
+| Frontend        | React 19, Vite 6, TypeScript, JavaScript, React Router DOM 7       |
+| UI / Motion     | Tailwind-based UI, shared components, GSAP, `@gsap/react`          |
+| Mobile          | Capacitor Android, `FE/android`, `vn.deskboost.app`                |
+| Backend         | ASP.NET Core Web API, .NET 8, Clean Architecture                   |
+| Application     | CQRS, MediatR, FluentValidation, AutoMapper                        |
+| Database        | PostgreSQL, Entity Framework Core, migrations                      |
+| Auth / Security | JWT Bearer, Google Auth support, BCrypt                            |
+| Infra           | Cloudinary, Firebase Admin, Hangfire, Redis, Serilog, Swagger      |
+| AI              | Gemini-compatible assistant provider, plant diagnosis API provider |
+| Hosting         | Vercel/GitHub Pages/static frontend, Docker/.NET backend hosting   |
+
+## Architecture
+
+Frontend secrets stay out of the browser. The React app calls the ASP.NET Core API; the API owns auth, persistence, AI calls, image storage, and background infrastructure.
+
+```mermaid
+graph TD
+    User[User / Admin] --> FE[React + Vite Frontend]
+    FE -->|REST / JSON| API[ASP.NET Core Web API]
+    API --> APP[Application Layer<br/>CQRS / MediatR]
+    APP --> DOMAIN[Domain Layer]
+    API --> INFRA[Infrastructure Layer]
+    INFRA --> DB[(PostgreSQL)]
+    INFRA --> Gemini[Gemini-compatible AI]
+    INFRA --> PlantID[Plant Diagnosis Provider]
+    INFRA --> Cloudinary[Cloudinary]
+    INFRA --> Redis[Redis]
+    INFRA --> Jobs[Hangfire Jobs]
+```
+
+```mermaid
+flowchart LR
+    API[DeskBoost.API<br/>Controllers, JWT, Swagger, CORS] --> APP[DeskBoost.Application<br/>Use cases, Commands, Queries]
+    APP --> DOMAIN[DeskBoost.Domain<br/>Entities, Enums, Rules]
+    INFRA[DeskBoost.Infrastructure<br/>EF Core, Identity, External Services] --> APP
+    INFRA --> DOMAIN
+```
+
+## Project Structure
 
 ```text
 deskboost/
-  FE/                         React/Vite app, routes, services, context, Capacitor Android
-  BE/DeskBoost/               .NET solution
-    DeskBoost.API/            Controllers, auth, CORS, rate limiting, Swagger policy
-    DeskBoost.Application/    Commands, queries, DTOs, use cases
-    DeskBoost.Domain/         Entities, enums, domain rules
-    DeskBoost.Infrastructure/ EF Core, identity, AI/storage integrations
-  docs/                       Architecture, API, privacy, release docs
-  plans/                      Release tracker and planning notes
+├── BE/DeskBoost/
+│   ├── DeskBoost.API/              # ASP.NET Core API
+│   ├── DeskBoost.Application/      # CQRS use cases
+│   ├── DeskBoost.Domain/           # Entities and rules
+│   ├── DeskBoost.Infrastructure/   # EF Core, providers, jobs
+│   ├── DeskBoost.sln
+│   └── Dockerfile
+├── FE/
+│   ├── android/                    # Capacitor Android project
+│   ├── components/                 # Shared UI
+│   ├── context/                    # Auth/care contexts
+│   ├── i18n/                       # vi/en UI localization
+│   ├── pages/                      # Public, user, AI, admin pages
+│   ├── routes/                     # Router and guards
+│   ├── services/                   # API service layer
+│   ├── capacitor.config.ts
+│   └── package.json
+├── docs/                           # Product/API/architecture docs
+├── plans/                          # Planning notes
+└── DEPLOY_CHI_TIET.md              # Detailed deployment guide
 ```
 
-The frontend calls the backend API. The backend owns auth, database persistence, AI provider calls, image storage, and administrative workflows. Frontend code must not contain provider secrets.
+## Setup
 
-## Local setup
+Prerequisites: Node.js, npm, Git, .NET 8 SDK, PostgreSQL. Optional: Docker, Android Studio, Capacitor CLI, EF CLI.
 
-Prerequisites:
+### Frontend
 
-- Node.js and npm.
-- .NET 8 SDK.
-- PostgreSQL.
-- JDK 21 for Android builds.
-- Android Studio / Android SDK 36 for Android work.
-
-Frontend:
-
-```powershell
+```bash
 cd FE
 npm install
-copy .env.example .env.local
 npm run dev
 ```
 
-Backend:
+Local URL: `http://localhost:5173`
 
-```powershell
-cd BE\DeskBoost
-dotnet restore
-dotnet build DeskBoost.sln --nologo
-```
-
-Use `BE/DeskBoost/DeskBoost.API/appsettings.example.json` as the safe configuration shape. Configure real database, JWT, AI, and storage values through local secrets or environment variables. Do not commit real secrets.
-
-Database migration guidance lives with the backend docs and EF Core migration files under `BE/DeskBoost/DeskBoost.Infrastructure/Migrations`.
-
-## Build and validation
-
-Frontend:
-
-```powershell
-cd FE
+```bash
 npm run lint
 npm run build
-npm run build:mobile
+npm run preview
 ```
 
-Backend:
+### Backend
 
-```powershell
-cd BE\DeskBoost
-dotnet build DeskBoost.sln --nologo
+```bash
+cd BE/DeskBoost
+dotnet restore
+dotnet build
+dotnet run --project DeskBoost.API/DeskBoost.API.csproj
 ```
 
-Android release build/signing requires JDK 21 and a local upload key. See `docs/release/android-build-runbook.md` and `docs/release/android-release-signing.md`.
+```bash
+dotnet ef database update --project DeskBoost.Infrastructure --startup-project DeskBoost.API
+```
 
-## Security and release status
+## Environment Variables
 
-Release hardening docs:
+> [!IMPORTANT]
+> Never commit real API keys, database passwords, JWT secrets, provider credentials, cookies, private keys, or production `.env` files.
 
-- `docs/release/security-remediation-plan.md`
-- `docs/release/google-play-readiness.md`
-- `plans/release-task-tracker.md`
+| Area     | Example Key                                                            | Purpose                      |
+| -------- | ---------------------------------------------------------------------- | ---------------------------- |
+| Frontend | `VITE_API_URL`                                                         | Backend API base URL         |
+| Frontend | `VITE_GOOGLE_CLIENT_ID`                                                | Google OAuth client ID       |
+| Mobile   | `VITE_MOBILE_APP`                                                      | Mobile build flag            |
+| Backend  | `ConnectionStrings__DefaultConnection`                                 | PostgreSQL connection        |
+| Backend  | `Jwt__Key`                                                             | JWT signing secret           |
+| Backend  | `Gemini__ApiKey`                                                       | AI assistant provider key    |
+| Backend  | `PlantId__ApiKey`                                                      | Plant diagnosis provider key |
+| Backend  | `Cloudinary__CloudName`, `Cloudinary__ApiKey`, `Cloudinary__ApiSecret` | Image storage                |
 
-Known release/security blockers:
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
 
-- Key rotation/revocation and Git history scan are pending manual work.
-- Some local/secret/log artifacts are still present in the current working tree/index until reviewed and cleaned by the release owner.
-- JDK 21 selection, upload key creation, and signed AAB generation are pending.
-- Play Console listing, Data Safety final entry, and release smoke are pending.
-- Official support/security contact must be confirmed before public release.
+Use .NET user secrets or hosting-provider environment variables for backend secrets.
 
-## Privacy and account deletion
+## Deployment
 
-- Privacy draft: `PRIVACY.md`
-- Account deletion request draft: `docs/ACCOUNT_DELETION.md`
-- Data Safety draft: `docs/release/google-play-data-safety-draft.md`
-- Privacy data inventory: `docs/release/privacy-data-inventory.md`
+### Frontend
 
-Current deletion support is a manual deletion request workflow. It is not instant automated deletion.
+| Platform                 | Notes                                                |
+| ------------------------ | ---------------------------------------------------- |
+| Vercel                   | `FE/vercel.json` includes SPA rewrite support        |
+| GitHub Pages             | `npm run deploy` publishes `dist` through `gh-pages` |
+| Netlify / Static Hosting | Compatible with Vite output                          |
 
-## Known limitations
+```bash
+cd FE
+npm install
+npm run build
+```
 
-- No in-app cart, payment, order, shipping, or refund flow in the MVP.
-- AI diagnosis and chat are informational plant-care assistance only and may be incomplete or wrong.
-- Token storage uses browser localStorage by MVP decision; secure/native storage is deferred.
-- Rate limiting is currently app-instance scoped and still needs production deployment validation.
-- Android signing and Play release tasks remain pending.
+Output: `FE/dist`
 
-## Demo guidance
+### Backend
 
-Do not commit or publish real credentials.
+| Platform          | Notes                           |
+| ----------------- | ------------------------------- |
+| Render            | Docker/.NET friendly            |
+| Azure App Service | Native .NET hosting             |
+| Railway / Fly.io  | Container-friendly alternatives |
+| Docker VPS        | Manual deployment path          |
+
+Backend Dockerfile: `BE/DeskBoost/Dockerfile`
 
 ```text
-Demo accounts: create locally or request from project owner.
+1. Provision PostgreSQL
+2. Configure backend env vars
+3. Run EF Core migrations
+4. Deploy ASP.NET Core API
+5. Set frontend VITE_API_URL
+6. Build and deploy FE/dist
+7. Smoke test auth, marketplace, plant care, AI, admin
 ```
+
+## Screenshots
+
+![alt text](image.png)
+
+## Mobile Roadmap
+
+| Area             | Status                   |
+| ---------------- | ------------------------ |
+| Capacitor config | `FE/capacitor.config.ts` |
+| Android project  | `FE/android/`            |
+| App ID           | `vn.deskboost.app`       |
+| APK demo         | Gradle debug build path  |
+| Google Play      | Future milestone         |
+
+```bash
+cd FE
+npm run build:mobile
+npm run cap:sync
+npm run android:build:debug
+npm run android:open
+```
+
+| Mobile MVP                                                        | Future Native Improvements                                                                                     |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| My Plants, AI diagnosis, AI chat, reminders, marketplace browsing | Native camera/gallery, secure token storage, push notifications, offline/PWA improvements, Google Play release |
+
+<details>
+<summary>Out of current MVP scope</summary>
+
+Cart, checkout, payment, orders, shipping, refunds, enterprise admin dashboard, raw API key editing in frontend/admin UI, and chatbot behavior outside plant care.
+
+</details>
+
+## Team
+
+| Name           | Role                         | Focus                                               |
+| -------------- | ---------------------------- | --------------------------------------------------- |
+| DeskBoost Team | Product & Startup Validation | MVP scope, EXE201 evaluation, feedback loop         |
+| DeskBoost Team | Frontend                     | React/Vite SPA, UI, i18n, mobile-ready UX           |
+| DeskBoost Team | Backend                      | ASP.NET Core API, PostgreSQL, auth, admin workflows |
+| DeskBoost Team | AI & Mobile                  | Diagnosis, AI assistant, Capacitor Android path     |
+
+| Program                | Institution    |
+| ---------------------- | -------------- |
+| EXE201 Startup Project | FPT University |
 
 ## License
 
-License: MIT. Update copyright owner before public release if needed.
+No license file is currently detected. Before public release, add a `LICENSE` file and confirm the selected license with the team.
 
-See `LICENSE`.
+---
+
+<div align="center">
+
+**DeskBoost** — healthier desk plants, clearer care routines, and trust-first plant discovery.
+
+</div>
