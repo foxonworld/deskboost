@@ -4,6 +4,7 @@ const variantClasses = {
   default: 'border-[#E4EEE6] bg-surface-light shadow-sm dark:border-[#2A4532] dark:bg-surface-dark',
   elevated: 'border-[#E4EEE6] bg-surface-light shadow-lg shadow-primary/5 dark:border-[#2A4532] dark:bg-surface-dark dark:shadow-none',
   subtle: 'border-[#E4EEE6] bg-white/70 shadow-sm dark:border-[#2A4532] dark:bg-white/5',
+  glass: 'border-[#E4EEE6]/80 bg-white/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(15,23,42,0.04)] dark:border-white/10 dark:bg-surface-dark/70',
 };
 
 const paddingClasses = {

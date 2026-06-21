@@ -41,28 +41,26 @@ const displayValueKeys = {
 };
 
 const SkeletonCard = () => (
-  <Card padding="none" className="flex flex-col overflow-hidden border border-[#E4EEE6] dark:border-[#2A4532]">
-    <div className="relative aspect-[4/3] bg-slate-200 dark:bg-slate-800 animate-pulse" />
-    <div className="flex flex-grow flex-col p-4 space-y-4">
-      <div className="flex justify-between gap-3 items-start">
-        <div className="space-y-2 flex-1">
-          <div className="h-3 w-1/3 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-          <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-        </div>
-        <div className="h-5 w-1/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse shrink-0" />
+  <Card variant="glass" radius="hero" padding="none" className="flex flex-col overflow-hidden">
+    <div className="relative aspect-[4/3] m-2.5 rounded-[1.25rem] bg-slate-200/50 dark:bg-slate-800/50 animate-pulse" />
+    <div className="flex flex-grow flex-col px-4 pb-4 space-y-3">
+      <div className="flex justify-between items-center gap-2">
+        <div className="h-3 w-1/4 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+        <div className="h-5 w-1/3 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
       </div>
-      <div className="space-y-2">
-        <div className="h-3.5 w-full bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-        <div className="h-3.5 w-5/6 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+      <div className="h-5 w-3/4 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+      <div className="space-y-1.5">
+        <div className="h-3 w-full bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
+        <div className="h-3 w-5/6 bg-slate-200/70 dark:bg-slate-700/50 rounded animate-pulse" />
       </div>
-      <div className="flex gap-2">
-        <div className="h-6 w-14 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
-        <div className="h-6 w-16 bg-slate-200 dark:bg-slate-800 rounded-full animate-pulse" />
+      <div className="flex gap-1.5">
+        <div className="h-5 w-12 bg-slate-200/70 dark:bg-slate-700/50 rounded-full animate-pulse" />
+        <div className="h-5 w-16 bg-slate-200/70 dark:bg-slate-700/50 rounded-full animate-pulse" />
       </div>
-      <div className="h-11 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse mt-auto" />
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-        <div className="h-9 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+      <div className="h-[20px] bg-slate-200/70 dark:bg-slate-700/50 rounded-md animate-pulse mt-auto" />
+      <div className="grid grid-cols-2 gap-2 mt-3">
+        <div className="h-[36px] bg-slate-200/70 dark:bg-slate-700/50 rounded-full animate-pulse" />
+        <div className="h-[36px] bg-slate-200/70 dark:bg-slate-700/50 rounded-full animate-pulse" />
       </div>
     </div>
   </Card>
@@ -181,8 +179,9 @@ const PlantList = () => {
     <div ref={pageRef} className="min-h-screen flex flex-col bg-background-light dark:bg-background-dark text-[#111813] dark:text-white font-display transition-colors">
       <Navbar />
       <main className="flex-grow w-full max-w-[1200px] mx-auto px-4 md:px-8 py-6 md:py-10">
-        <section className="mb-6 overflow-hidden rounded-3xl border border-[#E4EEE6] bg-surface-light shadow-sm dark:border-[#2A4532] dark:bg-surface-dark">
-          <div className="grid gap-6 p-5 md:grid-cols-[1.35fr_0.65fr] md:p-8">
+        <section className="relative mb-6 overflow-hidden rounded-[2.5rem] border border-[#E4EEE6]/80 bg-white/70 backdrop-blur-2xl shadow-[0_4px_24px_rgba(15,23,42,0.04)] dark:border-white/5 dark:bg-surface-dark/40">
+          <div className="absolute top-0 right-0 -mr-20 -mt-20 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[100px] dark:bg-primary/20 pointer-events-none" />
+          <div className="relative z-10 grid gap-6 p-5 md:grid-cols-[1.35fr_0.65fr] md:p-8">
             <div className="flex flex-col justify-between gap-6">
               <div>
                 <Badge tone="primary" size="md" icon="storefront" className="mb-4">{t('market.badge')}</Badge>
@@ -248,7 +247,7 @@ const PlantList = () => {
           </div>
         </div>
 
-        <section className="sticky top-[65px] z-40 -mx-4 mb-8 border-y border-[#E4EEE6] bg-background-light/95 px-4 py-3 backdrop-blur-sm dark:border-[#2A4532] dark:bg-background-dark/95 md:mx-0 md:rounded-3xl md:border md:px-5">
+        <section className="relative -mx-4 mb-8 border-y border-[#E4EEE6]/80 bg-white/80 px-4 py-3 backdrop-blur-xl shadow-sm dark:border-white/10 dark:bg-surface-dark/80 md:mx-0 md:rounded-full md:border md:px-5 md:py-3.5 md:shadow-[0_4px_20px_rgba(15,23,42,0.03)]">
           <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar lg:pb-0">
               {filters.map(filter => (
@@ -293,9 +292,15 @@ const PlantList = () => {
           </section>
         ) : sortedAndFilteredPlants.length > 0 ? (
           <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-label={t('market.listAria')}>
-            {sortedAndFilteredPlants.map(plant => (
+            {sortedAndFilteredPlants.map(plant => {
+              const cat = plant.category || plant.tags?.[0];
+              const categoryDisplay = (!cat || cat.toLowerCase() === 'plant') ? 'Cây cảnh' : getDisplayValue(cat);
+              
+              return (
               <Card
                 key={plant.id}
+                variant="glass"
+                radius="hero"
                 padding="none"
                 interactive={false}
                 role="link"
@@ -303,41 +308,58 @@ const PlantList = () => {
                 aria-label={`${t('market.card.detail')} ${getProductDisplay(plant, 'name')}`}
                 onClick={() => openPlantDetail(plant.id)}
                 onKeyDown={(event) => handlePlantCardKeyDown(event, plant.id)}
-                className="group flex cursor-pointer flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:border-primary/20 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:hover:border-primary/20"
+                className="group flex cursor-pointer flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20 hover:bg-white/95 dark:hover:bg-surface-dark/95 dark:hover:border-primary/30"
                 data-motion="marketplace-card"
               >
-                <div className="relative aspect-[4/3] overflow-hidden bg-gray-100 dark:bg-gray-800">
-                  <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
-                    <Badge tone="overlay" icon="forum">{t('market.badge.contact')}</Badge>
+                <div className="relative aspect-[4/3] m-2.5 overflow-hidden rounded-[1.25rem] bg-slate-100 dark:bg-slate-800/50">
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <div className="absolute left-2.5 top-2.5 z-20 flex flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 rounded-full bg-white/80 px-2.5 py-1 backdrop-blur-md dark:bg-black/50">
+                      <span className="material-symbols-outlined text-[12px] text-primary dark:text-green-400">forum</span>
+                      <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-800 dark:text-white">{t('market.badge.contact')}</span>
+                    </div>
                   </div>
-                  {(plant.status === 'Out of Stock') && <Badge tone="warning" className="absolute right-3 top-3 z-10">{t('market.badge.outOfStock')}</Badge>}
-                  <img src={plant.image || plant.imageUrl} alt={getProductDisplay(plant, 'name')} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]" />
+                  {(plant.status === 'Out of Stock') && (
+                    <div className="absolute right-2.5 top-2.5 z-20 flex items-center rounded-full bg-amber-500/90 px-2.5 py-1 backdrop-blur-md">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wide text-white">{t('market.badge.outOfStock')}</span>
+                    </div>
+                  )}
+                  <img src={plant.image || plant.imageUrl} alt={getProductDisplay(plant, 'name')} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 </div>
-                <div className="flex flex-grow flex-col p-4">
-                  <div className="mb-3 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{getDisplayValue(plant.category || plant.tags?.[0]) || t('market.card.fallbackCategory')}</p>
-                      <h2 className="mt-1 line-clamp-1 text-lg font-extrabold tracking-tight text-[#111813] dark:text-white">{getProductDisplay(plant, 'name')}</h2>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <span className="block text-lg font-extrabold text-primary">{formatVND(plant.price || 0)}</span>
-                      {plant.originalPrice && plant.originalPrice > plant.price && <span className="text-xs font-bold text-slate-400 line-through">{formatVND(plant.originalPrice)}</span>}
+                
+                <div className="flex flex-grow flex-col px-4 pb-4">
+                  <div className="mb-1 flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-extrabold uppercase tracking-wider text-primary/70 dark:text-green-400/80">{categoryDisplay}</p>
+                    <div className="flex items-end gap-1.5 text-right">
+                      {plant.originalPrice && plant.originalPrice > plant.price && <span className="mb-0.5 text-[10px] font-bold text-slate-400 line-through">{formatVND(plant.originalPrice)}</span>}
+                      <span className="text-[16px] font-black tracking-tight text-primary">{formatVND(plant.price || 0)}</span>
                     </div>
                   </div>
-                  <p className="mb-4 line-clamp-2 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">{getProductDisplay(plant, 'description')}</p>
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {plant.tags?.slice(0, 3).map((tag, index) => <Badge key={`${tag}-${index}`} tone="neutral">{getTagDisplay(tag, index)}</Badge>)}
+                  
+                  <h2 className="mb-1.5 line-clamp-2 text-[17px] font-extrabold leading-tight text-slate-800 dark:text-white">{getProductDisplay(plant, 'name')}</h2>
+                  <p className="mb-3 line-clamp-2 text-[13px] font-medium leading-snug text-slate-500 dark:text-slate-400">{getProductDisplay(plant, 'description')}</p>
+                  
+                  <div className="mb-3 flex flex-wrap gap-1.5">
+                    {plant.tags?.slice(0, 3).map((tag, index) => (
+                      <span key={`${tag}-${index}`} className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-white/5 dark:text-slate-300">
+                        {getTagDisplay(tag, index)}
+                      </span>
+                    ))}
                   </div>
-                  <div className="mt-auto rounded-2xl border border-primary/15 bg-primary/5 p-3 dark:border-primary/20 dark:bg-primary/10">
-                    <p className="text-xs font-bold leading-5 text-primary dark:text-green-200">{t('market.card.contactOnly')}</p>
+                  
+                  <div className="mt-auto mb-3 flex items-center gap-1.5 text-primary/80 dark:text-green-300/80">
+                    <span className="material-symbols-outlined text-[14px]">info</span>
+                    <span className="text-[11px] font-bold tracking-wide">Contact-only · Xem kỹ trước khi liên hệ</span>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Button to={`/plants/${plant.id}`} variant="secondary" size="sm" className="w-full">{t('market.card.detail')}</Button>
-                    <Button to={`/plants/${plant.id}`} size="sm" className="w-full">{t('market.card.contactSeller')}</Button>
+                  
+                  <div className="grid grid-cols-2 gap-2 mt-auto">
+                    <Button to={`/plants/${plant.id}`} variant="secondary" className="flex h-[36px] w-full items-center justify-center rounded-full border border-slate-200 bg-white text-[12px] font-extrabold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10">Xem chi tiết</Button>
+                    <Button to={`/plants/${plant.id}`} className="flex h-[36px] w-full items-center justify-center rounded-full bg-primary text-[12px] font-extrabold text-white shadow-sm transition-all hover:bg-green-600 hover:-translate-y-0.5">Liên hệ</Button>
                   </div>
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </section>
         ) : (
           <EmptyState
