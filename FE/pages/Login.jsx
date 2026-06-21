@@ -6,13 +6,14 @@ import { useI18n } from '../i18n';
 import { GoogleLogin } from '@react-oauth/google';
 import { signInWithNativeGoogle } from '../utils/nativeGoogleAuth';
 import AuthLayout from '../components/AuthLayout';
+import { Capacitor } from '@capacitor/core';
 
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loginWithGoogle, isAuthenticated, isBootstrapping, isLoading, error, clearError } = useAuth();
   const { t } = useI18n();
-  const isMobileApp = import.meta.env.VITE_MOBILE_APP === 'true';
+  const isMobileApp = Capacitor.isNativePlatform();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState('');
@@ -110,7 +111,7 @@ const Login = () => {
               <span className="relative px-4 text-[11px] font-bold text-text-secondary uppercase tracking-wider bg-transparent">Hoặc</span>
             </div>
 
-            <div className="flex justify-center mix-blend-luminosity hover:mix-blend-normal transition-all duration-300 opacity-90 hover:opacity-100">
+            <div className="flex justify-center transition-all duration-300 hover:scale-105 active:scale-95">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={() => setFormError('Đăng nhập Google thất bại.')}

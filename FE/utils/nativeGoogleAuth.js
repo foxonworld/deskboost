@@ -1,7 +1,7 @@
 let googleInitPromise;
 
 export const signInWithNativeGoogle = async () => {
-  const webClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  const webClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID_MOBILE || import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   if (!webClientId) {
     throw new Error("Missing VITE_GOOGLE_CLIENT_ID for native Google login.");
