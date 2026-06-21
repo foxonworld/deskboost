@@ -483,10 +483,10 @@ Remaining work:
 
 ## CP-16A deployed public/unauth smoke record
 
-Status: CP-16A: IMPLEMENTED - NEEDS REVIEW. Gate C remains blocked until deployed backend security behavior matches CP-02/CP-03 source expectations.
+Status: CP-16A: IMPLEMENTED - NEEDS REVIEW. Gate C public/unauth smoke passed — ready for CP-16B.
 
 Smoke timestamp:
-- 2026-06-16 14:37:08 +07:00.
+- 2026-06-21 16:22:25 +07:00.
 
 URLs tested:
 - `https://www.deskboost.io.vn`.
@@ -496,13 +496,11 @@ URLs tested:
 Passed deployed checks:
 - Public frontend routes `/`, `/privacy`, `/account-deletion`, `/login`, and `/register` returned 200.
 - `GET /api/auth/me` without credentials returned 401, not 500.
-- CORS preflight for `GET /api/auth/me` from `https://www.deskboost.io.vn` returned 204 with `Access-Control-Allow-Origin: https://www.deskboost.io.vn`.
-
-Blockers found:
-- `/swagger` returned 200 in deployed production smoke; expected 404/401/403/unavailable.
-- `/swagger/index.html` returned 200 in deployed production smoke; expected 404/401/403/unavailable.
-- `/api/test-gemini` returned 200 in deployed production smoke; expected 404/unavailable.
-- `/api/test-plantid` returned 200 in deployed production smoke; expected 404/unavailable.
+- CORS preflight for `GET /api/auth/me` from `https://www.deskboost.io.vn` returned 204 with `Access-Control-Allow-Origin: https://www.deskboost.io.vn` and `Access-Control-Allow-Methods: GET`.
+- `/swagger` returned 404 in deployed production smoke, expected. Old blocker fixed.
+- `/swagger/index.html` returned 404 in deployed production smoke, expected. Old blocker fixed.
+- `/api/test-gemini` returned 404 in deployed production smoke, expected. Old blocker fixed.
+- `/api/test-plantid` returned 404 in deployed production smoke, expected. Old blocker fixed.
 
 Pending by safety scope:
 - Auth/admin/AI/upload smoke was not run because credentials and explicit quota/admin approval were not provided for CP-16A.
@@ -510,4 +508,4 @@ Pending by safety scope:
 - Google Login remains manual/pending beyond public login page reachability and CP-12 doc alignment.
 
 Next required action:
-- Verify Render deploy revision/environment and redeploy the hardened backend if needed, then rerun CP-16A before CP-16B credentials-based smoke.
+- Run CP-16B credentials-based smoke.

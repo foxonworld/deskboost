@@ -244,10 +244,10 @@ Remaining:
 
 ## CP-16A deployed public/unauth smoke notes
 
-Status: CP-16A: IMPLEMENTED - NEEDS REVIEW. Gate C is blocked by deployed backend security regressions until Render is updated/rechecked.
+Status: CP-16A: IMPLEMENTED - NEEDS REVIEW. Gate C public/unauth smoke passed — ready for CP-16B.
 
 Smoke timestamp:
-- 2026-06-16 14:37:08 +07:00.
+- 2026-06-21 16:22:25 +07:00.
 
 URLs tested:
 - Web: `https://www.deskboost.io.vn`.
@@ -264,10 +264,10 @@ Public frontend route results:
 Backend unauth/security results:
 - `GET /api/auth/me` without auth -> 401, expected safe unauth response.
 - `OPTIONS /api/auth/me` from `https://www.deskboost.io.vn` -> 204 with `Access-Control-Allow-Origin: https://www.deskboost.io.vn` and `Access-Control-Allow-Methods: GET`.
-- `/swagger` -> 200, blocker because production Swagger should be unavailable.
-- `/swagger/index.html` -> 200, blocker because production Swagger UI should be unavailable.
-- `/api/test-gemini` -> 200, blocker because debug endpoint should be removed/unavailable.
-- `/api/test-plantid` -> 200, blocker because debug endpoint should be removed/unavailable.
+- `/swagger` -> 404, expected. Old blocker fixed.
+- `/swagger/index.html` -> 404, expected. Old blocker fixed.
+- `/api/test-gemini` -> 404, expected. Old blocker fixed.
+- `/api/test-plantid` -> 404, expected. Old blocker fixed.
 
 Pending by scope:
 - Auth/register/session smoke: pending for CP-16B because no test credentials were provided.
@@ -276,7 +276,6 @@ Pending by scope:
 - Upload/AI/admin smoke: pending for CP-16B because credentials/quota/admin approval were not provided.
 
 Remaining:
-- Redeploy or verify Render is running the CP-02/CP-03 backend revision, then rerun Swagger/debug endpoint smoke.
 - Manual key rotation/history scan/fresh clone validation.
 - Official support/security contact.
 - JDK 21/upload key/signed AAB.
