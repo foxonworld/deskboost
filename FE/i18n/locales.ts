@@ -359,7 +359,7 @@ const vi = {
   "addPlant.species.pothos": "Golden Pothos",
   "addPlant.location.desk": "Central Command (Desk)",
   "addPlant.location.window": "Observation Deck (Window)",
-  "plantProfile.back": "← Quay lại My Plants",
+  "plantProfile.back": " Quay lại My Plants",
   "plantProfile.fallbackError":
     "Backend chưa sẵn sàng. Đang hiển thị hồ sơ cây dự phòng.",
   "plantProfile.notFoundError": "Không tìm thấy hồ sơ cây.",
@@ -1357,7 +1357,7 @@ const en: Partial<Record<TranslationKey, TranslationValue>> = {
   "addPlant.species.pothos": "Golden Pothos",
   "addPlant.location.desk": "Central Command (Desk)",
   "addPlant.location.window": "Observation Deck (Window)",
-  "plantProfile.back": "← Back to My Plants",
+  "plantProfile.back": " Back to My Plants",
   "plantProfile.fallbackError":
     "Backend unavailable. Showing fallback plant profile.",
   "plantProfile.notFoundError": "Plant profile not found.",
