@@ -204,7 +204,7 @@ const PlantDetail = () => {
                     <button
                       type="button"
                       onClick={() => moveGalleryImage(-1)}
-                      className="absolute left-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111813] shadow-sm transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-950/80 dark:text-white"
+                      className="absolute left-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/50 backdrop-blur-md text-[#111813] shadow-sm transition hover:bg-white/80 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-900/50 dark:hover:bg-slate-900/80 dark:text-white"
                       aria-label="Previous product image"
                     >
                       <span className="material-symbols-outlined text-xl" aria-hidden="true">chevron_left</span>
@@ -212,7 +212,7 @@ const PlantDetail = () => {
                     <button
                       type="button"
                       onClick={() => moveGalleryImage(1)}
-                      className="absolute right-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#111813] shadow-sm transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-950/80 dark:text-white"
+                      className="absolute right-4 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/50 backdrop-blur-md text-[#111813] shadow-sm transition hover:bg-white/80 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:bg-slate-900/50 dark:hover:bg-slate-900/80 dark:text-white"
                       aria-label="Next product image"
                     >
                       <span className="material-symbols-outlined text-xl" aria-hidden="true">chevron_right</span>
@@ -256,7 +256,7 @@ const PlantDetail = () => {
             <Card radius="hero" variant="elevated" className="overflow-hidden" data-motion="detail-hero">
               <div className="flex flex-wrap gap-2">
                 <Badge tone="primary" size="md" icon="verified">{t('detail.contactFirst')}</Badge>
-                <Badge tone="neutral" size="md">{plant.category || t('detail.fallbackCategory')}</Badge>
+                <Badge tone="neutral" size="md">{(!plant.category || plant.category.toLowerCase() === 'plant') ? 'Cây cảnh' : plant.category}</Badge>
               </div>
               <h1 id="plant-detail-heading" className="mt-4 text-3xl font-extrabold tracking-tight text-[#111813] dark:text-white md:text-5xl">{plant.name}</h1>
               <p className="mt-2 text-base font-semibold italic text-text-secondary dark:text-slate-300">{plant.species}</p>
@@ -265,7 +265,7 @@ const PlantDetail = () => {
               <div className="mt-5 rounded-3xl border border-primary/15 bg-primary/5 p-4 dark:border-primary/25 dark:bg-primary/10">
                 <p className="text-xs font-extrabold text-primary dark:text-green-200">{t('detail.referencePrice')}</p>
                 <div className="mt-1 flex flex-wrap items-end gap-3">
-                  <span className="text-3xl font-extrabold text-primary">{plant.priceText || formatVND(plant.price || 0)}</span>
+                  <span className="text-3xl font-extrabold text-primary">{formatVND(plant.price || 0)}</span>
                   {plant.originalPrice && plant.originalPrice > plant.price && (
                     <span className="pb-1 text-sm font-bold text-text-secondary line-through dark:text-slate-500">{formatVND(plant.originalPrice)}</span>
                   )}
@@ -282,26 +282,26 @@ const PlantDetail = () => {
                   <span className="material-symbols-outlined rounded-2xl bg-primary/10 p-2 text-primary" aria-hidden="true">forum</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Button variant="channel" size="lg" onClick={handleContactZalo} className="group w-full justify-start rounded-2xl bg-[#0068FF] px-4 shadow-[#0068FF]/20 hover:bg-[#0055d4] animate-cta-pulse-once">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">Z</span>
+                  <Button variant="secondary" size="lg" onClick={handleContactZalo} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0068FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0068FF]/50 transition-all">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#0068FF]/10 text-sm font-black text-[#0068FF]">Z</span>
                     <span className="min-w-0 text-left">
-                      <span className="block truncate text-sm font-extrabold">{t('detail.zalo')}</span>
-                      <span className="block truncate text-[11px] font-semibold text-white/80">0345674779</span>
+                      <span className="block truncate text-sm font-extrabold text-slate-800 dark:text-white">{t('detail.zalo')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">0345674779</span>
                     </span>
-                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                    <span className="material-symbols-outlined ml-auto text-lg text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0068FF]" aria-hidden="true">arrow_forward</span>
                   </Button>
-                  <Button variant="channel" size="lg" onClick={handleContactFacebook} className="group w-full justify-start rounded-2xl bg-[#0866FF] px-4 shadow-[#0866FF]/20 hover:bg-[#0050d1] animate-cta-pulse-once">
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15 text-sm font-black text-white ring-1 ring-white/20">f</span>
+                  <Button variant="secondary" size="lg" onClick={handleContactFacebook} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0866FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0866FF]/50 transition-all">
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#0866FF]/10 text-sm font-black text-[#0866FF]">f</span>
                     <span className="min-w-0 text-left">
-                      <span className="block truncate text-sm font-extrabold">{t('detail.messenger')}</span>
-                      <span className="block truncate text-[11px] font-semibold text-white/80">Facebook</span>
+                      <span className="block truncate text-sm font-extrabold text-slate-800 dark:text-white">{t('detail.messenger')}</span>
+                      <span className="block truncate text-[11px] font-semibold text-slate-500 dark:text-slate-400">Facebook</span>
                     </span>
-                    <span className="material-symbols-outlined ml-auto text-lg opacity-80 transition-transform group-hover:translate-x-0.5" aria-hidden="true">arrow_forward</span>
+                    <span className="material-symbols-outlined ml-auto text-lg text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0866FF]" aria-hidden="true">arrow_forward</span>
                   </Button>
                 </div>
-                <Button variant="secondary" size="md" onClick={handleContactZalo} className="mt-3 w-full rounded-2xl bg-white font-extrabold dark:bg-slate-950/40 animate-cta-pulse-once">{t('detail.contactThis')}</Button>
+                <Button size="md" onClick={handleContactZalo} className="mt-3 w-full rounded-2xl bg-primary text-white font-extrabold shadow-sm transition-all hover:bg-green-600 hover:-translate-y-0.5">{t('detail.contactThis')}</Button>
               </div>
-              <p className="mt-3 text-center text-xs font-bold text-text-secondary dark:text-slate-400">{t('detail.noCheckout')}</p>
+              <p className="mt-3 text-center text-[11px] font-bold tracking-wide text-text-secondary dark:text-slate-400">Không giỏ hàng · Không thanh toán trong DeskBoost</p>
             </Card>
           </aside>
         </section>
@@ -414,9 +414,12 @@ const PlantDetail = () => {
               ) : feedbackError ? (
                 <p className="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{feedbackError}</p>
               ) : feedbackItems.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-[#E4EEE6] p-4 text-sm font-bold text-text-secondary dark:border-[#2A4532] dark:text-slate-300">
-                  {feedbackStatus.supported ? t('detail.feedback.empty') : t('detail.feedback.backendBlocked')}
-                </p>
+                <div className="col-span-full flex flex-col items-center justify-center rounded-3xl border border-dashed border-[#E4EEE6] bg-slate-50/50 py-8 px-4 text-center dark:border-[#2A4532] dark:bg-surface-dark/50">
+                  <span className="material-symbols-outlined mb-2 text-3xl text-slate-300 dark:text-slate-600">rate_review</span>
+                  <p className="text-sm font-bold text-text-secondary dark:text-slate-400">
+                    {feedbackStatus.supported ? "Chưa có phản hồi xác minh." : t('detail.feedback.backendBlocked')}
+                  </p>
+                </div>
               ) : (
                 feedbackItems.map((feedback) => (
                   <article key={feedback.id} className="rounded-2xl border border-[#E4EEE6] bg-slate-50 p-4 dark:border-[#2A4532] dark:bg-white/5" data-motion="detail-feedback">
@@ -441,7 +444,7 @@ const PlantDetail = () => {
         <div className="mx-auto grid max-w-[520px] grid-cols-[1fr_auto] gap-3">
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
-            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{plant.priceText || formatVND(plant.price || 0)} · {t('detail.trust.contactOnly')}</p>
+            <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{formatVND(plant.price || 0)} · Không thanh toán in-app</p>
           </div>
           <Button size="sm" onClick={handleContactZalo} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
         </div>
