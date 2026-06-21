@@ -18,14 +18,18 @@ export const StateNotice = ({ children, tone = 'info', className = '', role }) =
   </div>
 );
 
+const glassStateClass = "bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]";
+
 export const LoadingState = ({ message }) => {
   const { t } = useI18n();
   const shownMessage = message || t('common.loading');
 
   return (
-    <div role="status" className="rounded-3xl border border-[#E4EEE6] bg-surface-light p-8 text-center text-sm font-semibold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-surface-dark dark:text-slate-300">
-      <span className="inline-flex items-center justify-center gap-2">
-        <Spinner />
+    <div role="status" className={`rounded-[2rem] p-12 text-center flex flex-col items-center justify-center gap-4 ${glassStateClass}`}>
+      <div className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary">
+        <Spinner className="text-3xl" />
+      </div>
+      <span className="text-sm font-bold text-slate-500 dark:text-slate-400 tracking-wider uppercase">
         {shownMessage}
       </span>
     </div>
@@ -37,11 +41,13 @@ export const EmptyState = ({ icon = 'potted_plant', title, description, action }
   const shownTitle = title || t('common.emptyTitle');
 
   return (
-    <div className="rounded-3xl border border-dashed border-[#E4EEE6] p-8 text-center dark:border-[#2A4532]">
-      <span className="material-symbols-outlined text-5xl text-text-secondary/50 dark:text-slate-500" aria-hidden="true">{icon}</span>
-      <p className="mt-3 text-lg font-bold text-text-main dark:text-slate-100">{shownTitle}</p>
-      {description && <p className="mx-auto mt-2 max-w-sm text-sm font-medium leading-6 text-text-secondary dark:text-slate-400">{description}</p>}
-      {action && <div className="mt-5">{action}</div>}
+    <div className={`rounded-[2rem] p-12 text-center flex flex-col items-center ${glassStateClass}`}>
+      <div className="w-20 h-20 rounded-full bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center shadow-inner mb-6">
+        <span className="material-symbols-outlined text-4xl text-slate-400 dark:text-slate-500" aria-hidden="true">{icon}</span>
+      </div>
+      <p className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{shownTitle}</p>
+      {description && <p className="mt-3 max-w-sm text-sm font-medium leading-relaxed text-slate-500 dark:text-slate-400">{description}</p>}
+      {action && <div className="mt-8 w-full max-w-xs">{action}</div>}
     </div>
   );
 };

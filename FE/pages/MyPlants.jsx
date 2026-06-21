@@ -55,17 +55,19 @@ const MyPlants = () => {
     (`${plant.nickname || ''} ${plant.species || ''}`.toLowerCase().includes(searchTerm.toLowerCase()))
   ), [plants, activeTab, searchTerm]);
 
+  const glassCardClass = "bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.2)]";
+
   return (
     <UserLayout>
       <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full space-y-6 md:space-y-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2">
           <div>
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{t('myPlants.title')}</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium text-lg">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">{t('myPlants.title')}</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-3 font-medium text-lg tracking-tight">
               {t('myPlants.summary', { count: plants.length })}
             </p>
           </div>
-          <Link to="/app/add-plant" className="flex items-center justify-center gap-3 bg-[#4CAF50] text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-[1.02] active:scale-95 transition-all">
+          <Link to="/app/add-plant" className="flex items-center justify-center gap-3 bg-gradient-to-r from-[#4CAF50] to-[#388E3C] text-white px-8 py-4 rounded-full font-black text-sm uppercase tracking-widest shadow-xl shadow-[#4CAF50]/30 hover:-translate-y-1 hover:shadow-2xl hover:shadow-[#4CAF50]/40 active:scale-95 transition-all duration-300">
             <span className="material-symbols-outlined font-bold">add</span>
             {t('myPlants.addNew')}
           </Link>
@@ -74,33 +76,44 @@ const MyPlants = () => {
         {error && <StateNotice tone="warning">{error}</StateNotice>}
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-2">
-          <div className="flex bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-x-auto no-scrollbar">
+          <div className={`flex p-2 rounded-[2rem] overflow-x-auto no-scrollbar ${glassCardClass}`}>
             {tabs.map(tab => (
-              <button key={tab.value} onClick={() => setActiveTab(tab.value)} className={`whitespace-nowrap px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.value ? 'bg-[#4CAF50] text-white shadow-lg shadow-[#4CAF50]/20' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}>{t(tab.labelKey)}</button>
+              <button key={tab.value} onClick={() => setActiveTab(tab.value)} className={`whitespace-nowrap px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${activeTab === tab.value ? 'bg-[#4CAF50] text-white shadow-lg shadow-[#4CAF50]/30' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5'}`}>{t(tab.labelKey)}</button>
             ))}
           </div>
           <div className="relative w-full lg:w-auto lg:min-w-[320px] group">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl group-focus-within:text-[#4CAF50] transition-colors">search</span>
-            <input type="text" placeholder={t('myPlants.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-12 pr-6 py-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl text-sm font-bold shadow-sm focus:ring-4 focus:ring-[#4CAF50]/5 focus:border-[#4CAF50] transition-all outline-none" />
+            <input type="text" placeholder={t('myPlants.search')} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={`w-full pl-12 pr-6 py-4 rounded-[2rem] text-sm font-semibold focus:ring-4 focus:ring-[#4CAF50]/10 focus:border-[#4CAF50]/30 transition-all outline-none placeholder:text-slate-400 ${glassCardClass}`} />
           </div>
         </div>
 
         {isLoading ? (
           <LoadingState message={t('common.loading')} />
         ) : filteredPlants.length === 0 ? (
-          <EmptyState title={t('myPlants.emptyTitle')} description={t('myPlants.emptyDescription')} action={<Link to="/app/add-plant" className="inline-flex px-6 py-3 rounded-2xl bg-[#4CAF50] text-white font-black text-xs uppercase tracking-widest focus:outline-none focus:ring-4 focus:ring-[#4CAF50]/20">{t('myPlants.addPlant')}</Link>} />
+          <EmptyState title={t('myPlants.emptyTitle')} description={t('myPlants.emptyDescription')} action={<Link to="/app/add-plant" className="inline-flex items-center justify-center w-full px-6 py-4 rounded-full bg-[#4CAF50] text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-[#4CAF50]/30 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">{t('myPlants.addPlant')}</Link>} />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8 pb-20">
             {filteredPlants.map(plant => (
-              <div key={plant.id} className="group flex flex-col rounded-[32px] bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden hover:shadow-2xl hover:scale-[1.02] transition-all duration-500">
-                <div className="relative aspect-[5/4] w-full overflow-hidden">
-                  <div className="absolute top-4 right-4 z-10"><span className="inline-flex items-center gap-2 rounded-2xl bg-white/90 dark:bg-black/80 px-4 py-2 text-[10px] font-black uppercase tracking-widest backdrop-blur-md shadow-sm border text-[#4CAF50] border-[#A5D6A7]">{getStatusLabel(plant.status)}</span></div>
+              <div key={plant.id} className={`group flex flex-col rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 ${glassCardClass}`}>
+                <div className="relative aspect-[4/3] w-full overflow-hidden">
+                  <div className="absolute top-4 right-4 z-10">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/90 dark:bg-black/60 px-4 py-2 text-[10px] font-black uppercase tracking-widest backdrop-blur-xl shadow-lg border text-[#4CAF50] border-[#4CAF50]/20">
+                      {getStatusLabel(plant.status)}
+                    </span>
+                  </div>
                   <img src={plant.image || plant.imageUrl} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" alt={plant.nickname || plant.name} />
+                  {/* Subtle inner shadow overlay for images */}
+                  <div className="absolute inset-0 rounded-t-[2.5rem] border border-white/20 pointer-events-none mix-blend-overlay" />
                 </div>
-                <div className="flex flex-col p-8 gap-6 flex-1">
-                  <div><h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{plant.nickname || plant.name}</h3><p className="text-xs text-[#4CAF50] font-black uppercase tracking-widest mt-1.5">{plant.species}</p></div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium line-clamp-2">{plant.notes || t('myPlants.notesFallback')}</p>
-                  <Link to={`/app/my-plants/${plant.id}/profile`} className="mt-auto w-full h-14 rounded-2xl flex items-center justify-center text-xs font-black uppercase tracking-widest border border-slate-100 dark:border-slate-800 text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800">{t('myPlants.inspection')}</Link>
+                <div className="flex flex-col p-8 gap-6 flex-1 bg-gradient-to-b from-transparent to-white/40 dark:to-black/20">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight tracking-tight group-hover:text-[#4CAF50] transition-colors">{plant.nickname || plant.name}</h3>
+                    <p className="text-xs text-[#4CAF50] font-black uppercase tracking-widest mt-2">{plant.species}</p>
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed line-clamp-2">{plant.notes || t('myPlants.notesFallback')}</p>
+                  <Link to={`/app/my-plants/${plant.id}/profile`} className="mt-auto w-full h-14 rounded-full flex items-center justify-center text-xs font-black uppercase tracking-widest bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white group-hover:bg-[#4CAF50] group-hover:text-white group-hover:shadow-lg group-hover:shadow-[#4CAF50]/30 transition-all duration-300">
+                    {t('myPlants.inspection')}
+                  </Link>
                 </div>
               </div>
             ))}
