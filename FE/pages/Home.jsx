@@ -109,81 +109,109 @@ const Home = () => {
 
       <main className="relative z-10 flex-1 overflow-hidden">
         <section className="relative border-b border-[#E4EEE6]/50 dark:border-[#2A4532]/50">
-          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 pt-10 pb-14 md:px-10 md:pt-16 md:pb-20 lg:grid-cols-[1fr_0.92fr] lg:pt-20 lg:pb-24">
-            <div className="flex max-w-3xl flex-col items-start gap-7">
+          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-4 pt-10 pb-16 md:px-10 md:pt-16 md:pb-24 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 lg:pt-24 lg:pb-28">
+            <div className="flex max-w-3xl flex-col items-start gap-8">
               <span data-motion="home-hero">
-                <Badge tone="primary" size="md" icon="eco">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-extrabold text-primary backdrop-blur-md dark:border-primary/30 dark:bg-primary/20">
+                  <span className="material-symbols-outlined text-lg">eco</span>
                   {t('home.badge')}
-                </Badge>
+                </div>
               </span>
-              <div data-motion="home-hero" className="space-y-5">
-                <h1 className="text-4xl font-extrabold leading-[1.08] tracking-[-0.02em] bg-gradient-to-br from-text-main to-primary bg-clip-text text-transparent dark:from-white dark:to-green-400 md:text-6xl lg:text-7xl">
+              <div data-motion="home-hero" className="space-y-6">
+                <h1 className="text-[2.5rem] font-extrabold leading-[1.1] tracking-[-0.02em] bg-gradient-to-br from-text-main to-primary bg-clip-text text-transparent dark:from-white dark:to-green-400 md:text-6xl lg:text-[4rem] lg:leading-[1.05]">
                   {t('home.hero.title')}
                 </h1>
-                <p className="max-w-2xl text-base leading-7 text-text-secondary dark:text-slate-300 md:text-lg md:leading-8">
+                <p className="max-w-xl text-lg leading-relaxed text-text-secondary dark:text-slate-300 md:text-xl">
                   {t('home.hero.description')}
                 </p>
               </div>
 
-              <div data-motion="home-hero" className="relative z-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
-                <div className="w-full sm:w-auto">
+              <div data-motion="home-hero" className="relative z-10 flex w-full flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+                <div className="flex w-full sm:w-auto">
                   <AppDownloadButton variant="hero" />
                 </div>
-                <Button to="/plants" size="lg" className="w-full sm:w-auto">
+                <Button 
+                  to="/plants" 
+                  variant="secondary" 
+                  className="flex h-14 flex-1 sm:flex-none items-center justify-center gap-2.5 w-full sm:w-auto rounded-full border border-slate-200 bg-white px-8 text-[15px] font-bold tracking-wide text-slate-800 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:border-slate-300 hover:shadow-[0_6px_25px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-surface-dark/80 dark:text-white dark:hover:bg-white/10"
+                >
+                  <span className="material-symbols-outlined text-[22px]">storefront</span>
                   {t('home.cta.marketplace')}
                 </Button>
                 <Button
                   variant="secondary"
-                  size="lg"
                   onClick={() => navigate('/app/ai-chat')}
-                  className="w-full sm:w-auto border-primary/50 bg-primary/5 shadow-[0_0_20px_rgba(76,175,80,0.25)] ring-1 ring-primary/50 transition-all hover:shadow-[0_0_25px_rgba(76,175,80,0.35)] dark:border-primary/40 dark:shadow-[0_0_20px_rgba(76,175,80,0.15)]"
+                  className="flex h-14 flex-1 sm:flex-none items-center justify-center gap-2.5 w-full sm:w-auto rounded-full border border-primary/40 bg-primary/10 px-8 text-[15px] font-bold tracking-wide text-primary shadow-sm transition-all hover:-translate-y-0.5 hover:bg-primary/15 hover:border-primary/60 hover:shadow-md dark:border-primary/30 dark:text-green-400 dark:hover:bg-primary/20"
                 >
-                  <span className="material-symbols-outlined text-xl text-primary">auto_awesome</span>
+                  <span className="material-symbols-outlined text-[22px]">auto_awesome</span>
                   {t('home.cta.aiCare')}
                 </Button>
               </div>
 
-              <div data-motion="home-hero" className="grid w-full gap-3 sm:grid-cols-3">
+              <div data-motion="home-hero" className="mt-2 grid w-full gap-3 sm:grid-cols-3">
                 {trustSignalKeys.map((item) => (
-                  <div key={item.valueKey} className="rounded-2xl border border-[#E4EEE6] bg-white/70 p-4 shadow-sm backdrop-blur dark:border-[#2A4532] dark:bg-white/5">
-                    <span className="material-symbols-outlined text-lg text-primary" aria-hidden="true">{item.icon}</span>
-                    <p className="mt-2 text-base font-extrabold text-text-main dark:text-white">{t(item.valueKey)}</p>
-                    <p className="mt-1 text-xs leading-5 text-text-secondary dark:text-slate-400">{t(item.labelKey)}</p>
+                  <div key={item.valueKey} className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-[1.25rem] border border-[#E4EEE6]/80 bg-white/80 px-4 py-3.5 backdrop-blur-xl shadow-[0_4px_20px_rgba(15,23,42,0.03)] transition-colors hover:bg-white dark:border-white/5 dark:bg-surface-dark/60 dark:hover:bg-surface-dark/80">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary dark:bg-primary/20">
+                      <span className="material-symbols-outlined text-xl" aria-hidden="true">{item.icon}</span>
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-extrabold leading-tight text-text-main dark:text-white">{t(item.valueKey)}</p>
+                      <p className="mt-0.5 text-[11px] font-semibold text-text-secondary dark:text-slate-400">{t(item.labelKey)}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div data-motion="home-hero" className="relative">
-              <Card variant="elevated" padding="none" radius="hero" className="overflow-hidden ring-1 ring-primary/10">
-                <div className="relative aspect-[4/3] min-h-[320px] bg-slate-100 dark:bg-slate-900">
+            <div data-motion="home-hero" className="relative mt-6 lg:mt-0 lg:ml-4 xl:ml-8">
+              <div className="absolute inset-0 -m-10 scale-95 rounded-full bg-primary/30 blur-[100px] dark:bg-primary/20 dark:blur-[120px]" />
+
+              <div className="relative overflow-hidden rounded-[2.5rem] border-[6px] border-white/60 bg-white/40 p-2 shadow-[0_30px_80px_rgba(15,23,42,0.1)] backdrop-blur-2xl dark:border-white/10 dark:bg-surface-dark/40 dark:shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+                <div className="relative aspect-[4/5] sm:aspect-[4/3] lg:aspect-[9/10] w-full overflow-hidden rounded-[2rem] bg-slate-100 dark:bg-slate-900">
                   <img
                     src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzaus0c0LOhf2NX2DHlSrgoj7WJftqhZWnq2AaXvZGH_juFX-tzXsGtxKpiUTKI7o1qep8M-_mblF5fLwbfUAZBkbXNAwgdif6Fbd_TTDmR3Fn4bwl0C_sxr66ytyPsaniXtPwZovv8Jj2hG-6jQRdKjFy4Qi9xY456Jx4mhj-YhMXZQom8xGz0E9YuDuNOy_Q7EbzlxZ1eDTQLLSET3rEsIWX0QNNd0-56C2eO61nuFnUF_4wxoXrJY9-HR7VgsF4XTBDdH0Ytpg"
                     alt={t('home.heroImageAlt')}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover transition-transform duration-1000 hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-slate-900/10 dark:from-black/90 dark:via-black/40 dark:to-black/20" />
+
+                  <div className="absolute top-5 right-5 animate-in fade-in slide-in-from-right-4 duration-700 delay-300 hidden sm:block">
+                    <div className="flex items-center gap-2 rounded-full border border-white/40 bg-white/80 px-3.5 py-2 backdrop-blur-lg shadow-lg dark:bg-black/50 dark:border-white/10">
+                      <span className="material-symbols-outlined text-[18px] text-primary dark:text-green-400">auto_awesome</span>
+                      <span className="text-xs font-extrabold tracking-wide text-slate-800 dark:text-white">AI Suggests: Water today</span>
+                    </div>
+                  </div>
+
+                  <div className="absolute top-5 left-5 animate-in fade-in slide-in-from-left-4 duration-700 delay-500 hidden sm:block">
+                    <div className="flex items-center gap-2 rounded-full border border-[#E4EEE6]/80 bg-white/90 px-3.5 py-2 backdrop-blur-lg shadow-lg dark:bg-surface-dark/80 dark:border-white/10">
+                      <span className="material-symbols-outlined text-[18px] text-primary dark:text-green-400">potted_plant</span>
+                      <span className="text-xs font-extrabold tracking-wide text-slate-800 dark:text-white">Monstera Deliciosa</span>
+                    </div>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => navigate('/app/settings')}
-                    className="absolute bottom-4 left-4 right-4 rounded-3xl border border-white/25 bg-white/85 p-4 text-left shadow-xl backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/30 active:translate-y-0 dark:border-white/10 dark:bg-slate-950/75 dark:hover:bg-slate-950 md:left-auto md:w-72"
+                    className="absolute bottom-5 left-5 right-5 rounded-3xl border border-white/30 bg-white/90 p-4 text-left shadow-2xl backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:bg-white dark:border-white/10 dark:bg-[#122218]/90 dark:hover:bg-[#122218] md:left-auto md:w-[340px]"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-xl dark:bg-primary/15">
+                    <div className="flex items-start gap-4">
+                      <div className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-2xl shadow-inner dark:bg-primary/20">
                         {currentTask.plantEmoji}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
-                          <Badge tone={cfg.tone} icon={cfg.icon}>{cfg.label}</Badge>
-                          <span className="material-symbols-outlined text-base text-text-secondary dark:text-slate-400" aria-hidden="true">arrow_forward</span>
+                          <Badge tone={cfg.tone} size="sm" icon={cfg.icon}>{cfg.label}</Badge>
+                          <div className="flex size-6 items-center justify-center rounded-full bg-slate-100 dark:bg-white/5">
+                            <span className="material-symbols-outlined text-sm text-text-secondary dark:text-slate-400">arrow_forward</span>
+                          </div>
                         </div>
-                        <p className="mt-2 truncate text-sm font-extrabold text-text-main dark:text-white">{currentTask.plantName}</p>
-                        <p className="mt-1 truncate text-xs font-semibold text-text-secondary dark:text-slate-400">{currentTask.taskLabel} · {currentTask.dueTime}</p>
+                        <p className="mt-2.5 truncate text-base font-extrabold text-text-main dark:text-white">{currentTask.plantName}</p>
+                        <p className="mt-0.5 truncate text-sm font-semibold text-text-secondary dark:text-slate-400">{currentTask.taskLabel} · {currentTask.dueTime}</p>
                       </div>
                     </div>
                   </button>
                 </div>
-              </Card>
+              </div>
             </div>
           </div>
         </section>

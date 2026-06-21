@@ -47,9 +47,9 @@ const AppDownloadButton = ({ variant = 'hero' }) => {
         ) : (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-white shadow-md transition-all hover:bg-primary-dark hover:-translate-y-0.5"
+            className="flex h-14 w-full sm:w-auto items-center justify-center gap-2.5 rounded-full bg-primary px-8 text-[15px] font-bold tracking-wide text-white shadow-[0_8px_20px_rgba(76,175,80,0.25)] transition-all hover:bg-green-600 hover:-translate-y-0.5 hover:shadow-[0_8px_25px_rgba(76,175,80,0.35)] dark:shadow-[0_8px_20px_rgba(76,175,80,0.15)]"
           >
-            <span className="material-symbols-outlined text-xl">download</span>
+            <span className="material-symbols-outlined text-[22px]">download</span>
             <span>{t('app.download')}</span>
           </button>
         )}
