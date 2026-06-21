@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import UserLayout from '../components/UserLayout';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
@@ -33,9 +33,9 @@ const frequencyLabels = {
   monthly: 'reminders.frequency.monthly',
 };
 
-const fieldShellClass = 'h-12 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-sm outline-none transition-colors focus:border-[#4CAF50] focus:ring-4 focus:ring-[#4CAF50]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white';
-const dateTimeShellClass = 'h-14 rounded-xl border border-slate-200 bg-white px-4 py-2 shadow-sm transition-colors focus-within:border-[#4CAF50] focus-within:ring-4 focus-within:ring-[#4CAF50]/10 dark:border-slate-700 dark:bg-slate-900';
-const fieldControlClass = 'h-12 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-900 shadow-sm outline-none transition-colors placeholder:text-slate-400 focus:border-[#4CAF50] focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-white';
+const fieldShellClass = 'h-14 rounded-2xl border border-white/60 bg-white/50 px-5 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-[#1A231C]';
+const dateTimeShellClass = 'h-16 rounded-2xl border border-white/60 bg-white/50 px-5 py-2 transition-all focus-within:bg-white focus-within:ring-4 focus-within:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/20 dark:focus-within:bg-[#1A231C]';
+const fieldControlClass = 'h-14 w-full min-w-0 rounded-2xl border border-white/60 bg-white/50 px-5 text-sm font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-[#1A231C]';
 
 const frequencyOptions = [
   'none',
@@ -335,51 +335,53 @@ const RemindersSettings = () => {
         )}
         {notice && <StateNotice tone="success">{notice}</StateNotice>}
 
-        <div className="rounded-3xl border border-[#A5D6A7] bg-[#F0FDF4] dark:bg-[#4CAF50]/10 p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="bg-gradient-to-r from-[#F0FDF4] to-[#E8F5E9] dark:from-[#4CAF50]/10 dark:to-[#4CAF50]/5 p-6 rounded-[32px] border border-[#A5D6A7]/50 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-[#2E7D32]">{t('reminders.exportEyebrow')}</p>
-            <h2 className="text-lg font-black text-slate-900 dark:text-white">{t('reminders.exportTitle')}</h2>
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#2E7D32]">{t('reminders.exportEyebrow')}</p>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">{t('reminders.exportTitle')}</h2>
+            <p className="text-xs font-semibold text-[#2E7D32]/80 mt-1">
               {t('reminders.exportReady', { count: exportableCount })}
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-            <button onClick={handleAddAllToCalendar} disabled={!exportableCount} className="px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-50 disabled:cursor-not-allowed">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button onClick={handleAddAllToCalendar} disabled={!exportableCount} className="px-6 py-3 rounded-2xl bg-[#4CAF50] text-white text-xs font-black shadow-xl shadow-[#4CAF50]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
               {t('reminders.addAllGoogle')}
             </button>
-            <button onClick={handleDownloadAllIcs} disabled={!exportableCount} className="px-4 py-3 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed">
+            <button onClick={handleDownloadAllIcs} disabled={!exportableCount} className="px-6 py-3 rounded-2xl border border-[#A5D6A7]/50 text-[#2E7D32] bg-white/50 hover:bg-white dark:bg-black/20 text-xs font-black hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed">
               {t('reminders.downloadAll')}
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {stats.map((stat) => (
-            <button key={stat.key} onClick={() => setActiveFilter(stat.key)} className={`text-left p-4 rounded-2xl border transition-all ${stat.bg} ${activeFilter === stat.key ? 'border-[#4CAF50] ring-2 ring-[#A5D6A7]/40' : 'border-slate-100 dark:border-slate-800'}`}>
-              <span className={`text-2xl font-black ${stat.color}`}>{stat.value}</span>
-              <span className="block text-xs font-bold text-slate-500 dark:text-slate-400">{stat.label}</span>
+            <button key={stat.key} onClick={() => setActiveFilter(stat.key)} className={`text-left p-6 rounded-[32px] border transition-all ${stat.bg} ${activeFilter === stat.key ? 'border-[#4CAF50] ring-4 ring-[#4CAF50]/20 shadow-lg shadow-[#4CAF50]/10' : 'border-white/60 dark:border-white/10 hover:border-[#4CAF50]/50 hover:bg-white/50'}`}>
+              <span className={`text-3xl font-black ${stat.color}`}>{stat.value}</span>
+              <span className="block text-[10px] uppercase tracking-widest font-black mt-1 text-slate-500 dark:text-slate-400">{stat.label}</span>
             </button>
           ))}
         </div>
 
-        <section className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+        <section className="bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] overflow-hidden">
+          <div className="p-6 md:p-8 border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#4CAF50]">notifications_active</span>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                <span className="size-10 bg-[#4CAF50]/10 rounded-xl flex items-center justify-center text-[#4CAF50]">
+                  <span className="material-symbols-outlined text-lg">notifications_active</span>
+                </span>
                 {editingId ? t('reminders.editTitle') : t('reminders.settingsTitle')}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">{t('reminders.settingsDesc')}</p>
+              <p className="text-sm font-semibold text-slate-500 mt-2">{t('reminders.settingsDesc')}</p>
               {selectedPlantWateringDays && form.type === 'watering' && !editingId && (
-                <p className="text-xs font-semibold text-[#2E7D32] mt-1">
+                <p className="inline-flex items-center gap-1 rounded-full bg-[#F0FDF4] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[#2E7D32] ring-1 ring-[#A5D6A7]/50 mt-3">
                   {t('reminders.plantSuggestion', { days: selectedPlantWateringDays })}
                 </p>
               )}
             </div>
-            <button onClick={() => setActiveFilter('all')} className="text-xs font-black text-[#4CAF50] hover:text-[#2E7D32]">{t('reminders.showAll')}</button>
+            <button onClick={() => setActiveFilter('all')} className="text-[10px] font-black uppercase tracking-widest text-[#4CAF50] hover:text-[#2E7D32] transition-colors bg-[#4CAF50]/5 px-4 py-2 rounded-full ring-1 ring-[#4CAF50]/20">{t('reminders.showAll')}</button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-4 md:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 border-b border-slate-50 dark:border-slate-800">
+          <form onSubmit={handleSubmit} className="p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 border-b border-slate-200/50 dark:border-white/10 bg-slate-50/30 dark:bg-black/10">
             <select value={form.plantId} onChange={(event) => handlePlantChange(event.target.value)} className={`${fieldShellClass} lg:col-span-4`} required disabled={!plants.length}>
               {plants.length === 0 && <option value="">{t('reminders.noPlants')}</option>}
               {plants.map((plant) => (
@@ -409,19 +411,19 @@ const RemindersSettings = () => {
             </p>
             <input value={form.title} onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))} className={`${fieldControlClass} lg:col-span-4`} placeholder={t('reminders.titlePlaceholder')} />
             <input value={form.notes} onChange={(event) => setForm((prev) => ({ ...prev, notes: event.target.value }))} className={`${fieldControlClass} lg:col-span-6`} placeholder={t('reminders.notesPlaceholder')} />
-            <div className="sm:col-span-2 lg:col-span-2 flex gap-2">
+            <div className="sm:col-span-2 lg:col-span-12 flex gap-3 mt-2">
               {editingId && (
-                <button type="button" onClick={handleCancelEdit} className="px-4 py-3 rounded-xl bg-slate-100 text-slate-500 dark:bg-slate-800 text-xs font-black">
+                <button type="button" onClick={handleCancelEdit} className="px-6 py-3 rounded-2xl bg-white/60 border border-slate-200/50 text-slate-500 dark:bg-black/20 text-xs font-black hover:bg-white transition-all uppercase tracking-widest">
                   {t('common.cancel')}
                 </button>
               )}
-              <button type="submit" disabled={saving || !plants.length} className="flex-1 px-4 py-3 rounded-xl bg-[#4CAF50] text-white text-xs font-black shadow-lg shadow-[#4CAF50]/20 disabled:opacity-60">
+              <button type="submit" disabled={saving || !plants.length} className="flex-1 px-6 py-3 rounded-2xl bg-[#4CAF50] text-white text-xs font-black uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:hover:scale-100 disabled:cursor-not-allowed">
                 {saving ? t('common.saving') : editingId ? t('common.save') : t('common.add')}
               </button>
             </div>
           </form>
 
-          <div id="reminder-management-list" className="p-4 space-y-3">
+          <div id="reminder-management-list" className="p-6 md:p-8 space-y-4">
             {loading && <LoadingState message={t('reminders.loading')} />}
             {!loading && filteredReminders.length === 0 && (
               <EmptyState icon="event_available" title={t('reminders.emptyTitle')} description={t('reminders.emptyDescription')} />
@@ -434,9 +436,9 @@ const RemindersSettings = () => {
               const plantImage = getPlantImage(reminder, plants);
               const isEditing = editingId === reminder.id;
               return (
-                <article key={reminder.id} className={`rounded-3xl border p-4 transition-all ${isEditing ? 'border-[#4CAF50] bg-[#F0FDF4]/60 shadow-lg shadow-[#4CAF50]/10 ring-4 ring-[#A5D6A7]/30 dark:bg-[#4CAF50]/10' : reminder.completed ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 opacity-80' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`size-14 shrink-0 overflow-hidden rounded-2xl border border-white shadow-sm ${cfg.bg} dark:border-slate-800`}>
+                <article key={reminder.id} className={`rounded-[28px] border p-5 transition-all ${isEditing ? 'border-[#4CAF50] bg-[#F0FDF4]/80 shadow-lg shadow-[#4CAF50]/10 ring-4 ring-[#A5D6A7]/30 dark:bg-[#4CAF50]/20' : reminder.completed ? 'bg-slate-50/50 dark:bg-black/20 border-slate-200/50 dark:border-white/5 opacity-80' : 'bg-white/80 dark:bg-black/20 border-white/60 dark:border-white/10 hover:shadow-md hover:bg-white'}`}>
+                  <div className="flex items-start gap-5">
+                    <div className={`size-16 shrink-0 overflow-hidden rounded-[20px] border border-white/60 shadow-sm ${cfg.bg} dark:border-white/10`}>
                       {plantImage ? (
                         <img src={plantImage} alt={reminder.plantName} className="h-full w-full object-cover" />
                       ) : (
@@ -469,27 +471,27 @@ const RemindersSettings = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center gap-2 flex-wrap">
+                  <div className="mt-5 flex items-center gap-3 flex-wrap">
                     {!reminder.completed && dueNow && (
-                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder)} className="px-4 py-2 rounded-xl bg-[#4CAF50] text-white text-xs font-black hover:bg-[#43A047] transition-colors disabled:opacity-60">
+                      <button disabled={actionId === reminder.id} onClick={() => handleMarkDone(reminder)} className="px-5 py-2.5 rounded-2xl bg-[#4CAF50] text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-[#4CAF50]/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:hover:scale-100">
                         {recurring ? t('reminders.completeOccurrence') : t('reminders.markDone')}
                       </button>
                     )}
                     {!reminder.completed && !dueNow && (
-                      <span className="px-4 py-2 rounded-xl bg-blue-50 text-blue-600 text-xs font-black dark:bg-blue-900/20">
+                      <span className="px-5 py-2.5 rounded-2xl bg-blue-50/80 text-blue-600 text-xs font-black uppercase tracking-widest dark:bg-blue-900/20">
                         {t('reminders.notDueYet')}
                       </span>
                     )}
-                    <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-slate-600 dark:text-slate-300 disabled:opacity-60">
+                    <button disabled={actionId === reminder.id} onClick={() => handleEdit(reminder)} className="px-5 py-2.5 rounded-2xl border border-slate-200/80 bg-white/50 hover:bg-white dark:border-white/10 dark:bg-black/20 text-[10px] uppercase tracking-widest font-black text-slate-600 dark:text-slate-300 disabled:opacity-60 transition-colors">
                       {t('common.edit')}
                     </button>
-                    <button disabled={actionId === reminder.id} onClick={() => handleAddToCalendar(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-[#F0FDF4] text-xs font-black disabled:opacity-60">
+                    <button disabled={actionId === reminder.id} onClick={() => handleAddToCalendar(reminder)} className="px-5 py-2.5 rounded-2xl border border-[#A5D6A7]/50 text-[#2E7D32] bg-[#F0FDF4]/80 text-[10px] uppercase tracking-widest font-black hover:bg-[#E8F5E9] disabled:opacity-60 transition-colors">
                       {t('reminders.addCalendar')}
                     </button>
-                    <button disabled={actionId === reminder.id} onClick={() => handleDownloadIcs(reminder)} className="px-4 py-2 rounded-xl border border-[#A5D6A7] text-[#2E7D32] bg-white dark:bg-slate-900 text-xs font-black disabled:opacity-60">
+                    <button disabled={actionId === reminder.id} onClick={() => handleDownloadIcs(reminder)} className="px-5 py-2.5 rounded-2xl border border-[#A5D6A7]/50 text-[#2E7D32] bg-white/80 hover:bg-white dark:bg-black/20 text-[10px] uppercase tracking-widest font-black disabled:opacity-60 transition-colors">
                       {t('reminders.downloadIcs')}
                     </button>
-                    <button disabled={actionId === reminder.id} onClick={() => handleDelete(reminder.id)} className="ml-auto px-4 py-2 rounded-xl text-red-500 text-xs font-black hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-60">
+                    <button disabled={actionId === reminder.id} onClick={() => handleDelete(reminder.id)} className="ml-auto px-5 py-2.5 rounded-2xl border border-rose-200/50 bg-rose-50/50 text-rose-500 text-[10px] uppercase tracking-widest font-black hover:bg-rose-100 dark:hover:bg-rose-900/20 disabled:opacity-60 transition-colors">
                       {t('common.delete')}
                     </button>
                   </div>

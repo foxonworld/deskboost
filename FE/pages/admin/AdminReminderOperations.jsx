@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import AdminLayout from '../../components/AdminLayout';
 import { getAdminReminders, getReminderOpsSummary, disableReminder, enableReminder } from '../../services/adminOperationsApi';
@@ -186,7 +186,7 @@ const AdminReminderOperations = () => {
   return (
     <AdminLayout>
       <div className="space-y-5">
-        <section className="rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        <section className="rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#111813]/70 p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
           <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Operations</p>
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>

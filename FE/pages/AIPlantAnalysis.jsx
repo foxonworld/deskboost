@@ -191,8 +191,9 @@ const AIPlantAnalysis = () => {
   return (
     <UserLayout>
       <div ref={rootRef} className="mx-auto max-w-6xl space-y-6 p-4 pb-24 sm:p-6 md:p-8">
-        <Card data-motion="ai-analysis-page" radius="hero" padding="feature" className="overflow-hidden bg-gradient-to-br from-white via-[#F7FBF5] to-[#EEF7EC] dark:from-surface-dark dark:via-[#102116] dark:to-[#0B1510]">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div data-motion="ai-analysis-page" className="overflow-hidden bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative group">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#4CAF50] to-[#81C784]"></div>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between relative z-10">
             <div className="max-w-3xl">
               <Badge tone="primary" icon="health_and_safety">{t('aiAnalysis.badge')}</Badge>
               <h1 className="mt-4 text-3xl font-extrabold leading-tight text-text-main dark:text-white sm:text-4xl">
@@ -207,7 +208,7 @@ const AIPlantAnalysis = () => {
               <span className="rounded-2xl border border-primary/15 bg-white/70 px-4 py-3 dark:bg-white/5">{t('aiAnalysis.signal.scope')}</span>
             </div>
           </div>
-        </Card>
+        </div>
 
         {error && <StateNotice tone="error">{error}</StateNotice>}
         <StateNotice tone="info" className="text-sm">
@@ -221,12 +222,12 @@ const AIPlantAnalysis = () => {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
           <div className="space-y-5 lg:col-span-2">
-            <Card data-motion="ai-analysis-state" padding="none" radius="hero" className="overflow-hidden">
+            <div data-motion="ai-analysis-state" className="overflow-hidden bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
               <div
-                className={`relative min-h-[360px] border-2 p-4 text-center transition-all duration-300 sm:min-h-[430px] sm:p-6 ${
+                className={`relative min-h-[360px] p-4 text-center transition-all duration-300 sm:min-h-[430px] sm:p-6 border-2 rounded-[32px] m-1 ${
                   dragActive
-                    ? 'border-solid border-primary bg-primary/5 scale-[1.01]'
-                    : 'border-dashed border-slate-300 dark:border-slate-700 bg-transparent'
+                    ? 'border-solid border-[#4CAF50] bg-[#4CAF50]/5 scale-[1.01]'
+                    : 'border-dashed border-white/60 dark:border-white/10 bg-transparent hover:bg-white/30 dark:hover:bg-white/5'
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -292,7 +293,7 @@ const AIPlantAnalysis = () => {
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
 
             {selectedImage && !isAnalyzing && !result && (
               <StateNotice tone="info" className="text-sm">
@@ -301,23 +302,23 @@ const AIPlantAnalysis = () => {
             )}
 
             {isAnalyzing && (
-              <Card data-motion="ai-analysis-state" radius="hero" padding="feature" className="border-primary/20 bg-primary/5 dark:bg-primary/10">
+              <div data-motion="ai-analysis-state" className="bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                  <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-white text-primary shadow-sm dark:bg-white/10">
+                  <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#4CAF50]/10 text-[#4CAF50] shadow-sm dark:bg-[#4CAF50]/20">
                     <Spinner />
                   </div>
                   <div>
-                    <h2 className="text-lg font-extrabold text-text-main dark:text-white">{t('aiAnalysis.analyzingTitle')}</h2>
-                    <p className="mt-1 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
+                    <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">{t('aiAnalysis.analyzingTitle')}</h2>
+                    <p className="mt-1 text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
                       {t('aiAnalysis.analyzingDescription')}
                     </p>
                   </div>
                 </div>
-              </Card>
+              </div>
             )}
 
             {result && (
-              <Card data-motion="ai-analysis-state" radius="hero" padding="feature" className="space-y-5">
+              <div data-motion="ai-analysis-state" className="space-y-5 bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <Badge tone="success" icon="check_circle">{t('aiAnalysis.resultBadge')}</Badge>
@@ -330,50 +331,50 @@ const AIPlantAnalysis = () => {
                 </p>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {(result.recommendations || defaultRecommendations).map((item, idx) => (
-                    <div key={item} className="rounded-2xl border border-[#E4EEE6] bg-[#FAFCF8] p-4 dark:border-[#2A4532] dark:bg-white/5">
-                      <p className="text-xs font-extrabold text-primary">{t('aiAnalysis.stepLabel', { step: idx + 1 })}</p>
-                      <p className="mt-2 text-sm font-bold leading-6 text-text-main dark:text-white">{item}</p>
+                    <div key={item} className="rounded-[24px] border border-white/60 bg-white/50 p-5 dark:border-white/10 dark:bg-black/20 shadow-sm">
+                      <p className="text-[10px] uppercase tracking-widest font-black text-[#4CAF50]">{t('aiAnalysis.stepLabel', { step: idx + 1 })}</p>
+                      <p className="mt-2 text-sm font-bold leading-6 text-slate-800 dark:text-white">{item}</p>
                     </div>
                   ))}
                 </div>
-                <div className="flex flex-col gap-3 border-t border-[#E4EEE6] pt-5 dark:border-[#2A4532] sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-3 border-t border-slate-200/50 pt-6 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
                   <p className="text-sm font-semibold leading-6 text-text-secondary dark:text-slate-300">
                     {t('aiAnalysis.askMoreDescription')}
                   </p>
-                  <Button type="button" onClick={handleAskMore} className="w-full sm:w-auto">
+                  <button type="button" onClick={handleAskMore} className="px-6 py-3 rounded-2xl bg-[#4CAF50] text-white text-xs font-black uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 w-full sm:w-auto">
                     <span className="material-symbols-outlined text-base" aria-hidden="true">forum</span>
                     {t('aiAnalysis.askMoreButton')}
-                  </Button>
+                  </button>
                 </div>
-              </Card>
+              </div>
             )}
           </div>
 
           <div className="space-y-5">
-            <Card radius="hero" padding="feature">
+            <div className="bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
               <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-primary" aria-hidden="true">verified</span>
-                <h3 className="text-lg font-extrabold text-text-main dark:text-white">{t('aiAnalysis.tipsTitle')}</h3>
+                <span className="material-symbols-outlined text-[#4CAF50]" aria-hidden="true">verified</span>
+                <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">{t('aiAnalysis.tipsTitle')}</h3>
               </div>
-              <div className="mt-5 space-y-4">
+              <div className="mt-6 space-y-4">
                 {captureTips.map((desc, index) => (
-                  <div key={desc} className="flex gap-3 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
-                    <span className="mt-0.5 font-extrabold text-primary">0{index + 1}</span>
-                    <span>{desc}</span>
+                  <div key={desc} className="flex gap-4 text-sm font-medium leading-6 text-slate-600 dark:text-slate-300">
+                    <span className="mt-0.5 flex size-6 items-center justify-center rounded-full bg-[#4CAF50]/10 text-[10px] font-black text-[#4CAF50]">0{index + 1}</span>
+                    <span className="flex-1">{desc}</span>
                   </div>
                 ))}
               </div>
-            </Card>
+            </div>
 
-            <Card radius="hero" padding="feature" className="bg-gradient-to-br from-[#F0FDF4] to-[#E8F5E9] dark:from-primary/10 dark:to-[#2E7D32]/10">
-              <div className="flex items-center gap-2 text-primary">
+            <div className="bg-gradient-to-br from-[#F0FDF4] to-[#E8F5E9] dark:from-[#4CAF50]/10 dark:to-[#2E7D32]/10 p-8 rounded-[32px] border border-[#A5D6A7]/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
+              <div className="flex items-center gap-2 text-[#4CAF50]">
                 <span className="material-symbols-outlined text-base" aria-hidden="true">lightbulb</span>
-                <span className="text-sm font-extrabold">{t('aiAnalysis.readingHintTitle')}</span>
+                <span className="text-sm font-black uppercase tracking-widest">{t('aiAnalysis.readingHintTitle')}</span>
               </div>
-              <p className="mt-3 text-sm font-medium leading-6 text-text-secondary dark:text-slate-300">
+              <p className="mt-3 text-sm font-medium leading-6 text-slate-700 dark:text-slate-300">
                 {t('aiAnalysis.readingHint')}
               </p>
-            </Card>
+            </div>
           </div>
         </div>
       </div>

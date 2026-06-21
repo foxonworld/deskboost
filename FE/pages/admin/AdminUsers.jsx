@@ -153,7 +153,7 @@ const AdminUsers = () => {
 
   return (
     <AdminLayout>
-      <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+      <section className="rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#111813]/70 p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.users.badge')}</p>
         <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{t('admin.users.title')}</h1>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
@@ -209,7 +209,7 @@ const AdminUsers = () => {
 
       {(detailLoading || detailError || selectedUser) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4">
-          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[32px] border border-white/60 bg-white/90 backdrop-blur-2xl p-6 shadow-2xl dark:border-white/10 dark:bg-[#111813]/90 sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.users.detailBadge')}</p>

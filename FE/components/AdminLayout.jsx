@@ -79,7 +79,7 @@ const AdminLayout = ({ children }) => {
           )}
         </div>
 
-        <aside className="hidden w-full shrink-0 rounded-[28px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm md:block md:w-64">
+        <aside className="hidden w-full shrink-0 rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#111813]/70 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] md:block md:w-64">
           <div className="px-2 py-3 md:px-3 md:py-4">
             <p className="text-xs font-black uppercase tracking-[0.25em] text-[#4CAF50]">{t('admin.layout.badge')}</p>
             <h2 className="mt-2 text-xl font-black text-slate-900 dark:text-white">{t('admin.layout.title')}</h2>

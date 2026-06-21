@@ -132,7 +132,7 @@ const AdminPlants = () => {
 
   return (
     <AdminLayout>
-      <section className="rounded-[32px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm">
+      <section className="rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#111813]/70 p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
         <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.plants.badge')}</p>
         <h1 className="mt-3 text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{t('admin.plants.title')}</h1>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">

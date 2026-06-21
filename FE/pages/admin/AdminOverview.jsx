@@ -46,7 +46,7 @@ const relativeTime = (str) => {
 
 const MetricCard = ({ icon, label, value, note, accent, loading }) => (
   <article
-    className="relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-shadow hover:shadow-md dark:bg-slate-900"
+    className="relative overflow-hidden rounded-[24px] border bg-white/70 backdrop-blur-xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-md dark:bg-[#111813]/70"
     style={{ borderColor: loading ? '#e2e8f0' : `${accent}22` }}
   >
     {/* accent strip */}
@@ -86,7 +86,7 @@ const MetricCard = ({ icon, label, value, note, accent, loading }) => (
 const QuickLink = ({ to, icon, label, hint, color }) => (
   <Link
     to={to}
-    className="flex flex-col items-center gap-2 rounded-2xl border border-slate-100 bg-white p-4 text-center transition-all hover:-translate-y-0.5 hover:border-[#4CAF50]/30 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+    className="flex flex-col items-center gap-2 rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl p-4 text-center transition-all hover:-translate-y-0.5 hover:border-[#4CAF50]/30 hover:shadow-md dark:border-white/10 dark:bg-[#111813]/70"
   >
     <span
       className="flex h-10 w-10 items-center justify-center rounded-xl"
@@ -316,7 +316,7 @@ const AdminOverview = () => {
     <AdminLayout>
       <div className="space-y-5">
         {/* ── Header / Hero ────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        <section className="relative overflow-hidden rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl p-6 shadow-sm dark:border-white/10 dark:bg-[#111813]/70 sm:p-8">
           {/* decorative gradient blob */}
           <div
             className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full opacity-10"
@@ -394,7 +394,7 @@ const AdminOverview = () => {
         {/* ── Recent Activity Grid ──────────────────────── */}
         <div className="grid gap-5 lg:grid-cols-3">
           {/* Recent Users */}
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <section className="rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#111813]/70">
             <SectionHeader
               title="Người dùng gần đây"
               actionTo="/admin/users"
@@ -426,7 +426,7 @@ const AdminOverview = () => {
           </section>
 
           {/* Recent AI Dialogs */}
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <section className="rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#111813]/70">
             <SectionHeader
               title="Hội thoại AI gần đây"
               actionTo="/admin/ai"
@@ -458,7 +458,7 @@ const AdminOverview = () => {
           </section>
 
           {/* Recent Marketplace */}
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <section className="rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#111813]/70">
             <SectionHeader
               title="Marketplace gần đây"
               actionTo="/admin/marketplace"
@@ -491,7 +491,7 @@ const AdminOverview = () => {
         </div>
 
         {/* ── System Health ─────────────────────────────── */}
-        <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#111813]/70">
           <SectionHeader title="Trạng thái hệ thống" />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {/* API Backend */}

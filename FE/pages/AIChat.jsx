@@ -409,8 +409,9 @@ const AIChat = () => {
   return (
     <UserLayout>
       <div ref={rootRef} className="mx-auto flex w-full max-w-7xl flex-col gap-5 p-4 pb-24 sm:p-6 md:p-8">
-        <Card data-motion="ai-chat-entry" radius="hero" padding="feature" className="overflow-hidden bg-gradient-to-br from-white via-[#F7FBF5] to-[#EEF7EC] dark:from-surface-dark dark:via-[#102116] dark:to-[#0B1510]">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div data-motion="ai-chat-entry" className="overflow-hidden bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] relative group">
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-[#4CAF50] to-[#81C784]"></div>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between relative z-10">
             <div className="max-w-3xl">
               <Badge tone="primary" icon="psychiatry">{t('aiChat.badge')}</Badge>
               <h1 className="mt-4 text-3xl font-extrabold leading-tight text-text-main dark:text-white sm:text-4xl">
@@ -435,10 +436,10 @@ const AIChat = () => {
             Chat messages and plant context may be processed by Gemini/Google and hosting providers. <Link to="/privacy" className="font-bold text-primary hover:underline">Privacy Policy</Link>
           </StateNotice>
           {error && <StateNotice tone="error" className="mt-5 text-xs">{error}</StateNotice>}
-        </Card>
+        </div>
 
         <div className="grid gap-5 lg:grid-cols-[340px_1fr]">
-          <Card data-motion="ai-chat-entry" as="aside" radius="hero" padding="feature" className="h-fit lg:sticky lg:top-6">
+          <aside data-motion="ai-chat-entry" className="h-fit lg:sticky lg:top-6 bg-white/80 dark:bg-[#111813]/80 backdrop-blur-xl p-8 rounded-[32px] border border-white/40 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold text-primary">{t('aiChat.contextEyebrow')}</p>
@@ -464,10 +465,10 @@ const AIChat = () => {
                     type="button"
                     onClick={() => setSelectedPlantId('')}
                     aria-pressed={!selectedPlantId}
-                    className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all focus:outline-none focus:ring-4 focus:ring-primary/20 ${
+                    className={`flex w-full items-center gap-3 rounded-[24px] border p-4 text-left transition-all focus:outline-none focus:ring-4 focus:ring-[#4CAF50]/20 ${
                       !selectedPlantId
-                        ? 'border-primary bg-primary/10 shadow-sm'
-                        : 'border-[#E4EEE6] bg-white hover:border-primary/40 dark:border-[#2A4532] dark:bg-white/5'
+                        ? 'border-[#4CAF50] bg-[#4CAF50]/10 shadow-lg shadow-[#4CAF50]/10 ring-4 ring-[#4CAF50]/20'
+                        : 'border-white/60 bg-white/50 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:hover:bg-white/5'
                     }`}
                   >
                     <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -487,10 +488,10 @@ const AIChat = () => {
                       type="button"
                       onClick={() => setSelectedPlantId(plant.id)}
                       aria-pressed={active}
-                      className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-all focus:outline-none focus:ring-4 focus:ring-primary/20 ${
+                      className={`flex w-full items-center gap-3 rounded-[24px] border p-3 text-left transition-all focus:outline-none focus:ring-4 focus:ring-[#4CAF50]/20 ${
                         active
-                          ? 'border-primary bg-primary/10 shadow-sm'
-                          : 'border-[#E4EEE6] bg-white hover:border-primary/40 dark:border-[#2A4532] dark:bg-white/5'
+                          ? 'border-[#4CAF50] bg-[#4CAF50]/10 shadow-lg shadow-[#4CAF50]/10 ring-4 ring-[#4CAF50]/20'
+                          : 'border-white/60 bg-white/50 hover:bg-white dark:border-white/10 dark:bg-black/20 dark:hover:bg-white/5'
                       }`}
                     >
                       <img src={plant.image} alt={plant.nickname} className="h-14 w-14 rounded-2xl object-cover" />
@@ -508,12 +509,12 @@ const AIChat = () => {
             </div>
 
             <div className="mt-6 border-t border-[#E4EEE6] pt-5 dark:border-[#2A4532]">
-              <p className="text-xs font-bold text-primary">Recent dialogs</p>
-              <div className="mt-3 space-y-2">
+              <p className="text-[10px] uppercase tracking-widest font-black text-[#4CAF50]">Recent dialogs</p>
+              <div className="mt-4 space-y-2">
                 {isHistoryLoading ? (
-                  <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.historyLoading')}</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{t('aiChat.historyLoading')}</p>
                 ) : dialogHistory.length === 0 ? (
-                  <p className="text-xs font-bold text-text-secondary dark:text-slate-400">No saved AI dialogs yet.</p>
+                  <p className="text-xs font-bold text-slate-500 dark:text-slate-400">No saved AI dialogs yet.</p>
                 ) : (
                   dialogHistory.map((dialog) => (
                     <button
@@ -521,19 +522,19 @@ const AIChat = () => {
                       type="button"
                       onClick={() => handleOpenDialog(dialog.id)}
                       disabled={isDialogLoading}
-                      className="w-full rounded-2xl border border-[#E4EEE6] bg-white/70 px-3 py-2 text-left transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-[#2A4532] dark:bg-white/5"
+                      className="w-full rounded-[20px] border border-white/60 bg-white/50 px-4 py-3 text-left transition hover:border-[#4CAF50]/50 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-black/20 dark:hover:bg-white/5"
                     >
-                      <p className="truncate text-xs font-extrabold text-text-main dark:text-white">{dialog.plantName || dialog.title || 'AI dialog'}</p>
-                      <p className="mt-1 truncate text-[11px] font-semibold text-text-secondary dark:text-slate-400">{dialog.lastMessage || 'No preview'}</p>
+                      <p className="truncate text-xs font-extrabold text-slate-900 dark:text-white">{dialog.plantName || dialog.title || 'AI dialog'}</p>
+                      <p className="mt-1 truncate text-[10px] font-semibold text-slate-500 dark:text-slate-400">{dialog.lastMessage || 'No preview'}</p>
                     </button>
                   ))
                 )}
               </div>
             </div>
-          </Card>
+          </aside>
 
-          <section data-motion="ai-chat-entry" className="flex min-h-[620px] flex-col overflow-hidden rounded-3xl border border-[#E4EEE6] bg-white shadow-sm dark:border-[#2A4532] dark:bg-surface-dark">
-            <div ref={chatHeaderRef} className="border-b border-[#E4EEE6] p-4 dark:border-[#2A4532] sm:p-5">
+          <section data-motion="ai-chat-entry" className="flex min-h-[620px] flex-col overflow-hidden rounded-[32px] border border-white/40 bg-white/80 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-[#111813]/80">
+            <div ref={chatHeaderRef} className="border-b border-slate-200/50 p-6 dark:border-white/10 sm:p-8">
               <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{t('aiChat.consultingFor')}</p>
@@ -575,7 +576,7 @@ const AIChat = () => {
                       key={prompt}
                       type="button"
                       onClick={() => setInput(prompt)}
-                      className="rounded-2xl border border-[#E4EEE6] bg-white px-4 py-3 text-left text-sm font-bold text-text-main transition hover:border-primary/40 hover:bg-primary/5 focus:outline-none focus:ring-4 focus:ring-primary/20 dark:border-[#2A4532] dark:bg-white/5 dark:text-white"
+                      className="rounded-[20px] border border-white/60 bg-white/50 px-5 py-4 text-left text-sm font-bold text-slate-800 transition hover:border-[#4CAF50]/40 hover:bg-white focus:outline-none focus:ring-4 focus:ring-[#4CAF50]/20 dark:border-white/10 dark:bg-black/20 dark:text-white dark:hover:bg-white/5 shadow-sm"
                     >
                       {prompt}
                     </button>
@@ -591,10 +592,10 @@ const AIChat = () => {
                 return (
                   <div key={message.id} className={`flex ${user ? 'justify-end' : 'justify-start'}`}>
                     <div
-                      className={`chat-bubble max-w-[94%] rounded-3xl px-4 py-3 text-sm leading-6 shadow-sm sm:max-w-[78%] sm:px-5 ${
+                      className={`chat-bubble max-w-[94%] rounded-[28px] px-5 py-4 text-sm leading-6 shadow-sm sm:max-w-[78%] sm:px-6 ${
                         user
-                          ? 'rounded-br-lg bg-primary text-white'
-                          : 'rounded-bl-lg border border-[#E4EEE6] bg-white text-text-main dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-100'
+                          ? 'rounded-br-xl bg-[#4CAF50] text-white shadow-[#4CAF50]/20'
+                          : 'rounded-bl-xl border border-white/60 bg-white/80 text-slate-800 dark:border-white/10 dark:bg-black/40 dark:text-slate-100 backdrop-blur-sm'
                       }`}
                       data-new={isNew ? 'true' : 'false'}
                     >
@@ -617,7 +618,7 @@ const AIChat = () => {
               })}
               {isSending && (
                 <div className="flex justify-start">
-                  <div className="inline-flex items-center gap-3 rounded-3xl rounded-bl-lg border border-[#E4EEE6] bg-white px-5 py-3 text-sm font-bold text-text-secondary shadow-sm dark:border-[#2A4532] dark:bg-white/5 dark:text-slate-300">
+                  <div className="inline-flex items-center gap-3 rounded-[28px] rounded-bl-xl border border-white/60 bg-white/80 px-6 py-4 text-sm font-bold text-slate-500 shadow-sm dark:border-white/10 dark:bg-black/40 dark:text-slate-400 backdrop-blur-sm">
                     <Spinner />
                     {t('aiChat.thinking')}
                   </div>
@@ -625,8 +626,8 @@ const AIChat = () => {
               )}
             </div>
 
-            <form onSubmit={handleSubmit} className="border-t border-[#E4EEE6] bg-white p-3 dark:border-[#2A4532] dark:bg-surface-dark sm:p-5">
-              <div className="flex flex-col gap-3 rounded-2xl border border-[#E4EEE6] bg-[#FAFCF8] p-2 dark:border-[#2A4532] dark:bg-white/5 sm:flex-row sm:items-center">
+            <form onSubmit={handleSubmit} className="border-t border-slate-200/50 bg-slate-50/50 p-4 dark:border-white/10 dark:bg-black/10 sm:p-6">
+              <div className="flex flex-col gap-3 rounded-[24px] border border-white/60 bg-white p-2 dark:border-white/10 dark:bg-black/40 sm:flex-row sm:items-center shadow-sm">
                 <label className="sr-only" htmlFor="ai-care-question">{t('aiChat.inputLabel')}</label>
                 <input
                   id="ai-care-question"
@@ -634,11 +635,11 @@ const AIChat = () => {
                   onChange={(event) => setInput(event.target.value)}
                   disabled={isSending || isChatQuotaExhausted}
                   placeholder={selectedPlant ? t('aiChat.placeholderWithPlant', { plant: selectedPlant.nickname }) : t('aiChat.placeholderNoPlant')}
-                  className="min-h-12 min-w-0 flex-1 bg-transparent px-3 text-sm font-bold text-text-main outline-none placeholder:text-text-secondary disabled:cursor-not-allowed disabled:opacity-60 dark:text-white dark:placeholder:text-slate-400"
+                  className="min-h-14 min-w-0 flex-1 bg-transparent px-4 text-sm font-bold text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:opacity-60 dark:text-white dark:placeholder:text-slate-500"
                 />
-                <Button type="submit" disabled={!canSend} loading={isSending} className="w-full sm:w-auto">
+                <button type="submit" disabled={!canSend} className="px-8 h-14 rounded-2xl bg-[#4CAF50] text-white text-xs font-black uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-60 disabled:hover:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-2 w-full sm:w-auto">
                   {isSending ? t('aiChat.sending') : t('aiChat.sendButton')}
-                </Button>
+                </button>
               </div>
             </form>
           </section>
