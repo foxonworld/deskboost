@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Spinner, StateNotice, formControlClass, primaryButtonClass } from '../components/UiState';
+import { Spinner, StateNotice } from '../components/UiState';
 import { useI18n } from '../i18n';
 import { GoogleLogin } from '@react-oauth/google';
 import { signInWithNativeGoogle } from '../utils/nativeGoogleAuth';
+import AuthLayout from '../components/AuthLayout';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -72,73 +73,68 @@ const Login = () => {
   const shownError = formError || error;
   const disabled = isLoading || isBootstrapping;
 
+  // Custom polished classes for glass input/button
+  const glassInputClass = "min-h-12 w-full rounded-2xl border border-black/5 bg-white/60 px-4 text-sm font-semibold text-[#111813] outline-none transition-all placeholder:text-gray-500 focus:bg-white focus:ring-4 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-gray-400 dark:focus:bg-white/10 backdrop-blur-sm shadow-inner";
+
   return (
-    <div className="min-h-screen bg-background-light flex items-center justify-center p-4 sm:p-6 dark:bg-background-dark">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg dark:border-slate-800 dark:bg-slate-900">
-        <div className="pt-8 px-6 pb-2 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/20 mb-4">
-            <span className="material-symbols-outlined text-primary text-4xl">potted_plant</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight dark:text-white">DeskBoost</h1>
-          <h2 className="text-xl font-bold mt-4 dark:text-white">{t('login.title')}</h2>
-          <p className="text-text-secondary text-sm mt-1 dark:text-slate-400">{t('login.description')}</p>
+    <AuthLayout title={t('login.title')} subtitle={t('login.description')}>
+      <form onSubmit={handleLogin} className="px-6 pb-4 lg:px-8 lg:pb-6 space-y-5" noValidate>
+        <div className="space-y-2">
+          <label htmlFor="email" className="text-sm font-extrabold text-[#111813] dark:text-white">{t('login.emailLabel')}</label>
+          <input id="email" required disabled={disabled} type="email" autoComplete="email" className={glassInputClass} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
+        <div className="space-y-2">
+          <div className="flex justify-between items-center gap-4">
+            <label htmlFor="password" className="text-sm font-extrabold text-[#111813] dark:text-white">{t('login.passwordLabel')}</label>
+            <Link to="/forgot-password" className="text-text-secondary hover:text-primary text-xs font-bold transition-colors">{t('login.forgotPassword')}</Link>
+          </div>
+          <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className={glassInputClass} placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} />
+        </div>
+        
+        {shownError && <StateNotice tone="error" className="text-center rounded-2xl backdrop-blur-sm bg-red-50/80 dark:bg-red-900/30 font-bold">{shownError}</StateNotice>}
+        {!shownError && routeNotice && <StateNotice tone="success" className="text-center rounded-2xl backdrop-blur-sm bg-green-50/80 dark:bg-green-900/30 font-bold">{routeNotice}</StateNotice>}
+        
+        <button type="submit" disabled={disabled} className="min-h-12 w-full rounded-full bg-primary px-4 text-sm font-extrabold text-white shadow-lg shadow-primary/30 transition hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-2">
+          {isLoading && <Spinner className="text-lg" />}
+          {isLoading ? t('common.loading') : isBootstrapping ? t('common.loading') : t('login.submit')}
+        </button>
 
-        <form onSubmit={handleLogin} className="p-6 pt-2 space-y-5" noValidate>
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">{t('login.emailLabel')}</label>
-            <input id="email" required disabled={disabled} type="email" autoComplete="email" className={`${formControlClass} h-12`} placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center gap-4">
-              <label htmlFor="password" className="text-sm font-medium">{t('login.passwordLabel')}</label>
-              <Link to="/forgot-password" className="text-text-secondary hover:text-primary text-sm font-medium">{t('login.forgotPassword')}</Link>
-            </div>
-            <input id="password" required disabled={disabled} type="password" autoComplete="current-password" className={`${formControlClass} h-12`} placeholder={t('login.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} />
-          </div>
-          {shownError && <StateNotice tone="error" className="text-center">{shownError}</StateNotice>}
-          {!shownError && routeNotice && <StateNotice tone="success" className="text-center">{routeNotice}</StateNotice>}
-          <button type="submit" disabled={disabled} className={`${primaryButtonClass} h-12 w-full`}>
-            {isLoading && <Spinner className="text-lg" />}
-            {isLoading ? t('common.loading') : isBootstrapping ? t('common.loading') : t('login.submit')}
+        {isMobileApp ? (
+          <button type="button" disabled={disabled} onClick={handleNativeGoogleLogin} className="min-h-12 w-full rounded-full border border-black/10 bg-white/80 px-4 text-sm font-extrabold text-[#111813] shadow-sm backdrop-blur-sm transition hover:bg-white focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+            Đăng nhập với Google
           </button>
+        ) : (
+          <>
+            <div className="relative flex items-center justify-center my-4">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-black/10 dark:border-white/10"></div></div>
+              <span className="relative px-4 text-[11px] font-bold text-text-secondary uppercase tracking-wider bg-transparent">Hoặc</span>
+            </div>
 
-          {isMobileApp ? (
-            <button type="button" disabled={disabled} onClick={handleNativeGoogleLogin} className="h-12 w-full rounded-2xl border border-gray-200 bg-white px-4 text-sm font-bold text-text-main shadow-sm transition hover:border-primary/40 hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:hover:bg-primary/10">
-              Dang nhap voi Google
-            </button>
-          ) : (
-            <>
-          <div className="relative flex items-center justify-center my-4">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200 dark:border-gray-700"></div></div>
-            <span className="relative px-4 bg-white dark:bg-slate-900 text-sm text-gray-500">Hoặc</span>
-          </div>
+            <div className="flex justify-center mix-blend-luminosity hover:mix-blend-normal transition-all duration-300 opacity-90 hover:opacity-100">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => setFormError('Đăng nhập Google thất bại.')}
+                useOneTap={false}
+                shape="pill"
+                size="large"
+                text="signin_with"
+                locale="vi"
+                width="400"
+              />
+            </div>
+          </>
+        )}
 
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={() => setFormError('Đăng nhập Google thất bại.')}
-              useOneTap={false}
-              shape="rectangular"
-              size="large"
-              text="signin_with"
-              locale="vi"
-              width="400"
-            />
-          </div>
-
-            </>
-          )}
-
-          <div className="text-center pt-4">
-            <p className="text-sm text-text-secondary">{t('login.noAccount')} <Link to="/register" state={location.state} className="text-text-main font-bold hover:underline">{t('login.signUp')}</Link></p>
-            <p className="mt-3 text-xs font-medium text-text-secondary">
-              By signing in, you can review the <Link to="/privacy" className="font-bold text-primary hover:underline">Privacy Policy</Link>.
-            </p>
-          </div>
-        </form>
-      </div>
-    </div>
+        <div className="text-center pt-2">
+          <p className="text-sm font-medium text-text-secondary dark:text-slate-400">
+            {t('login.noAccount')} <Link to="/register" state={location.state} className="text-[#111813] dark:text-white font-extrabold hover:underline ml-1">{t('login.signUp')}</Link>
+          </p>
+          <p className="mt-3 text-[11px] font-semibold text-text-secondary/70 dark:text-slate-500">
+            By signing in, you can review the <Link to="/privacy" className="font-bold text-text-secondary hover:text-primary transition-colors dark:text-slate-400 dark:hover:text-white">Privacy Policy</Link>.
+          </p>
+        </div>
+      </form>
+    </AuthLayout>
   );
 };
 
