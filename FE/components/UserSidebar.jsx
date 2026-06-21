@@ -23,10 +23,10 @@ const UserNavLinks = ({ currentPath, onNavigate, t }) => (
           key={item.path + item.labelKey}
           to={item.path}
           onClick={onNavigate}
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+          className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold transition-all ${
             isActive
-              ? 'bg-primary/10 text-primary'
-              : 'text-slate-500 hover:bg-primary/5 hover:text-primary dark:text-slate-400'
+              ? 'bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20 dark:ring-primary/30'
+              : 'text-slate-500 hover:bg-black/5 hover:text-primary dark:text-slate-400 dark:hover:bg-white/5'
           }`}
         >
           <span className={`material-symbols-outlined ${isActive ? 'fill-1' : ''}`}>
@@ -80,7 +80,7 @@ const UserSidebar = () => {
           <span className="material-symbols-outlined">{isMobileOpen ? 'close' : 'expand_more'}</span>
         </button>
         {isMobileOpen && (
-          <div className="fixed inset-0 z-30 bg-slate-950/40 px-4 pb-20 pt-24 backdrop-blur-sm" onClick={closeMobile}>
+          <div className="fixed inset-0 z-30 bg-black/40 px-4 pb-20 pt-24 backdrop-blur-sm" onClick={closeMobile}>
             <nav className="max-h-full overflow-y-auto rounded-3xl border border-[#E4EEE6] bg-surface-light p-3 shadow-xl dark:border-[#2A4532] dark:bg-surface-dark" aria-label={t('userSidebar.mobileNav')} onClick={(event) => event.stopPropagation()}>
               <div className="mb-2 flex items-center justify-between px-2 py-1">
                 <p className="text-xs font-bold tracking-wide text-primary">{t('userSidebar.nav')}</p>
@@ -94,7 +94,7 @@ const UserSidebar = () => {
         )}
       </div>
 
-      <aside className="hidden h-full w-64 shrink-0 flex-col overflow-y-auto border-r border-[#E4EEE6] bg-surface-light dark:border-[#2A4532] dark:bg-surface-dark md:flex">
+      <aside className="hidden my-2 ml-3 mr-1 h-[calc(100%-1rem)] w-[260px] shrink-0 flex-col overflow-y-auto rounded-3xl border border-white/50 bg-white/70 backdrop-blur-2xl backdrop-saturate-150 shadow-[0_8px_30px_rgba(15,23,42,0.08)] dark:border-[#2A4532]/50 dark:bg-surface-dark/70 dark:shadow-[0_8px_30px_rgba(0,0,0,0.3)] md:flex">
         <div className="p-6 flex items-center gap-3">
           <Link to="/" className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-primary shadow-sm shadow-primary/20">
@@ -108,9 +108,9 @@ const UserSidebar = () => {
           <UserNavLinks currentPath={currentPath} t={t} />
         </nav>
 
-        <div className="space-y-4 border-t border-[#E4EEE6] p-4 dark:border-[#2A4532]">
-          <div className="flex items-center gap-3 p-2 min-w-0">
-            <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+        <div className="space-y-4 border-t border-[#E4EEE6]/30 p-4 dark:border-white/5 mt-auto">
+          <div className="flex items-center gap-3 p-3 min-w-0 rounded-2xl bg-white/50 shadow-sm border border-white/60 dark:bg-black/20 dark:border-white/5">
+            <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-[#2A4532]/50 border border-slate-200 dark:border-white/5 flex items-center justify-center overflow-hidden shrink-0">
               <UserAvatar user={user} />
             </div>
             <div className="flex flex-col min-w-0">

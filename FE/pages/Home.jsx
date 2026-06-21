@@ -103,13 +103,13 @@ const Home = () => {
   }, []);
 
   return (
-    <div ref={rootRef} className="flex min-h-screen flex-col bg-background-light text-text-main antialiased dark:bg-background-dark dark:text-white">
+    <div ref={rootRef} className="relative flex min-h-screen flex-col bg-background-light text-text-main antialiased dark:bg-background-dark dark:text-white">
+      <div className="absolute top-0 left-0 w-full h-[800px] pointer-events-none bg-[radial-gradient(circle_at_top_center,rgba(76,175,80,0.12),transparent_70%),linear-gradient(to_bottom,rgba(76,175,80,0.06)_0%,transparent_60%),linear-gradient(135deg,rgba(255,248,238,0.85),transparent_70%)] dark:bg-[radial-gradient(circle_at_top_center,rgba(76,175,80,0.12),transparent_70%),linear-gradient(to_bottom,rgba(76,175,80,0.05)_0%,transparent_60%),linear-gradient(135deg,rgba(23,42,31,0.85),transparent_70%)] z-0" />
       <Navbar />
 
-      <main className="flex-1 overflow-hidden">
-        <section className="relative border-b border-[#E4EEE6] dark:border-[#2A4532]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(76,175,80,0.16),transparent_34%),linear-gradient(135deg,rgba(255,248,238,0.9),transparent_42%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(76,175,80,0.14),transparent_34%),linear-gradient(135deg,rgba(23,42,31,0.9),transparent_42%)]" />
-          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-14 md:px-10 md:py-20 lg:grid-cols-[1fr_0.92fr] lg:py-24">
+      <main className="relative z-10 flex-1 overflow-hidden">
+        <section className="relative border-b border-[#E4EEE6]/50 dark:border-[#2A4532]/50">
+          <div className="relative mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 pt-10 pb-14 md:px-10 md:pt-16 md:pb-20 lg:grid-cols-[1fr_0.92fr] lg:pt-20 lg:pb-24">
             <div className="flex max-w-3xl flex-col items-start gap-7">
               <span data-motion="home-hero">
                 <Badge tone="primary" size="md" icon="eco">
@@ -125,7 +125,7 @@ const Home = () => {
                 </p>
               </div>
 
-              <div data-motion="home-hero" className="relative z-50 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
+              <div data-motion="home-hero" className="relative z-10 flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap">
                 <div className="w-full sm:w-auto">
                   <AppDownloadButton variant="hero" />
                 </div>
