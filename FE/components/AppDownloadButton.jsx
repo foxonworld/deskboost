@@ -58,7 +58,7 @@ const AppDownloadButton = ({ variant = 'hero' }) => {
           <div className={`absolute z-50 mt-2 w-48 rounded-xl border border-[#E4EEE6] bg-white p-2 shadow-xl dark:border-[#2A4532] dark:bg-surface-dark ${isHeader ? 'right-0' : 'left-0 sm:left-0 top-full'}`}>
             <div className="flex flex-col gap-1">
               <a
-                href="https://github.com/foxonworld/deskboost/releases/download/v1.0.0/DeskBoost.apk"
+                href="https://github.com/foxonworld/deskboost/releases/download/v1.0.1/DeskBoost-v1.0.1.apk"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-text-main hover:bg-primary/10 hover:text-primary dark:text-white dark:hover:bg-primary/20 transition-colors"
