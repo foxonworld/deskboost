@@ -224,11 +224,6 @@ const AdminPlants = () => {
             ) : (
               <div className="mt-4 space-y-4">
                 <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40">
-                  {getPlantImage(selectedPlant) ? (
-                    <img src={getPlantImage(selectedPlant)} alt={selectedPlant.nickname || selectedPlant.name} className="h-44 w-full object-cover" />
-                  ) : (
-                    <div className="flex h-32 items-center justify-center text-sm font-bold text-slate-400">{t('admin.plants.noImage')}</div>
-                  )}
                   <div className="p-4">
                     <p className="text-lg font-black text-slate-900 dark:text-white">{selectedPlant.nickname || selectedPlant.name || t('admin.unknown')}</p>
                     <p className="mt-1 text-xs font-black uppercase tracking-widest text-[#4CAF50]">{selectedPlant.species || t('admin.unknown')}</p>

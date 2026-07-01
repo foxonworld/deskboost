@@ -30,6 +30,7 @@ public record AdminUserPlantDto(
     string Name,
     string? Nickname,
     string? Species,
+    string? ImageUrl,
     string? Location,
     string Status,
     string? CareLevel,

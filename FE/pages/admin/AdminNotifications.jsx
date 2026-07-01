@@ -17,7 +17,7 @@ const timeStr = (iso) => {
   try { return new Date(iso).toLocaleString('vi-VN'); } catch { return iso; }
 };
 
-const INIT_FORM = { title: '', body: '', type: 'announcement', targetType: 'all', userId: '' };
+const INIT_FORM = { title: '', body: '', type: 'announcement', targetType: 'all', userEmail: '' };
 
 const AdminNotifications = () => {
   const { t } = useI18n();
@@ -48,7 +48,7 @@ const AdminNotifications = () => {
       setSendResult({ ok: false, msg: t('adminNotif.form.errorRequired') });
       return;
     }
-    if (form.targetType === 'specific' && !form.userId.trim()) {
+    if (form.targetType === 'specific' && !form.userEmail.trim()) {
       setSendResult({ ok: false, msg: t('adminNotif.form.errorUserId') });
       return;
     }
@@ -60,7 +60,7 @@ const AdminNotifications = () => {
         body: form.body.trim(),
         type: form.type,
         targetType: form.targetType,
-        targetUserIds: form.targetType === 'specific' ? [form.userId.trim()] : null,
+        targetUserIds: form.targetType === 'specific' ? [form.userEmail.trim()] : null,
       };
       await adminSendNotification(payload);
       setSendResult({ ok: true, msg: t('adminNotif.form.success') });
@@ -161,7 +161,7 @@ const AdminNotifications = () => {
                     name="notif-target"
                     value={opt}
                     checked={form.targetType === opt}
-                    onChange={() => setForm((f) => ({ ...f, targetType: opt, userId: '' }))}
+                    onChange={() => setForm((f) => ({ ...f, targetType: opt, userEmail: '' }))}
                     className="accent-[#4CAF50]"
                   />
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -179,8 +179,8 @@ const AdminNotifications = () => {
                 <input
                   id="notif-userid"
                   type="text"
-                  value={form.userId}
-                  onChange={(e) => setForm((f) => ({ ...f, userId: e.target.value }))}
+                  value={form.userEmail}
+                  onChange={(e) => setForm((f) => ({ ...f, userEmail: e.target.value }))}
                   placeholder={t('adminNotif.form.userIdPlaceholder')}
                   className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950 dark:text-white"
                 />
