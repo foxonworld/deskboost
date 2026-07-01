@@ -7,6 +7,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import Forbidden from "../pages/Forbidden";
 import ProtectedRoute from "./ProtectedRoute";
 import AdminRoute from "./AdminRoute";
+import { useI18n } from "../i18n";
 
 const PlantList = lazy(() => import("../pages/PlantList"));
 const PlantDetail = lazy(() => import("../pages/PlantDetail"));
@@ -31,11 +32,15 @@ const AdminNotifications = lazy(() => import("../pages/admin/AdminNotifications"
 const AdminReminderOperations = lazy(() => import("../pages/admin/AdminReminderOperations"));
 const AdminEmailOperations = lazy(() => import("../pages/admin/AdminEmailOperations"));
 
-const RouteFallback = () => (
-  <div className="flex min-h-[50vh] items-center justify-center text-sm text-gray-500">
-    Loading...
-  </div>
-);
+const RouteFallback = () => {
+  const { t } = useI18n();
+
+  return (
+    <div className="flex min-h-[50vh] items-center justify-center text-sm text-gray-500">
+      {t("route.loading")}
+    </div>
+  );
+};
 
 const protect = (element: React.ReactNode) => (
   <ProtectedRoute>{element}</ProtectedRoute>

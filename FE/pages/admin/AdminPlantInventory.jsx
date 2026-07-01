@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import AdminLayout from '../../components/AdminLayout';
+import { useI18n } from '../../i18n/I18nContext';
 import {
   createAdminPlantInventory,
   deleteAdminPlantInventory,
@@ -21,6 +22,7 @@ const parseWateringCycleDays = (water) => {
 const padSequence = (value) => String(value).padStart(3, '0');
 
 const AdminPlantInventory = () => {
+  const { t } = useI18n();
   const [items, setItems] = useState([]);
   const [inventory, setInventory] = useState([]);
   const [speciesOptions, setSpeciesOptions] = useState([]);
@@ -63,7 +65,7 @@ const AdminPlantInventory = () => {
       setItems([]);
       setInventory([]);
       setSpeciesOptions([]);
-      setError(err?.message || 'Could not load plant inventory.');
+      setError(err?.message || t('admin.plantInventory.error.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,7 @@ const AdminPlantInventory = () => {
     event.preventDefault();
     if (!selectedItem) return;
     if (!draft.name.trim()) {
-      setError('Inventory name is required.');
+      setError(t('admin.plantInventory.error.nameRequired'));
       return;
     }
 
@@ -165,66 +167,66 @@ const AdminPlantInventory = () => {
         notes: draft.notes.trim() || null,
       });
       setGeneratedPlant(result);
-      setNotice('Claim code generated.');
+      setNotice(t('admin.plantInventory.notice.generated'));
       await loadData();
     } catch (err) {
-      setError(err?.message || 'Could not generate claim code.');
+      setError(err?.message || t('admin.plantInventory.error.generateFailed'));
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (plant) => {
-    if (!window.confirm(`Delete inventory plant "${plant.name}"?`)) return;
+    if (!window.confirm(t('admin.plantInventory.deleteConfirm', { name: plant.name }))) return;
     setDeletingId(plant.id);
     setError('');
     setNotice('');
     try {
       await deleteAdminPlantInventory(plant.id);
       setInventory((current) => current.filter((item) => item.id !== plant.id));
-      setNotice('Plant inventory deleted.');
+      setNotice(t('admin.plantInventory.notice.deleted'));
     } catch (err) {
-      setError(err?.message || 'Could not delete plant inventory.');
+      setError(err?.message || t('admin.plantInventory.error.deleteFailed'));
     } finally {
       setDeletingId('');
     }
   };
 
   const handleRegenerate = async (plant) => {
-    if (!window.confirm(`Regenerate claim code for "${plant.name}"?`)) return;
+    if (!window.confirm(t('admin.plantInventory.regenerateConfirm', { name: plant.name }))) return;
     setRegeneratingId(plant.id);
     setError('');
     setNotice('');
     try {
       const updated = await regenerateAdminPlantInventoryCode(plant.id);
       setInventory((current) => current.map((item) => (item.id === updated.id ? updated : item)));
-      setNotice('Claim code regenerated.');
+      setNotice(t('admin.plantInventory.notice.regenerated'));
     } catch (err) {
-      setError(err?.message || 'Could not regenerate claim code.');
+      setError(err?.message || t('admin.plantInventory.error.regenerateFailed'));
     } finally {
       setRegeneratingId('');
     }
   };
 
   const findMarketplaceName = (plant) =>
-    plantItems.find((item) => item.id === plant.marketplaceItemId)?.name || 'Marketplace plant';
+    plantItems.find((item) => item.id === plant.marketplaceItemId)?.name || t('admin.plantInventory.fallbackMarketplaceName');
 
   return (
     <AdminLayout>
       <section className="rounded-[32px] border border-white/60 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-[#111813]/70 p-6 sm:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Plant inventory</p>
-        <h1 className="mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">Generate plant codes</h1>
+        <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.plantInventory.badge')}</p>
+        <h1 className="mt-3 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">{t('admin.plantInventory.title')}</h1>
         <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-slate-500 dark:text-slate-400">
-          Pick a plant from marketplace, generate one physical plant record, then send the claim code to the buyer.
+          {t('admin.plantInventory.description')}
         </p>
         {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 dark:bg-red-950/30 dark:text-red-300">{error}</p>}
         {notice && <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">{notice}</p>}
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {loading ? (
-            <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">Loading marketplace plants...</p>
+            <p className="rounded-2xl bg-slate-50 p-5 text-sm font-bold text-slate-400 dark:bg-slate-800">{t('admin.plantInventory.loading')}</p>
           ) : plantItems.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">No marketplace plant items found. Create a marketplace item with category plant first.</p>
+            <p className="rounded-2xl border border-dashed border-slate-200 p-5 text-sm font-bold text-slate-400 dark:border-slate-700">{t('admin.plantInventory.emptyMarketplace')}</p>
           ) : (
             plantItems.map((item) => {
               const generatedCount = inventory.filter((plant) => plant.marketplaceItemId === item.id).length;
@@ -240,11 +242,11 @@ const AdminPlantInventory = () => {
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-black text-slate-900 dark:text-white">{item.name}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-400">Generated codes: {generatedCount}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-400">{t('admin.plantInventory.generatedCount', { count: generatedCount })}</p>
                       <div className="mt-2 flex flex-wrap gap-1">
-                        {item.careLevel && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Care {item.careLevel}</span>}
-                        {item.light && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Light {item.light}</span>}
-                        {item.water && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">Water {item.water}</span>}
+                        {item.careLevel && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">{t('admin.plantInventory.careLevel', { level: item.careLevel })}</span>}
+                        {item.light && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">{t('admin.plantInventory.light', { level: item.light })}</span>}
+                        {item.water && <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-500 dark:bg-slate-800">{t('admin.plantInventory.water', { level: item.water })}</span>}
                       </div>
                     </div>
                   </div>
@@ -265,17 +267,17 @@ const AdminPlantInventory = () => {
       <section className="mt-6 rounded-[32px] border border-slate-100 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Generated inventory</p>
-            <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">Claim code list</h2>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.plantInventory.generatedBadge')}</p>
+            <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">{t('admin.plantInventory.listTitle')}</h2>
           </div>
-          <p className="text-sm font-bold text-slate-400">{inventory.length} records</p>
+          <p className="text-sm font-bold text-slate-400">{t('admin.plantInventory.recordsCount', { count: inventory.length })}</p>
         </div>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-800">
           {loading ? (
-            <p className="p-5 text-sm font-bold text-slate-400">Loading generated codes...</p>
+            <p className="p-5 text-sm font-bold text-slate-400">{t('admin.plantInventory.loadingGenerated')}</p>
           ) : inventory.length === 0 ? (
-            <p className="p-5 text-sm font-bold text-slate-400">No generated plant codes yet.</p>
+            <p className="p-5 text-sm font-bold text-slate-400">{t('admin.plantInventory.emptyGenerated')}</p>
           ) : (
             inventory.map((plant) => (
               <div key={plant.id} className="grid gap-3 border-b border-slate-100 p-4 last:border-b-0 dark:border-slate-800 lg:grid-cols-[1.2fr_0.9fr_0.8fr_0.8fr_auto] lg:items-center">
@@ -289,14 +291,14 @@ const AdminPlantInventory = () => {
                   )}
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black text-slate-900 dark:text-white">{plant.name}</p>
-                    <p className="text-xs font-semibold text-slate-400">{findMarketplaceName(plant)} - {plant.location || 'No location'}</p>
+                    <p className="text-xs font-semibold text-slate-400">{findMarketplaceName(plant)} - {plant.location || t('admin.plantInventory.noLocation')}</p>
                   </div>
                 </div>
-                <p className="rounded-xl bg-[#4CAF50]/10 px-3 py-2 text-xs font-black text-[#4CAF50]">Code: {plant.ownershipCode || 'Not generated'}</p>
+                <p className="rounded-xl bg-[#4CAF50]/10 px-3 py-2 text-xs font-black text-[#4CAF50]">{t('admin.plantInventory.codeLabel', { code: plant.ownershipCode || t('admin.plantInventory.notGenerated') })}</p>
                 <span className={`w-fit rounded-full px-3 py-1 text-[11px] font-black ${plant.isClaimed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'}`}>
-                  {plant.isClaimed ? 'Claimed' : 'Unclaimed'}
+                  {plant.isClaimed ? t('status.claimed') : t('status.unclaimed')}
                 </span>
-                <p className="text-xs font-bold text-slate-400">{plant.userEmail || 'No user yet'}</p>
+                <p className="text-xs font-bold text-slate-400">{plant.userEmail || t('admin.plantInventory.noUser')}</p>
                 <div className="flex flex-wrap gap-2 lg:justify-end">
                   <button
                     type="button"
@@ -304,7 +306,7 @@ const AdminPlantInventory = () => {
                     disabled={plant.isClaimed || regeneratingId === plant.id}
                     className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-600 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:text-slate-300"
                   >
-                    {regeneratingId === plant.id ? 'Regenerating...' : 'Regenerate'}
+                    {regeneratingId === plant.id ? t('admin.plantInventory.regenerating') : t('admin.plantInventory.regenerateCode')}
                   </button>
                   <button
                     type="button"
@@ -312,7 +314,7 @@ const AdminPlantInventory = () => {
                     disabled={plant.isClaimed || deletingId === plant.id}
                     className="rounded-xl border border-red-100 px-3 py-2 text-xs font-black text-red-600 transition hover:border-red-300 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-950/50 dark:text-red-300"
                   >
-                    {deletingId === plant.id ? 'Deleting...' : 'Delete'}
+                    {deletingId === plant.id ? t('admin.plantInventory.deleting') : t('common.delete')}
                   </button>
                 </div>
               </div>
@@ -326,9 +328,9 @@ const AdminPlantInventory = () => {
           <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-[28px] border border-slate-100 bg-white p-6 shadow-2xl dark:border-slate-800 dark:bg-slate-900 sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">Generate code</p>
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-[#4CAF50]">{t('admin.plantInventory.modal.badge')}</p>
                 <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white">{selectedItem.name}</h2>
-                <p className="mt-2 text-sm font-bold text-slate-400">Defaults are copied from marketplace item. Adjust location or note if needed.</p>
+                <p className="mt-2 text-sm font-bold text-slate-400">{t('admin.plantInventory.modal.description')}</p>
               </div>
               <button
                 type="button"
@@ -342,7 +344,7 @@ const AdminPlantInventory = () => {
 
             {generatedPlant ? (
               <div className="mt-6 rounded-3xl border border-[#4CAF50]/20 bg-[#4CAF50]/5 p-5">
-                <p className="text-xs font-black uppercase tracking-widest text-[#4CAF50]">Generated successfully</p>
+                <p className="text-xs font-black uppercase tracking-widest text-[#4CAF50]">{t('admin.plantInventory.modal.successBadge')}</p>
                 <div className="mt-4 grid gap-4 md:grid-cols-[120px_1fr]">
                   {generatedPlant.imageUrl ? (
                     <img src={generatedPlant.imageUrl} alt={generatedPlant.name} className="h-28 w-full rounded-2xl object-cover" />
@@ -354,10 +356,10 @@ const AdminPlantInventory = () => {
                   <div>
                     <h3 className="text-xl font-black text-slate-900 dark:text-white">{generatedPlant.name}</h3>
                     <p className="mt-2 rounded-2xl bg-white px-4 py-3 text-lg font-black text-[#4CAF50] dark:bg-slate-950">
-                      {generatedPlant.ownershipCode || 'Code unavailable'}
+                      {generatedPlant.ownershipCode || t('admin.plantInventory.modal.codeUnavailable')}
                     </p>
                     <p className="mt-2 text-sm font-bold text-slate-500 dark:text-slate-400">
-                      Status: {generatedPlant.ownershipStatus || 'Unclaimed'} - Location: {generatedPlant.location || defaultLocation}
+                      {t('admin.plantInventory.modal.statusLocation', { status: generatedPlant.ownershipStatus || t('status.unclaimed'), location: generatedPlant.location || defaultLocation })}
                     </p>
                   </div>
                 </div>
@@ -383,7 +385,7 @@ const AdminPlantInventory = () => {
                   <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200">
                     Plant species
                     <select name="plantSpeciesId" value={draft.plantSpeciesId} onChange={updateDraft} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950">
-                      <option value="">No species selected</option>
+                      <option value="">{t('admin.plantInventory.form.noSpecies')}</option>
                       {speciesOptions.map((species) => (
                         <option key={species.id} value={species.id}>
                           {getSpeciesLabel(species)}
@@ -406,18 +408,18 @@ const AdminPlantInventory = () => {
                 </label>
                 <label className="space-y-2 text-sm font-black text-slate-700 dark:text-slate-200 md:col-span-2">
                   Note
-                  <textarea name="notes" value={draft.notes} onChange={updateDraft} rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder="Optional sale note" />
+                  <textarea name="notes" value={draft.notes} onChange={updateDraft} rows={3} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold outline-none focus:border-[#4CAF50] dark:border-slate-700 dark:bg-slate-950" placeholder={t('admin.plantInventory.form.notePlaceholder')} />
                 </label>
                 <div className="md:col-span-2 rounded-2xl bg-slate-50 p-4 text-xs font-bold leading-5 text-slate-500 dark:bg-slate-950 dark:text-slate-400">
-                  <p>Care level: {selectedItem.careLevel || 'N/A'} | Light: {selectedItem.light || 'N/A'} | Water: {selectedItem.water || 'N/A'}</p>
-                  <p className="mt-1">These care fields remain on the marketplace item and will be available during claim/profile display.</p>
+                  <p>{t('admin.plantInventory.form.careInfo', { care: selectedItem.careLevel || t('common.nA'), light: selectedItem.light || t('common.nA'), water: selectedItem.water || t('common.nA') })}</p>
+                  <p className="mt-1">{t('admin.plantInventory.form.careHint')}</p>
                 </div>
                 <div className="md:col-span-2 flex flex-wrap gap-3">
                   <button type="submit" disabled={saving} className="rounded-2xl bg-[#4CAF50] px-5 py-3 text-sm font-black text-white transition hover:bg-[#43A047] disabled:cursor-not-allowed disabled:opacity-60">
-                    {saving ? 'Generating...' : 'Generate code'}
+                    {saving ? t('admin.plantInventory.generating') : t('admin.plantInventory.generateCode')}
                   </button>
                   <button type="button" onClick={closeGenerateModal} disabled={saving} className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-black text-slate-500 transition hover:border-[#4CAF50] hover:text-[#4CAF50] disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700">
-                    Cancel
+                    {t('common.cancel')}
                   </button>
                 </div>
               </form>

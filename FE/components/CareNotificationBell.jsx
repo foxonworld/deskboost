@@ -15,16 +15,16 @@ const notifTypeConfig = {
   announcement: { icon: 'campaign', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
 };
 
-const timeAgo = (isoString) => {
+const timeAgo = (isoString, t) => {
   if (!isoString) return '';
   const diff = Date.now() - new Date(isoString).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Vừa xong';
-  if (mins < 60) return `${mins} phút trước`;
+  if (mins < 1) return t('careBell.timeAgo.justNow');
+  if (mins < 60) return t('careBell.timeAgo.minutesAgo', { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} giờ trước`;
+  if (hours < 24) return t('careBell.timeAgo.hoursAgo', { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days} ngày trước`;
+  return t('careBell.timeAgo.daysAgo', { count: days });
 };
 
 const CareNotificationBell = () => {
@@ -134,7 +134,7 @@ const CareNotificationBell = () => {
                 {notifsLoading ? (
                   <div className="flex items-center gap-2 p-3 text-xs text-slate-400">
                     <span className="material-symbols-outlined text-[#4CAF50] animate-spin" style={{ fontSize: '14px' }}>progress_activity</span>
-                    Đang tải...
+                    {t('careBell.loadingAdmin')}
                   </div>
                 ) : (
                   <div className="space-y-1.5 pb-2">
@@ -164,7 +164,7 @@ const CareNotificationBell = () => {
                               )}
                             </div>
                             <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">{notif.body}</p>
-                            <p className="text-[10px] text-slate-400 mt-1">{timeAgo(notif.createdAt)}</p>
+                            <p className="text-[10px] text-slate-400 mt-1">{timeAgo(notif.createdAt, t)}</p>
                           </div>
                         </button>
                       );

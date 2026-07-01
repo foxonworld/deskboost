@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../Button';
+import { useI18n } from '../../i18n/I18nContext';
 
 const ReasonModal = ({
   isOpen,
@@ -13,6 +14,7 @@ const ReasonModal = ({
   error
 }) => {
   const [reason, setReason] = useState('');
+  const { t } = useI18n();
   const isValid = reason.trim().length >= 10 && reason.trim().length <= 500;
 
   if (!isOpen) return null;
@@ -39,7 +41,7 @@ const ReasonModal = ({
         )}
 
         <div className="mt-6 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/50">
-          <p className="text-xs font-black uppercase tracking-wider text-slate-500">Target</p>
+          <p className="text-xs font-black uppercase tracking-wider text-slate-500">{t("admin.reasonModal.targetLabel")}</p>
           <div className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
             {targetSummary}
           </div>
@@ -51,7 +53,7 @@ const ReasonModal = ({
 
         <div className="mt-6">
           <label htmlFor="reason" className="block text-sm font-black text-slate-700 dark:text-slate-200">
-            Reason for audit log <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-700 dark:bg-amber-950 dark:text-amber-400">Audited</span>
+            {t("admin.reasonModal.reasonLabel")} <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-amber-700 dark:bg-amber-950 dark:text-amber-400">{t("admin.reasonModal.auditedBadge")}</span>
           </label>
           <textarea
             id="reason"
@@ -60,10 +62,10 @@ const ReasonModal = ({
             onChange={(e) => setReason(e.target.value)}
             disabled={loading}
             className="mt-2 w-full rounded-2xl border border-slate-200 bg-white p-4 text-sm font-medium text-slate-900 outline-none transition focus:border-[#4CAF50] focus:ring-4 focus:ring-[#4CAF50]/10 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-950 dark:text-white"
-            placeholder="Enter reason..."
+            placeholder={t("admin.reasonModal.reasonPlaceholder")}
           />
           <p className="mt-2 text-xs font-bold text-slate-400">
-            10-500 characters. Stored in admin audit logs. ({reason.trim().length} chars)
+            {t("admin.reasonModal.reasonHint", { count: reason.trim().length })}
           </p>
         </div>
 
@@ -74,7 +76,7 @@ const ReasonModal = ({
             disabled={loading}
             className="flex-1"
           >
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button
             variant={confirmLabel.toLowerCase().includes('disable') || confirmLabel.toLowerCase().includes('suppress') ? 'destructive' : 'primary'}

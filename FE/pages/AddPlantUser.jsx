@@ -24,7 +24,7 @@ const AddPlantUser = () => {
     setClaimPreview(null);
     const code = claimCode.trim().toUpperCase();
     if (!code) {
-      setError('Please enter a plant claim code.');
+      setError(t('addPlant.claim.error.codeRequired'));
       return;
     }
     setIsPreviewingClaim(true);
@@ -33,9 +33,9 @@ const AddPlantUser = () => {
       setClaimPreview(data);
       const itemName = data?.marketplaceItem?.name || '';
       if (itemName && !claimNickname) setClaimNickname(itemName);
-      setSuccess('Code is valid. Confirm to add this plant to your account.');
+      setSuccess(t('addPlant.claim.previewSuccess'));
     } catch (err) {
-      setError(err?.message || 'Could not preview this claim code.');
+      setError(err?.message || t('addPlant.claim.error.previewFailed'));
     } finally {
       setIsPreviewingClaim(false);
     }
@@ -46,7 +46,7 @@ const AddPlantUser = () => {
     setSuccess('');
     const code = claimCode.trim().toUpperCase();
     if (!code || !claimPreview?.valid) {
-      setError('Please preview a valid claim code first.');
+      setError(t('addPlant.claim.error.validPreviewRequired'));
       return;
     }
     setIsClaiming(true);
@@ -56,10 +56,10 @@ const AddPlantUser = () => {
         nickname: claimNickname.trim() || undefined,
         location: claimLocation.trim() || undefined,
       });
-      setSuccess('Plant claimed successfully.');
+      setSuccess(t('addPlant.claim.success'));
       setTimeout(() => navigate('/app/my-plants'), 700);
     } catch (err) {
-      setError(err?.message || 'Could not claim this plant.');
+      setError(err?.message || t('addPlant.claim.error.claimFailed'));
     } finally {
       setIsClaiming(false);
     }
@@ -80,9 +80,9 @@ const AddPlantUser = () => {
           <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-[#4CAF50]/5 blur-3xl rounded-full pointer-events-none"></div>
           
           <div className="relative z-10">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white">Add by plant code</h2>
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white">{t('addPlant.claim.title')}</h2>
             <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
-              Enter the code provided after purchase. DeskBoost will preview the plant before adding it to your account.
+              {t('addPlant.claim.description')}
             </p>
             
             {error && <div className="mt-6"><StateNotice tone="error">{error}</StateNotice></div>}
@@ -100,7 +100,7 @@ const AddPlantUser = () => {
                 disabled={isPreviewingClaim || isClaiming} 
                 className="h-14 rounded-2xl bg-[#4CAF50] px-8 text-xs font-black uppercase tracking-widest text-white shadow-lg shadow-[#4CAF50]/20 transition-all hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-60 disabled:hover:scale-100"
               >
-                {isPreviewingClaim ? 'Checking...' : 'Preview'}
+                {isPreviewingClaim ? t('addPlant.claim.loadingPreview') : t('addPlant.claim.preview')}
               </button>
             </form>
 
@@ -118,23 +118,23 @@ const AddPlantUser = () => {
                   <div>
                     <p className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[#4CAF50]">
                       <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                      Claim preview
+                      {t('addPlant.claim.previewTitle')}
                     </p>
                     <h3 className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{claimPreview.marketplaceItem.name}</h3>
-                    <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300">{claimPreview.marketplaceItem.description || 'No description available for this plant.'}</p>
+                    <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600 dark:text-slate-300">{claimPreview.marketplaceItem.description || t('addPlant.claim.noDescription')}</p>
                   </div>
                   
                   <div className="grid gap-3 sm:grid-cols-2">
                     <input 
                       value={claimNickname} 
                       onChange={(event) => setClaimNickname(event.target.value)} 
-                      placeholder="Nickname (optional)" 
+                      placeholder={t('addPlant.claim.nicknamePlaceholder')} 
                       className="h-12 w-full rounded-2xl border border-white/60 bg-white/60 px-4 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/40 dark:text-white dark:focus:bg-[#1A231C]" 
                     />
                     <input 
                       value={claimLocation} 
                       onChange={(event) => setClaimLocation(event.target.value)} 
-                      placeholder="Location (optional)" 
+                      placeholder={t('addPlant.claim.locationPlaceholder')} 
                       className="h-12 w-full rounded-2xl border border-white/60 bg-white/60 px-4 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/40 dark:text-white dark:focus:bg-[#1A231C]" 
                     />
                   </div>
@@ -145,7 +145,7 @@ const AddPlantUser = () => {
                     disabled={isClaiming || isPreviewingClaim} 
                     className="h-14 w-full rounded-2xl bg-slate-900 px-6 text-xs font-black uppercase tracking-widest text-white shadow-xl shadow-slate-900/20 transition-all hover:scale-105 active:scale-95 disabled:pointer-events-none disabled:opacity-60 disabled:hover:scale-100 dark:bg-white dark:text-slate-900 dark:shadow-white/10 sm:w-auto sm:self-start"
                   >
-                    {isClaiming ? 'Claiming...' : 'Confirm claim'}
+                    {isClaiming ? t('addPlant.claim.claiming') : t('addPlant.claim.confirm')}
                   </button>
                 </div>
               </div>

@@ -17,8 +17,8 @@ const emptyForm = {
   email: '',
 };
 
-const formatMemberSince = (value) => {
-  if (!value) return 'N/A';
+const formatMemberSince = (value, t) => {
+  if (!value) return t('common.nA');
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return String(value);
   return `${date.getFullYear()}.Q${Math.floor(date.getMonth() / 3) + 1}`;
@@ -151,27 +151,27 @@ const UserProfile = () => {
     setPasswordError('');
     setPasswordNotice('');
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setPasswordError('Vui lòng nhập đầy đủ mật khẩu.');
+      setPasswordError(t('userProfile.password.error.required'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPasswordError('Mật khẩu mới không khớp.');
+      setPasswordError(t('userProfile.password.error.mismatch'));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError('Mật khẩu mới phải có ít nhất 6 ký tự.');
+      setPasswordError(t('userProfile.password.error.length'));
       return;
     }
     setChangingPassword(true);
     try {
       await changePassword(currentPassword, newPassword);
-      setPasswordNotice('Đổi mật khẩu thành công!');
+      setPasswordNotice(t('userProfile.password.success'));
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setTimeout(() => setPasswordNotice(''), 3000);
     } catch (err) {
-      setPasswordError(err?.message || 'Đổi mật khẩu thất bại.');
+      setPasswordError(err?.message || t('userProfile.password.error.updateFailed'));
     } finally {
       setChangingPassword(false);
     }
@@ -216,11 +216,11 @@ const UserProfile = () => {
                 <div className="space-y-6 text-left pt-8 border-t border-slate-200/50 dark:border-white/10">
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('userProfile.email')}</label>
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-200 break-all">{form.email || 'N/A'}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-200 break-all">{form.email || t('common.nA')}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('userProfile.memberSince')}</label>
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-200">{formatMemberSince(profile?.createdAt || profile?.created_at)}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-200">{formatMemberSince(profile?.createdAt || profile?.created_at, t)}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">{t('userProfile.claimedPlants')}</label>
@@ -266,13 +266,13 @@ const UserProfile = () => {
                 <div className="flex items-start gap-4">
                   <span className="material-symbols-outlined text-3xl text-rose-500" aria-hidden="true">delete_forever</span>
                   <div>
-                    <p className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-rose-600 ring-1 ring-rose-500/20 dark:bg-rose-500/20 dark:text-rose-400">Account deletion</p>
-                    <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-white">Request deletion</h3>
-                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">DeskBoost currently supports manual account deletion requests.</p>
+                    <p className="inline-flex items-center gap-1 rounded-full bg-rose-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-rose-600 ring-1 ring-rose-500/20 dark:bg-rose-500/20 dark:text-rose-400">{t('userProfile.accountDeletion.title')}</p>
+                    <h3 className="mt-2 text-xl font-black text-slate-900 dark:text-white">{t('userProfile.accountDeletion.request')}</h3>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">{t('userProfile.accountDeletion.description')}</p>
                   </div>
                 </div>
                 <Link to="/account-deletion" className="mt-5 inline-flex w-full justify-center rounded-2xl border border-rose-200/50 bg-rose-50/50 px-5 py-3 text-xs font-black uppercase tracking-widest text-rose-600 transition hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-950/20 dark:text-rose-400 dark:hover:bg-rose-900/40">
-                  Account deletion info
+                  {t('userProfile.accountDeletion.info')}
                 </Link>
               </div>
             </div>
@@ -316,7 +316,7 @@ const UserProfile = () => {
                     <span className="size-8 bg-[#4CAF50]/10 rounded-lg flex items-center justify-center text-[#4CAF50]">
                       <span className="material-symbols-outlined text-sm">security</span>
                     </span>
-                    {t('userProfile.security', 'Bảo mật')}
+                    {t('userProfile.security')}
                   </h3>
                   
                   <div className="space-y-4">
@@ -325,20 +325,20 @@ const UserProfile = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mật khẩu hiện tại</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('userProfile.password.current')}</label>
                         <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="h-14 w-full rounded-2xl border border-white/60 bg-white/50 px-5 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-[#1A231C]" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mật khẩu mới</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('userProfile.password.new')}</label>
                         <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="h-14 w-full rounded-2xl border border-white/60 bg-white/50 px-5 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-[#1A231C]" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Xác nhận mật khẩu mới</label>
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('userProfile.password.confirm')}</label>
                         <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-14 w-full rounded-2xl border border-white/60 bg-white/50 px-5 text-sm font-bold text-slate-700 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#4CAF50]/10 dark:border-white/10 dark:bg-black/20 dark:text-white dark:focus:bg-[#1A231C]" />
                       </div>
                       <div className="space-y-2 flex items-end">
                          <button type="button" onClick={handlePasswordSubmit} disabled={changingPassword} className="h-14 px-8 rounded-2xl bg-[#4CAF50] text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-[#4CAF50]/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-60 disabled:hover:scale-100">
-                          {changingPassword ? 'Đang đổi...' : 'Đổi mật khẩu'}
+                          {changingPassword ? t('userProfile.password.updating') : t('userProfile.password.update')}
                         </button>
                       </div>
                     </div>
