@@ -24,15 +24,15 @@ const PrivacyPolicy = () => (
 
         <div className="mt-8 space-y-8">
           <Section title="Data DeskBoost collects">
-            <p>DeskBoost may collect account data, profile data, plant profiles, reminders, uploaded images, AI diagnosis results, AI chat content, feedback, request logs, and provider diagnostics.</p>
+            <p>DeskBoost may collect account data, profile data, plant profiles, reminders, uploaded images, AI diagnosis results, AI chat content, feedback, request logs, provider diagnostics, and website analytics. Google Analytics 4 may measure visits, page views, marketplace interactions, product views, Zalo/Facebook contact clicks, and browser/device technical information processed by Google.</p>
           </Section>
 
           <Section title="Why data is used">
-            <p>Data is used for account access, plant-care features, image storage, AI-assisted diagnosis and chat, reminders, support, security, fraud prevention, and reliability.</p>
+            <p>Data is used for account access, plant-care features, image storage, AI-assisted diagnosis and chat, reminders, support, security, fraud prevention, reliability, website effectiveness, conversion-funnel analysis, and improving the steps where visitors leave the website.</p>
           </Section>
 
           <Section title="Third-party processing">
-            <p>DeskBoost may use Google OAuth for login, Google/Gemini for AI responses, Plant.id for plant image diagnosis, Cloudinary for image storage, hosting/logging providers for operations, and Google Play Console for distribution diagnostics.</p>
+            <p>DeskBoost may use Google OAuth for login, Google/Gemini for AI responses, Google Analytics 4 for website analytics, Plant.id for plant image diagnosis, Cloudinary for image storage, hosting/logging providers for operations, and Google Play Console for distribution diagnostics. DeskBoost does not intentionally send email addresses, names, phone numbers, chat content, tokens, form content, or other direct user-entered content to Google Analytics 4.</p>
           </Section>
 
           <Section title="AI and image disclosure">

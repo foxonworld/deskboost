@@ -23,6 +23,7 @@ Contact placeholder: TODO: replace with official support email before Play submi
 | Feedback/reviews | Yes, when submitted | Possibly public if displayed as verified feedback | Product feedback and trust/social proof | Optional | HTTPS required | Manual deletion/anonymization request | Until removed, anonymized, or deletion workflow | Hosting/logging provider |
 | Admin action logs | Limited/partial | No intentional public sharing | Security, audit, admin abuse prevention | Internal operational data | HTTPS/log transport required | May be retained for security/legal reasons after account deletion | Operational/security retention window TBD | Hosting/logging provider |
 | Device/network metadata | Yes via app/API/hosting/provider logs | Yes, processed by providers | Security, fraud prevention, diagnostics, reliability | Automatic | HTTPS/provider controls | Provider policy/manual request where applicable | Provider retention | Hosting/logging provider, Google Play Console |
+| Website analytics events and browser/device technical information | Possible on the public website when GA4 is configured; includes visits, page views, marketplace interactions, product views, and Zalo/Facebook contact clicks | Yes | Measure website effectiveness, conversion funnel, and visitor drop-off | Automatic for configured web analytics | Provider controls | Google policy/manual request where applicable | Google retention configuration | Google Analytics 4 |
 | Crash/ANR/pre-launch diagnostics | Not directly implemented in app code; may be collected by Google Play tooling | Yes, by Google Play | App quality diagnostics, pre-launch testing, crash/ANR review | Automatic when Play tooling applies | Provider controls | Google/Play policy | Google/Play retention | Google Play Console |
 
 ## Third-party processors to disclose
@@ -33,6 +34,7 @@ Contact placeholder: TODO: replace with official support email before Play submi
 - Cloudinary: uploaded image storage/delivery.
 - Hosting/logging provider: API hosting, request logs, operational metadata.
 - Google Play Console: pre-launch, crash/ANR, install/device diagnostics where Play tooling applies.
+- Google Analytics 4: public website analytics. DeskBoost does not intentionally send email addresses, names, phone numbers, chat/form content, tokens, or other direct user-entered content to GA4.
 
 ## Current deletion model
 

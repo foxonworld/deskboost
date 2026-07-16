@@ -12,6 +12,7 @@ import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../util
 import { formatVND } from '../utils/currency';
 import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
+import { trackEvent } from '../utils/analytics';
 
 const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
 
@@ -69,6 +70,7 @@ const SkeletonCard = () => (
 const PlantList = () => {
   const pageRef = useRef(null);
   const gridRevealedRef = useRef(false);
+  const itemListTrackedRef = useRef(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
@@ -100,6 +102,25 @@ const PlantList = () => {
     load();
     return () => { alive = false; };
   }, [t]);
+
+  useEffect(() => {
+    if (itemListTrackedRef.current || plants.length === 0) return;
+
+    itemListTrackedRef.current = true;
+    trackEvent('view_item_list', {
+      item_list_id: 'deskboost_marketplace',
+      item_list_name: 'DeskBoost Marketplace',
+      currency: 'VND',
+      items: plants.slice(0, 20).map((plant, index) => ({
+        item_id: String(plant.id),
+        item_name: plant.name,
+        item_category: plant.category || 'Plant',
+        index,
+        price: Number(plant.price) || 0,
+        quantity: 1,
+      })),
+    });
+  }, [plants]);
 
   useGSAP(() => {
     if (isLoading || gridRevealedRef.current) return;

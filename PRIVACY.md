@@ -17,6 +17,7 @@ DeskBoost helps users manage plants, upload plant images, receive plant-care rem
 - AI content: diagnosis questions, AI diagnosis results, AI chat messages, and related plant context used to generate responses.
 - Feedback: user feedback/reviews if submitted.
 - Operational metadata: request logs, device/network metadata, admin action metadata, and Google Play crash/ANR/pre-launch diagnostics where provider tooling applies.
+- Website analytics: the DeskBoost website may use Google Analytics 4 (GA4) to measure visits, page views, marketplace interactions, product views, Zalo/Facebook contact clicks, and browser/device technical information processed by GA4.
 
 ## Why we collect data
 
@@ -27,6 +28,7 @@ DeskBoost helps users manage plants, upload plant images, receive plant-care rem
 - Provide AI diagnosis and plant-care chat features.
 - Improve reliability, investigate abuse, and maintain app security.
 - Process manual account deletion requests.
+- Measure website effectiveness, analyse the marketplace conversion funnel, improve the product, and identify where visitors leave the website flow.
 
 ## Third-party processors
 
@@ -38,6 +40,7 @@ DeskBoost may send or store data with these providers when relevant features are
 - Cloudinary for image storage and delivery.
 - Hosting/logging providers for API hosting, request logs, and operational reliability.
 - Google Play Console for app distribution, pre-launch reports, crash/ANR diagnostics, and related platform metadata.
+- Google Analytics 4 for website analytics. DeskBoost does not intentionally send email addresses, names, phone numbers, chat content, tokens, form content, or other direct user-entered content to GA4.
 
 ## AI and image disclosure
 

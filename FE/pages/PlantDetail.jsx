@@ -12,10 +12,12 @@ import { getRevealVars, motionDistances, usePrefersReducedMotion } from '../util
 import { formatVND } from '../utils/currency';
 import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
+import { trackEvent } from '../utils/analytics';
 
 const PlantDetail = () => {
   const pageRef = useRef(null);
   const feedbackRevealedRef = useRef(false);
+  const viewedPlantIdRef = useRef(null);
   const { plantId } = useParams();
   const [plant, setPlant] = useState(null);
   const [selectedImage, setSelectedImage] = useState('');
@@ -88,6 +90,23 @@ const PlantDetail = () => {
   }, [plant]);
 
   useEffect(() => {
+    if (!plant || String(plant.id) !== String(plantId) || viewedPlantIdRef.current === plantId) return;
+
+    viewedPlantIdRef.current = plantId;
+    trackEvent('view_item', {
+      currency: 'VND',
+      value: Number(plant.price) || 0,
+      items: [{
+        item_id: String(plant.id),
+        item_name: plant.name,
+        item_category: plant.category || 'Plant',
+        price: Number(plant.price) || 0,
+        quantity: 1,
+      }],
+    });
+  }, [plant, plantId]);
+
+  useEffect(() => {
     let active = true;
     const loadFeedback = async () => {
       setFeedbackLoading(true);
@@ -148,13 +167,30 @@ const PlantDetail = () => {
     feedbackRevealedRef.current = true;
   }, { scope: pageRef, dependencies: [feedbackLoading, reducedMotion] });
 
-  const handleContactFacebook = () => {
+  const trackLead = (leadSource, ctaLocation) => {
+    trackEvent('generate_lead', {
+      lead_source: leadSource,
+      cta_location: ctaLocation,
+      currency: 'VND',
+      items: [{
+        item_id: String(plant.id),
+        item_name: plant.name,
+        item_category: plant.category || 'Plant',
+        price: Number(plant.price) || 0,
+        quantity: 1,
+      }],
+    });
+  };
+
+  const handleContactFacebook = (ctaLocation) => {
     alert(t('detail.alert.facebook'));
+    trackLead('facebook', ctaLocation);
     window.open("https://www.facebook.com/profile.php?id=61589573026631", "_blank");
   };
 
-  const handleContactZalo = () => {
+  const handleContactZalo = (ctaLocation) => {
     alert(t('detail.alert.zalo'));
+    trackLead('zalo', ctaLocation);
     window.open("https://zalo.me/0345674779", "_blank");
   };
 
@@ -282,7 +318,7 @@ const PlantDetail = () => {
                   <span className="material-symbols-outlined rounded-2xl bg-primary/10 p-2 text-primary" aria-hidden="true">forum</span>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <Button variant="secondary" size="lg" onClick={handleContactZalo} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0068FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0068FF]/50 transition-all">
+                  <Button variant="secondary" size="lg" onClick={() => handleContactZalo('detail_zalo_channel')} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0068FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0068FF]/50 transition-all">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#0068FF]/10 text-sm font-black text-[#0068FF]">Z</span>
                     <span className="min-w-0 text-left">
                       <span className="block truncate text-sm font-extrabold text-slate-800 dark:text-white">{t('detail.zalo')}</span>
@@ -290,7 +326,7 @@ const PlantDetail = () => {
                     </span>
                     <span className="material-symbols-outlined ml-auto text-lg text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0068FF]" aria-hidden="true">arrow_forward</span>
                   </Button>
-                  <Button variant="secondary" size="lg" onClick={handleContactFacebook} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0866FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0866FF]/50 transition-all">
+                  <Button variant="secondary" size="lg" onClick={() => handleContactFacebook('detail_facebook_channel')} className="group w-full justify-start rounded-2xl bg-white border border-slate-200 px-4 hover:bg-slate-50 hover:border-[#0866FF]/30 dark:bg-surface-dark dark:border-white/10 dark:hover:border-[#0866FF]/50 transition-all">
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#0866FF]/10 text-sm font-black text-[#0866FF]">f</span>
                     <span className="min-w-0 text-left">
                       <span className="block truncate text-sm font-extrabold text-slate-800 dark:text-white">{t('detail.messenger')}</span>
@@ -299,7 +335,7 @@ const PlantDetail = () => {
                     <span className="material-symbols-outlined ml-auto text-lg text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-[#0866FF]" aria-hidden="true">arrow_forward</span>
                   </Button>
                 </div>
-                <Button size="md" onClick={handleContactZalo} className="mt-3 w-full rounded-2xl bg-primary text-white font-extrabold shadow-sm transition-all hover:bg-green-600 hover:-translate-y-0.5">{t('detail.contactThis')}</Button>
+                <Button size="md" onClick={() => handleContactZalo('detail_zalo_primary')} className="mt-3 w-full rounded-2xl bg-primary text-white font-extrabold shadow-sm transition-all hover:bg-green-600 hover:-translate-y-0.5">{t('detail.contactThis')}</Button>
               </div>
               <p className="mt-3 text-center text-[11px] font-bold tracking-wide text-text-secondary dark:text-slate-400">Không giỏ hàng · Không thanh toán trong DeskBoost</p>
             </Card>
@@ -446,7 +482,7 @@ const PlantDetail = () => {
             <p className="truncate text-sm font-extrabold text-[#111813] dark:text-white">{plant.name}</p>
             <p className="text-xs font-bold text-text-secondary dark:text-slate-400">{formatVND(plant.price || 0)} · Không thanh toán in-app</p>
           </div>
-          <Button size="sm" onClick={handleContactZalo} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
+          <Button size="sm" onClick={() => handleContactZalo('detail_zalo_mobile_sticky')} className="animate-cta-pulse-once">{t('detail.mobileContact')}</Button>
         </div>
       </div>
     </div>
