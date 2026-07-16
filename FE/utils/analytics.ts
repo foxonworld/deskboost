@@ -1,8 +1,9 @@
 type AnalyticsCommand = [command: string, ...parameters: unknown[]];
+type AnalyticsQueueEntry = IArguments | Record<string, unknown>;
 
 declare global {
   interface Window {
-    dataLayer?: AnalyticsCommand[];
+    dataLayer?: AnalyticsQueueEntry[];
     gtag?: (...args: AnalyticsCommand) => void;
   }
 }
@@ -43,8 +44,8 @@ export const initAnalytics = () => {
 
   try {
     window.dataLayer = window.dataLayer || [];
-    window.gtag = window.gtag || function gtag(...args: AnalyticsCommand) {
-      window.dataLayer?.push(args);
+    window.gtag = window.gtag || function gtag() {
+      window.dataLayer?.push(arguments);
     };
 
     if (!document.getElementById(GA4_SCRIPT_ID)) {
