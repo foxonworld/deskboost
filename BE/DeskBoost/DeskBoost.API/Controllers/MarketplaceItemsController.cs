@@ -18,6 +18,9 @@ public class MarketplaceItemsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int limit = 12, CancellationToken ct = default)
     {
+        if (!MarketplacePagination.IsValid(page, limit))
+            return BadRequest(new { message = "Invalid marketplace pagination." });
+
         var result = await _sender.Send(new GetMarketplaceItemsQuery(page, limit), ct);
         return Ok(result);
     }
@@ -27,7 +30,7 @@ public class MarketplaceItemsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
     {
-        var result = await _sender.Send(new GetMarketplaceItemByIdQuery(id), ct);
+        var result = await _sender.Send(new GetPublicMarketplaceItemByIdQuery(id), ct);
         if (result is null) return NotFound(new { message = $"Không tìm thấy item với ID {id}" });
         return Ok(result);
     }

@@ -109,6 +109,16 @@ public static class EnumExtensions
     public static MarketplaceStatus ToMarketplaceStatus(this string? value) =>
         value?.ToLowerInvariant() == "inactive" ? MarketplaceStatus.Inactive : MarketplaceStatus.Active;
 
+    public static bool TryParseMarketplaceStatus(this string? value, out MarketplaceStatus status)
+    {
+        switch (value?.Trim().ToLowerInvariant())
+        {
+            case "active": status = MarketplaceStatus.Active; return true;
+            case "inactive": status = MarketplaceStatus.Inactive; return true;
+            default: status = default; return false;
+        }
+    }
+
     public static MarketplaceCategory ToMarketplaceCategory(this string? value) =>
         value?.ToLowerInvariant() switch
         {
@@ -119,6 +129,20 @@ public static class EnumExtensions
             "other"      => MarketplaceCategory.Other,
             _            => MarketplaceCategory.Plant
         };
+
+    public static bool TryParseMarketplaceCategory(this string? value, out MarketplaceCategory category)
+    {
+        switch (value?.Trim().ToLowerInvariant())
+        {
+            case "plant": category = MarketplaceCategory.Plant; return true;
+            case "pot": category = MarketplaceCategory.Pot; return true;
+            case "soil": category = MarketplaceCategory.Soil; return true;
+            case "fertilizer": category = MarketplaceCategory.Fertilizer; return true;
+            case "accessory": category = MarketplaceCategory.Accessory; return true;
+            case "other": category = MarketplaceCategory.Other; return true;
+            default: category = default; return false;
+        }
+    }
 
     public static PlantClaimCodeStatus ToPlantClaimCodeStatus(this string? value) =>
         value?.ToLowerInvariant() switch

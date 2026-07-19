@@ -28,6 +28,7 @@ public class GetMarketplaceItemsQueryHandler : IRequestHandler<GetMarketplaceIte
         var total = await query.CountAsync(ct);
         var items = await query
             .OrderByDescending(p => p.CreatedAt)
+            .ThenByDescending(p => p.Id)
             .Skip((request.Page - 1) * request.Limit)
             .Take(request.Limit)
             .Include(p => p.Images)

@@ -1,4 +1,5 @@
 using DeskBoost.Application.Common.Interfaces;
+using DeskBoost.Domain.Exceptions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,9 @@ public class DeleteMarketplaceItemCommandHandler : IRequestHandler<DeleteMarketp
     {
         var item = await _db.MarketplaceItems.FirstOrDefaultAsync(p => p.Id == request.Id, ct)
             ?? throw new InvalidOperationException("Không tìm thấy item.");
+
+        if (await _db.PlantClaimCodes.AnyAsync(code => code.MarketplaceItemId == request.Id, ct))
+            throw new ConflictException("Không thể xóa item đang được tham chiếu bởi mã claim.");
 
         _db.MarketplaceItems.Remove(item);
         await _db.SaveChangesAsync(ct);

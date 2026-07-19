@@ -11,6 +11,7 @@ using DeskBoost.Application.Features.Notifications.Commands;
 using DeskBoost.Application.Features.Notifications.Queries;
 using DeskBoost.Application.Features.PlantSpecies.Commands;
 using DeskBoost.Application.Features.PlantSpecies.Queries;
+using DeskBoost.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -286,7 +287,12 @@ public class AdminController : ControllerBase
     /// <summary>GET /api/admin/marketplace-items — trả tất cả status</summary>
     [HttpGet("marketplace-items")]
     public async Task<IActionResult> GetMarketplaceItems([FromQuery] int page = 1, [FromQuery] int limit = 50, [FromQuery] string? category = null, CancellationToken ct = default)
-        => Ok(await _sender.Send(new GetMarketplaceItemsQuery(page, limit, IncludeAll: true, Category: category), ct));
+    {
+        if (!MarketplacePagination.IsValid(page, limit))
+            return BadRequest(new { message = "Invalid marketplace pagination." });
+
+        return Ok(await _sender.Send(new GetMarketplaceItemsQuery(page, limit, IncludeAll: true, Category: category), ct));
+    }
 
     /// <summary>GET /api/admin/marketplace-items/{id}</summary>
     [HttpGet("marketplace-items/{id:guid}")]
@@ -303,6 +309,15 @@ public class AdminController : ControllerBase
     {
         if (string.IsNullOrWhiteSpace(request.Name))
             return BadRequest(new { message = "Tên item không được để trống." });
+
+        if (!TryNormalizeMarketplaceCategory(request.Category, out var category))
+            return BadRequest(new { message = "Invalid marketplace category." });
+
+        if (!TryNormalizeMarketplaceStatus(request.Status, out var status))
+            return BadRequest(new { message = "Invalid marketplace status." });
+
+        request.Category = category;
+        request.Status = status;
 
         var result = await _sender.Send(new CreateMarketplaceItemCommand
         {
@@ -326,6 +341,22 @@ public class AdminController : ControllerBase
     [HttpPut("marketplace-items/{id:guid}")]
     public async Task<IActionResult> UpdateMarketplaceItem(Guid id, [FromBody] MarketplaceItemUpsertRequest request, CancellationToken ct)
     {
+        if (request.Category is not null)
+        {
+            if (!TryNormalizeMarketplaceCategory(request.Category, out var category))
+                return BadRequest(new { message = "Invalid marketplace category." });
+
+            request.Category = category;
+        }
+
+        if (request.Status is not null)
+        {
+            if (!TryNormalizeMarketplaceStatus(request.Status, out var status))
+                return BadRequest(new { message = "Invalid marketplace status." });
+
+            request.Status = status;
+        }
+
         try
         {
             var result = await _sender.Send(new UpdateMarketplaceItemCommand
@@ -354,6 +385,42 @@ public class AdminController : ControllerBase
         {
             return StatusCode(500, new { message = "Lỗi lưu dữ liệu ảnh.", detail = ex.InnerException?.Message });
         }
+    }
+
+    private static bool TryNormalizeMarketplaceCategory(string? value, out string category)
+    {
+        if (value is null)
+        {
+            category = "plant";
+            return true;
+        }
+
+        if (value.TryParseMarketplaceCategory(out var parsed))
+        {
+            category = parsed.ToApiString();
+            return true;
+        }
+
+        category = string.Empty;
+        return false;
+    }
+
+    private static bool TryNormalizeMarketplaceStatus(string? value, out string status)
+    {
+        if (value is null)
+        {
+            status = "active";
+            return true;
+        }
+
+        if (value.TryParseMarketplaceStatus(out var parsed))
+        {
+            status = parsed.ToApiString();
+            return true;
+        }
+
+        status = string.Empty;
+        return false;
     }
 
     /// <summary>DELETE /api/admin/marketplace-items/{id}</summary>
