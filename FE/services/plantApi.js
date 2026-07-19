@@ -1,5 +1,6 @@
 import { get, post, put, del } from "./api";
 import { normalizeMarketplaceImages } from "./marketplaceImages";
+import { normalizeMarketplaceCategory } from "./marketplaceCatalog";
 
 const statusMap = {
   active: "Active",
@@ -44,6 +45,7 @@ const parsePrice = (priceText) => {
 
 export const normalizeMarketplacePlant = (plant = {}) => {
   const imageState = normalizeMarketplaceImages(plant);
+  const categoryRaw = plant.category ?? plant.Category ?? "";
   return {
     ...plant,
     id: firstValue(plant.id, plant.Id),
@@ -55,7 +57,8 @@ export const normalizeMarketplacePlant = (plant = {}) => {
     primaryImage: imageState.primaryImage,
     price: plant.price ?? parsePrice(firstValue(plant.priceText, plant.PriceText)),
     priceText: firstValue(plant.priceText, plant.PriceText),
-    category: firstValue(plant.category, plant.Category, "plant"),
+    category: normalizeMarketplaceCategory(categoryRaw),
+    categoryRaw,
     careLevel: firstValue(plant.careLevel, plant.CareLevel),
     light: firstValue(plant.light, plant.Light),
     water: firstValue(plant.water, plant.Water),

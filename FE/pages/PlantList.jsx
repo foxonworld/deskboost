@@ -4,6 +4,7 @@ import { useGSAP } from '@gsap/react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getMarketplacePlants } from '../services/plantApi';
+import { filterMarketplacePlants, getAllMarketplacePlants } from '../services/marketplaceCatalog';
 import { EmptyState, LoadingState, StateNotice } from '../components/UiState';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -13,8 +14,6 @@ import { formatVND } from '../utils/currency';
 import { getCareScaleDisplay } from '../utils/careDisplay';
 import { useI18n } from '../i18n';
 import { trackEvent } from '../utils/analytics';
-
-const normalizeItems = (res) => (Array.isArray(res) ? res : res?.items || res?.data || []);
 
 const getProductTranslationKey = (plant, field) => `market.product.${plant.id}.${field}`;
 
@@ -35,9 +34,13 @@ const displayValueKeys = {
   'Hàng tuần': 'market.value.weekly',
   'Sơ cấp': 'market.value.beginner',
   Pot: 'market.filter.pot',
+  pot: 'market.filter.pot',
   Soil: 'market.filter.soil',
+  soil: 'market.filter.soil',
   Fertilizer: 'market.filter.fertilizer',
+  fertilizer: 'market.filter.fertilizer',
   Accessory: 'market.filter.accessory',
+  accessory: 'market.filter.accessory',
   'N/A': 'market.value.notApplicable',
 };
 
@@ -87,8 +90,8 @@ const PlantList = () => {
       setIsLoading(true);
       setError('');
       try {
-        const res = await getMarketplacePlants();
-        const items = normalizeItems(res);
+        const res = await getAllMarketplacePlants(getMarketplacePlants);
+        const items = res.items;
         if (alive) setPlants(items);
       } catch (err) {
         if (alive) {
@@ -151,10 +154,12 @@ const PlantList = () => {
 
   const filters = [
     { value: 'all', icon: 'filter_list', labelKey: 'market.filter.all' },
-    { value: 'Pot', icon: 'nest_eco_leaf', labelKey: 'market.filter.pot' },
-    { value: 'Soil', icon: 'grass', labelKey: 'market.filter.soil' },
-    { value: 'Fertilizer', icon: 'spa', labelKey: 'market.filter.fertilizer' },
-    { value: 'Accessory', icon: 'handyman', labelKey: 'market.filter.accessory' },
+    { value: 'plant', icon: 'potted_plant', labelKey: 'admin.category.plant' },
+    { value: 'pot', icon: 'nest_eco_leaf', labelKey: 'market.filter.pot' },
+    { value: 'soil', icon: 'grass', labelKey: 'market.filter.soil' },
+    { value: 'fertilizer', icon: 'spa', labelKey: 'market.filter.fertilizer' },
+    { value: 'accessory', icon: 'handyman', labelKey: 'market.filter.accessory' },
+    { value: 'other', icon: 'category', labelKey: 'admin.category.other' },
   ];
 
   const getDisplayValue = (value) => {
@@ -175,18 +180,10 @@ const PlantList = () => {
     return metricDisplay?.value || getDisplayValue(tag);
   };
 
-  const sortedAndFilteredPlants = useMemo(() => plants
-    .filter(p => p.status === 'Active' || p.status === 'Out of Stock')
-    .filter(plant => {
-      const matchesSearch = (plant.name || '').toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = activeFilter === 'all' || plant.tags?.includes(activeFilter) || plant.category === activeFilter;
-      return matchesSearch && matchesFilter;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'priceAsc') return a.price - b.price;
-      if (sortBy === 'priceDesc') return b.price - a.price;
-      return 0;
-    }), [plants, searchTerm, activeFilter, sortBy]);
+  const sortedAndFilteredPlants = useMemo(
+    () => filterMarketplacePlants(plants, { searchTerm, category: activeFilter, sortBy }),
+    [plants, searchTerm, activeFilter, sortBy],
+  );
 
   const resultLabel = isLoading ? t('market.result.loading') : t('market.result.count', { count: sortedAndFilteredPlants.length });
   const openPlantDetail = (plantId) => navigate(`/plants/${plantId}`);
