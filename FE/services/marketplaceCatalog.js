@@ -21,6 +21,18 @@ const uniqueById = (items) => {
 export const normalizeMarketplaceCategory = (category) =>
   typeof category === "string" ? category.trim().toLowerCase() : "";
 
+const categoryPriorities = {
+  plant: 0,
+  pot: 1,
+  soil: 2,
+  fertilizer: 3,
+  accessory: 4,
+  other: 5,
+};
+
+export const getMarketplaceCategoryPriority = (category) =>
+  categoryPriorities[normalizeMarketplaceCategory(category)] ?? 6;
+
 export const filterMarketplacePlants = (
   plants,
   { searchTerm = "", category = "all", sortBy = "popular" } = {},
@@ -28,7 +40,7 @@ export const filterMarketplacePlants = (
   const normalizedFilter = normalizeMarketplaceCategory(category);
   const normalizedSearch = String(searchTerm).toLowerCase();
 
-  return [...plants]
+  return plants
     .filter((plant) => plant.status === "Active" || plant.status === "Out of Stock")
     .filter((plant) => {
       const matchesSearch = String(plant.name || "").toLowerCase().includes(normalizedSearch);
@@ -36,11 +48,20 @@ export const filterMarketplacePlants = (
         || normalizeMarketplaceCategory(plant.category) === normalizedFilter;
       return matchesSearch && matchesCategory;
     })
+    .map((plant, index) => ({ plant, index }))
     .sort((a, b) => {
-      if (sortBy === "priceAsc") return a.price - b.price;
-      if (sortBy === "priceDesc") return b.price - a.price;
-      return 0;
-    });
+      let comparison = 0;
+
+      if (sortBy === "priceAsc") comparison = a.plant.price - b.plant.price;
+      if (sortBy === "priceDesc") comparison = b.plant.price - a.plant.price;
+      if (sortBy === "popular" && normalizedFilter === "all") {
+        comparison = getMarketplaceCategoryPriority(a.plant.category)
+          - getMarketplaceCategoryPriority(b.plant.category);
+      }
+
+      return comparison || a.index - b.index;
+    })
+    .map(({ plant }) => plant);
 };
 
 export const getAllMarketplacePlants = async (fetchPage) => {

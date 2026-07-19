@@ -108,3 +108,65 @@ test("filters all canonical categories, then search and sort, without losing pla
     ["other"],
   );
 });
+
+test("prioritizes canonical categories only for all plus popular without mutating input", () => {
+  const plants = [
+    { id: "soil", name: "Soil", category: "soil", status: "Active", price: 10 },
+    { id: "accessory", name: "Accessory", category: "accessory", status: "Active", price: 20 },
+    { id: "plant-first", name: "Plant first", category: " Plant ", status: "Active", price: 30 },
+    { id: "unknown", name: "Unknown", category: null, status: "Active", price: 40 },
+    { id: "pot", name: "Pot", category: "pot", status: "Active", price: 50 },
+    { id: "plant-second", name: "Plant second", category: "PLANT", status: "Active", price: 60 },
+  ];
+  const originalOrder = plants.map((plant) => plant.id);
+
+  const result = filterMarketplacePlants(plants, { category: "all", sortBy: "popular" });
+
+  assert.deepEqual(result.map((plant) => plant.id), [
+    "plant-first",
+    "plant-second",
+    "pot",
+    "soil",
+    "accessory",
+    "unknown",
+  ]);
+  assert.deepEqual(plants.map((plant) => plant.id), originalOrder);
+});
+
+test("does not apply popular category priority to specific categories or explicit sorts", () => {
+  const plants = [
+    { id: "soil", name: "Soil", category: "soil", status: "Active", price: 10 },
+    { id: "plant", name: "Plant", category: "plant", status: "Active", price: 30 },
+    { id: "accessory", name: "Accessory", category: "accessory", status: "Active", price: 20 },
+  ];
+
+  assert.deepEqual(
+    filterMarketplacePlants(plants, { category: "soil", sortBy: "popular" }).map((plant) => plant.id),
+    ["soil"],
+  );
+  assert.deepEqual(
+    filterMarketplacePlants(plants, { category: "all", sortBy: "priceAsc" }).map((plant) => plant.id),
+    ["soil", "accessory", "plant"],
+  );
+  assert.deepEqual(
+    filterMarketplacePlants(plants, { category: "all", sortBy: "priceDesc" }).map((plant) => plant.id),
+    ["plant", "accessory", "soil"],
+  );
+  assert.deepEqual(
+    filterMarketplacePlants(plants, { category: "all", sortBy: "newest" }).map((plant) => plant.id),
+    ["soil", "plant", "accessory"],
+  );
+});
+
+test("keeps plant priority after search within all plus popular", () => {
+  const plants = [
+    { id: "soil", name: "Desk soil", category: "soil", status: "Active", price: 10 },
+    { id: "plant", name: "Desk plant", category: "plant", status: "Active", price: 20 },
+  ];
+
+  assert.deepEqual(
+    filterMarketplacePlants(plants, { category: "all", searchTerm: "desk", sortBy: "popular" })
+      .map((plant) => plant.id),
+    ["plant", "soil"],
+  );
+});
