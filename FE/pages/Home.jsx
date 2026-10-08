@@ -395,7 +395,6 @@ const Home = () => {
               {[
                 { valKey: 'home.stats.diagnoses.val', labelKey: 'home.stats.diagnoses.label', icon: 'psychology', iconClass: 'text-primary' },
                 { valKey: 'home.stats.plants.val', labelKey: 'home.stats.plants.label', icon: 'potted_plant', iconClass: 'text-amber-500' },
-                { valKey: 'home.stats.reminders.val', labelKey: 'home.stats.reminders.label', icon: 'notifications_active', iconClass: 'text-sky-500' },
                 { valKey: 'home.stats.feedback.val', labelKey: 'home.stats.feedback.label', icon: 'verified', iconClass: 'text-emerald-500' },
               ].map((stat) => (
                 <Card key={stat.valKey} padding="compact" className="text-center bg-white border border-[#E4EEE6] dark:border-[#2A4532] dark:bg-background-dark/60">
